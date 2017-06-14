@@ -1,4 +1,4 @@
-/**
+/*
  *  Licensed to the Apache Software Foundation (ASF) under one or more
  *  contributor license agreements.  See the NOTICE file distributed with
  *  this work for additional information regarding copyright ownership.
@@ -14,7 +14,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package org.ops4j.pax.transx.connector;
 
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
@@ -26,10 +25,6 @@ import org.ops4j.pax.transx.connector.impl.XAResourceInsertionInterceptor;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-/**
- *
- *
- * */
 public class XATransactions implements TransactionSupport {
     
     private final boolean useTransactionCaching;
