@@ -6,29 +6,29 @@
 
     <groupId>org.ops4j.pax.transx</groupId>
     <artifactId>transx</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>core</artifactId>
+                <artifactId>transx-connector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>connection</artifactId>
+                <artifactId>transx-connection</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>jdbc</artifactId>
+                <artifactId>transx-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>jms</artifactId>
+                <artifactId>transx-jms</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -91,15 +91,38 @@
                         <target>1.8</target>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>4.1.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
     </build>
 
     <modules>
-        <module>core</module>
-        <module>connection</module>
-        <module>jms</module>
-        <module>jdbc</module>
+        <module>transx-connector</module>
+        <module>transx-connection</module>
+        <module>transx-jms</module>
+        <module>transx-jdbc</module>
+        <module>transx-features</module>
     </modules>
 
 </project>
