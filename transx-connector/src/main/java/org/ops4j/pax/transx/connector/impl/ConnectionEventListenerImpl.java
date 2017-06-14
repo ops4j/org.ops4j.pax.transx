@@ -26,16 +26,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-public class GeronimoConnectionEventListener implements ConnectionEventListener {
+public class ConnectionEventListenerImpl implements ConnectionEventListener {
 
-    private static Logger LOG = Logger.getLogger(GeronimoConnectionEventListener.class.getName());
+    private static Logger LOG = Logger.getLogger(ConnectionEventListenerImpl.class.getName());
 
     private final ManagedConnectionInfo managedConnectionInfo;
     private final ConnectionInterceptor stack;
     private final List<ConnectionInfo> connectionInfos = new ArrayList<ConnectionInfo>();
     private boolean errorOccurred = false;
 
-    public GeronimoConnectionEventListener(
+    public ConnectionEventListenerImpl(
             final ConnectionInterceptor stack,
             final ManagedConnectionInfo managedConnectionInfo) {
         this.stack = stack;

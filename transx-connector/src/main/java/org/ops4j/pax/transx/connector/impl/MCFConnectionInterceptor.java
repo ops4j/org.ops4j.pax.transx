@@ -42,7 +42,7 @@ public class MCFConnectionInterceptor implements ConnectionInterceptor {
                     mci.getSubject(),
                     mci.getConnectionRequestInfo());
             mci.setManagedConnection(mc);
-            GeronimoConnectionEventListener listener = new GeronimoConnectionEventListener(stack, mci);
+            ConnectionEventListenerImpl listener = new ConnectionEventListenerImpl(stack, mci);
             mci.setConnectionEventListener(listener);
             mc.addConnectionEventListener(listener);
         } catch (ResourceException re) {

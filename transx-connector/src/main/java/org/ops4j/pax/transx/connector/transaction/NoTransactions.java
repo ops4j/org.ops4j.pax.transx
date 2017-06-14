@@ -14,34 +14,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector;
+package org.ops4j.pax.transx.connector.transaction;
 
+import org.ops4j.pax.transx.connector.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
-import org.ops4j.pax.transx.connector.impl.LocalXAResourceInsertionInterceptor;
-import org.ops4j.pax.transx.connector.impl.TransactionCachingInterceptor;
-import org.ops4j.pax.transx.connector.impl.TransactionEnlistingInterceptor;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-/**
- *
- *
- * */
-public class LocalTransactions implements TransactionSupport {
+public class NoTransactions implements TransactionSupport {
 
-    public static final TransactionSupport INSTANCE = new LocalTransactions();
+    public static final TransactionSupport INSTANCE = new NoTransactions();
 
-    private LocalTransactions() {
+    private NoTransactions() {
     }
 
     public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return new LocalXAResourceInsertionInterceptor(stack, name);
+        return stack;
     }
 
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry tsr) {
-        stack = new TransactionEnlistingInterceptor(stack, transactionManager);
-        return new TransactionCachingInterceptor(stack, transactionManager, tsr);
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        return stack;
     }
     
     public boolean isRecoverable() {

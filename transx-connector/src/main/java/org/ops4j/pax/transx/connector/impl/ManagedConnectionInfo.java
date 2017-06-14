@@ -34,7 +34,7 @@ public class ManagedConnectionInfo {
     private long lastUsed;
     private ConnectionInterceptor poolInterceptor;
 
-    private GeronimoConnectionEventListener listener;
+    private ConnectionEventListenerImpl listener;
 
     public ManagedConnectionInfo(
             ManagedConnectionFactory managedConnectionFactory,
@@ -100,7 +100,7 @@ public class ManagedConnectionInfo {
         return poolInterceptor;
     }
 
-    public void setConnectionEventListener(GeronimoConnectionEventListener listener) {
+    public void setConnectionEventListener(ConnectionEventListenerImpl listener) {
         this.listener = listener;
     }
 

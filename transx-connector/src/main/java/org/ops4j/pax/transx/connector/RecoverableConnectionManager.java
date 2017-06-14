@@ -16,27 +16,10 @@
  */
 package org.ops4j.pax.transx.connector;
 
-import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+import javax.resource.spi.ConnectionManager;
 
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+public interface RecoverableConnectionManager extends ConnectionManager {
 
-public class NoTransactions implements TransactionSupport {
+    void doRecovery();
 
-    public static final TransactionSupport INSTANCE = new NoTransactions();
-
-    private NoTransactions() {
-    }
-
-    public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return stack;
-    }
-
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
-        return stack;
-    }
-    
-    public boolean isRecoverable() {
-        return false;
-    }
 }

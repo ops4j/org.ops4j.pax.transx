@@ -14,8 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector;
+package org.ops4j.pax.transx.connector.pool;
 
+import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
 
 /**
@@ -23,6 +24,8 @@ import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
  *
  * */
 public class NoPool implements PoolingSupport {
+
+    public static final PoolingSupport INSTANCE = new NoPool();
 
     public ConnectionInterceptor addPoolingInterceptors(ConnectionInterceptor tail) {
         return tail;

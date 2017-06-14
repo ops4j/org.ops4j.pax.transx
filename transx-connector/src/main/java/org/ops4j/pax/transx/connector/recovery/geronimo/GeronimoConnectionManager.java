@@ -14,34 +14,46 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.recovery;
+package org.ops4j.pax.transx.connector.recovery.geronimo;
 
+import org.apache.geronimo.transaction.manager.RecoverableTransactionManager;
 import org.ops4j.pax.transx.connector.PoolingSupport;
+import org.ops4j.pax.transx.connector.RecoverableConnectionManager;
 import org.ops4j.pax.transx.connector.SubjectSource;
 import org.ops4j.pax.transx.connector.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
-import org.apache.geronimo.transaction.manager.RecoverableTransactionManager;
 
 import javax.resource.spi.ManagedConnectionFactory;
+import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-public class RecoverableGenericConnectionManager extends GenericConnectionManager {
+public class GeronimoConnectionManager extends GenericConnectionManager implements RecoverableConnectionManager {
 
-    private transient final RecoverableTransactionManager transactionManager;
-    private transient final ManagedConnectionFactory managedConnectionFactory;
+    private final RecoverableTransactionManager transactionManager;
+    private final ManagedConnectionFactory managedConnectionFactory;
     private final String name;
 
-    public RecoverableGenericConnectionManager(
+    public static class TMCheck {
+        public static boolean isGeronimo(TransactionManager transactionManager) {
+            try {
+                return transactionManager instanceof RecoverableTransactionManager;
+            } catch (Throwable t) {
+                return false;
+            }
+        }
+    }
+
+    public GeronimoConnectionManager(
             TransactionSupport transactionSupport,
             PoolingSupport pooling,
             SubjectSource subjectSource,
-            RecoverableTransactionManager transactionManager,
+            TransactionManager transactionManager,
             TransactionSynchronizationRegistry transactionSynchronizationRegistry,
             ManagedConnectionFactory mcf,
             String name,
             ClassLoader classLoader) {
         super(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, mcf, name, classLoader);
-        this.transactionManager = transactionManager;
+        this.transactionManager = (RecoverableTransactionManager) transactionManager;
         this.managedConnectionFactory = mcf;
         this.name = name;
     }

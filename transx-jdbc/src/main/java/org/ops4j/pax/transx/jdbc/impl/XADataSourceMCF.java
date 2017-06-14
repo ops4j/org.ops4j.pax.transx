@@ -14,9 +14,9 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 

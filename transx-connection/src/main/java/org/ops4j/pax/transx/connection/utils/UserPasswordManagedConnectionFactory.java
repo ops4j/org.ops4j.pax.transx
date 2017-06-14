@@ -20,8 +20,6 @@ import javax.resource.spi.ManagedConnectionFactory;
 /**
  * A specialization of {@link ManagedConnectionFactory} that provides access to a defined
  * user name and password credential that should be used for all connections.
- *
- * @version $Revision: 508 $ $Date: 2007-09-20 19:02:45 -0700 (Thu, 20 Sep 2007) $
  */
 public interface UserPasswordManagedConnectionFactory extends ManagedConnectionFactory {
 
