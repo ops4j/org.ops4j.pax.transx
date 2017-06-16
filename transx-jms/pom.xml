@@ -17,6 +17,7 @@
         <dependency>
             <groupId>org.ops4j.pax.transx</groupId>
             <artifactId>transx-connection</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
@@ -27,6 +28,11 @@
             <artifactId>geronimo-jta_1.1_spec</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.aries.transaction</groupId>
+            <artifactId>org.apache.aries.transaction.manager</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.geronimo.components</groupId>
             <artifactId>geronimo-transaction</artifactId>

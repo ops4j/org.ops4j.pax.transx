@@ -16,6 +16,7 @@ package org.ops4j.pax.transx.jms.impl;
 
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
+import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.ResourceAllocationException;
 import javax.jms.Session;
@@ -56,10 +57,11 @@ public class ManagedConnectionImpl implements ManagedConnection {
     private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
     private ReentrantLock lock = new ReentrantLock();
 
-    private XAConnection connection;
-    private Session nonXAsession;
+    private XAConnection xaConnection;
     private XASession xaSession;
     private XAResource xaResource;
+    private Connection connection;
+    private Session session;
     private boolean inManagedTx;
 
     public ManagedConnectionImpl(ManagedConnectionFactoryImpl mcf,
@@ -78,13 +80,16 @@ public class ManagedConnectionImpl implements ManagedConnection {
             String userName = credentialExtractor.getUserName();
             String password = credentialExtractor.getPassword();
             if (userName != null && password != null) {
-                connection = mcf.getConnectionFactory().createXAConnection(userName, password);
+                connection = mcf.getConnectionFactory().createConnection(userName, password);
+                xaConnection = mcf.getXaConnectionFactory().createXAConnection(userName, password);
             } else {
-                connection = mcf.getConnectionFactory().createXAConnection();
+                connection = mcf.getConnectionFactory().createConnection();
+                xaConnection = mcf.getXaConnectionFactory().createXAConnection();
             }
             connection.setExceptionListener(this::onException);
-            xaSession = connection.createXASession();
-            nonXAsession = connection.createSession(transacted, acknowledgeMode);
+            xaConnection.setExceptionListener(this::onException);
+            xaSession = xaConnection.createXASession();
+            session = connection.createSession(transacted, acknowledgeMode);
         } catch (JMSException e) {
             throw new ResourceException(e.getMessage(), e);
         }
@@ -100,6 +105,11 @@ public class ManagedConnectionImpl implements ManagedConnection {
         }
         try {
             connection.setExceptionListener(null);
+        } catch (JMSException e) {
+            debug("Unable to unset exception listener", e);
+        }
+        try {
+            xaConnection.setExceptionListener(null);
         } catch (JMSException e) {
             debug("Unable to unset exception listener", e);
         }
@@ -134,7 +144,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         if (xaResource != null && inManagedTx) {
             return xaSession.getSession();
         } else {
-            return nonXAsession;
+            return session;
         }
     }
 
@@ -187,12 +197,18 @@ public class ManagedConnectionImpl implements ManagedConnection {
     }
 
     void start() throws JMSException {
+        if (xaConnection != null) {
+            xaConnection.start();
+        }
         if (connection != null) {
             connection.start();
         }
     }
 
     void stop() throws JMSException {
+        if (xaConnection != null) {
+            xaConnection.stop();
+        }
         if (connection != null) {
             connection.stop();
         }
@@ -211,23 +227,30 @@ public class ManagedConnectionImpl implements ManagedConnection {
 
     private void destroyHandles() throws ResourceException {
         try {
+            if (xaConnection != null) {
+                xaConnection.stop();
+            }
+        } catch (Throwable t) {
+            trace("Ignored error stopping xaConnection", t);
+        }
+        try {
             if (connection != null) {
                 connection.stop();
             }
         } catch (Throwable t) {
-            trace("Ignored error stopping connection", t);
+            trace("Ignored error stopping xaConnection", t);
         }
         doClose(handles, SessionImpl::destroy);
     }
 
     /**
-     * Destroy the physical connection.
+     * Destroy the physical xaConnection.
      *
-     * @throws ResourceException Could not property close the session and connection.
+     * @throws ResourceException Could not property close the session and xaConnection.
      */
     @Override
     public void destroy() throws ResourceException {
-        if (isDestroyed.get() || connection == null) {
+        if (isDestroyed.get() || (connection == null && xaConnection == null)) {
             return;
         }
         isDestroyed.set(true);
@@ -237,25 +260,33 @@ public class ManagedConnectionImpl implements ManagedConnection {
         } catch (JMSException e) {
             trace("Error setting exception listener to null", e);
         }
+        try {
+            xaConnection.setExceptionListener(null);
+        } catch (JMSException e) {
+            trace("Error setting exception listener to null", e);
+        }
         destroyHandles();
         try {
             /*
-             * (xa|nonXA)Session.close() may NOT be called BEFORE connection.close()
+             * (xa|nonXA)Session.close() may NOT be called BEFORE xaConnection.close()
              * <p>
              * If the ClientSessionFactory is trying to fail-over or reconnect with -1 attempts, and
              * one calls session.close() it may effectively dead-lock.
              * <p>
-             * connection close will close the ClientSessionFactory which will close all sessions.
+             * xaConnection close will close the ClientSessionFactory which will close all sessions.
              */
             if (connection != null) {
                 connection.close();
             }
+            if (xaConnection != null) {
+                xaConnection.close();
+            }
 
-            // The following calls should not be necessary, as the connection should close the
+            // The following calls should not be necessary, as the xaConnection should close the
             // ClientSessionFactory, which will close the sessions.
             try {
-                if (nonXAsession != null) {
-                    nonXAsession.close();
+                if (session != null) {
+                    session.close();
                 }
                 if (xaSession != null) {
                     xaSession.close();
@@ -264,7 +295,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
                 debug("Error closing session " + this, e);
             }
         } catch (Throwable e) {
-            throw new ResourceException("Could not properly close the session and connection", e);
+            throw new ResourceException("Could not properly close the session and xaConnection", e);
         }
     }
 
@@ -279,9 +310,9 @@ public class ManagedConnectionImpl implements ManagedConnection {
         inManagedTx = false;
 
         // I'm recreating the lock object when we return to the pool
-        // because it looks too nasty to expect the connection handle
+        // because it looks too nasty to expect the xaConnection handle
         // to unlock properly in certain race conditions
-        // where the dissociation of the managed connection is "random".
+        // where the dissociation of the managed xaConnection is "random".
         lock = new ReentrantLock();
     }
 
@@ -301,7 +332,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         }
 
         if (isDestroyed.get()) {
-            throw new IllegalStateException("The managed connection is already destroyed");
+            throw new IllegalStateException("The managed xaConnection is already destroyed");
         }
 
         SessionImpl session = new SessionImpl(this, (ConnectionRequestInfoImpl) cxRequestInfo);

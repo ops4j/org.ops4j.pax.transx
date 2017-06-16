@@ -18,17 +18,18 @@ import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
 import org.ops4j.pax.transx.jms.impl.ManagedConnectionFactoryImpl;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
 import javax.resource.spi.ManagedConnectionFactory;
 
 public class ManagedConnectionFactoryFactory {
 
-    public static ManagedConnectionFactory create(XAConnectionFactory cf) {
-        return create(cf, new NoExceptionsAreFatalSorter());
+    public static ManagedConnectionFactory create(ConnectionFactory cf, XAConnectionFactory xaCf) {
+        return create(cf, xaCf, new NoExceptionsAreFatalSorter());
     }
 
-    public static ManagedConnectionFactory create(XAConnectionFactory cf, ExceptionSorter exceptionSorter) {
-        return new ManagedConnectionFactoryImpl(cf, exceptionSorter);
+    public static ManagedConnectionFactory create(ConnectionFactory cf, XAConnectionFactory xaCf, ExceptionSorter exceptionSorter) {
+        return new ManagedConnectionFactoryImpl(cf, xaCf, exceptionSorter);
     }
 
 }

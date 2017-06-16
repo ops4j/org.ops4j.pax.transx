@@ -17,6 +17,7 @@ package org.ops4j.pax.transx.jms.impl;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
@@ -28,19 +29,25 @@ import java.util.Set;
 
 public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory {
 
-    private final XAConnectionFactory connectionFactory;
+    private final XAConnectionFactory xaConnectionFactory;
+    private final ConnectionFactory connectionFactory;
     private ExceptionSorter exceptionSorter;
     private String userName;
     private String password;
     private String clientID;
 
-    public ManagedConnectionFactoryImpl(XAConnectionFactory connectionFactory, ExceptionSorter exceptionSorter) {
+    public ManagedConnectionFactoryImpl(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory, ExceptionSorter exceptionSorter) {
         this.connectionFactory = connectionFactory;
+        this.xaConnectionFactory = xaConnectionFactory;
         this.exceptionSorter = exceptionSorter;
     }
 
-    public XAConnectionFactory getConnectionFactory() {
+    public ConnectionFactory getConnectionFactory() {
         return connectionFactory;
+    }
+
+    public XAConnectionFactory getXaConnectionFactory() {
+        return xaConnectionFactory;
     }
 
     /**

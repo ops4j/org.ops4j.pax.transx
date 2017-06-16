@@ -16,12 +16,20 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
+import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
@@ -30,21 +38,74 @@ import javax.sql.DataSource;
 import javax.sql.XADataSource;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.Objects;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.partitionedPool;
 import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.xaTransactions;
 
 public class H2Test {
 
+    private static final String DROP_USER = "DROP TABLE IF EXISTS USER";
+    private static final String CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS USER (ID INT NOT NULL UNIQUE, NAME VARCHAR(50))";
+    private static final String INSERT_INTO_USER = "INSERT INTO USER (ID, NAME) VALUES (?, ?)";
+    private static final String SELECT_FROM_USER_BY_ID = "SELECT * FROM USER WHERE ID = ?";
+    private static final String DELETE_FROM_USER_BY_ID = "DELETE FROM USER WHERE ID = ?";
+    private static final String DELETE_FROM_USER = "DELETE * FROM USER";
+    private static final String COUNT_USER = "SELECT COUNT(*) FROM USER";
+
     GeronimoTransactionManager tm;
+
+    public static class User {
+        private int id;
+        private String name;
+
+        public User() {
+        }
+
+        public User(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            User user = (User) o;
+            return id == user.id &&
+                    Objects.equals(name, user.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, name);
+        }
+    }
 
     @Before
     public void setUp() throws Exception {
-        tm = new GeronimoTransactionManager();
+        tm = new AriesPlatformTransactionManager();
     }
 
     @Test
@@ -54,16 +115,27 @@ public class H2Test {
         tm.begin();
         try (Connection con = ds.getConnection()) {
             Statement st = con.createStatement();
-            st.execute("CREATE TABLE USER (ID INT, NAME VARCHAR(50));");
+            st.execute(DROP_USER);
+            st.execute(CREATE_TABLE_USER);
         }
         tm.commit();
 
         tm.begin();
         try (Connection con = ds.getConnection()) {
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM USER");
+            PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER);
+            ps.setInt(1, 1);
+            ps.setString(2, "user1");
+            ps.executeUpdate();
+        }
+        tm.commit();
+
+        tm.begin();
+        try (Connection con = ds.getConnection()) {
+            PreparedStatement ps = con.prepareStatement(SELECT_FROM_USER_BY_ID);
+            ps.setInt(1, 1);
+            ResultSet rs = ps.executeQuery();
             Statement st2 = rs.getStatement();
-            assertSame(st, st2);
+            assertSame(ps, st2);
         }
         tm.commit();
 
@@ -73,6 +145,75 @@ public class H2Test {
             assertNull(rs.getStatement());
             Connection con2 = dmd.getConnection();
             assertSame(con, con2);
+        }
+    }
+
+    @Test
+    public void testSpring() throws Exception {
+        DataSource ds = wrap(createH2DataSource());
+        JdbcTemplate jdbc = new JdbcTemplate(ds);
+
+        jdbc.execute(DROP_USER);
+        jdbc.execute(CREATE_TABLE_USER);
+
+        jdbc.update(INSERT_INTO_USER, 1, "user1");
+        User user = jdbc.queryForObject(SELECT_FROM_USER_BY_ID, new BeanPropertyRowMapper<>(User.class), 1);
+        assertEquals(new User(1, "user1"), user);
+
+        jdbc.update(DELETE_FROM_USER_BY_ID, 1);
+    }
+
+    @Test
+    public void testSpringXaTx() throws Exception {
+        DataSource ds = wrap(createH2DataSource());
+        JdbcTemplate jdbc = new JdbcTemplate(ds);
+        TransactionTemplate tx = new TransactionTemplate((PlatformTransactionManager) tm);
+
+        jdbc.execute(DROP_USER);
+        jdbc.execute(CREATE_TABLE_USER);
+
+        tx.execute(ts -> jdbc.update(INSERT_INTO_USER, 1, "user1"));
+        User user = tx.execute(ts -> jdbc.queryForObject(SELECT_FROM_USER_BY_ID, new BeanPropertyRowMapper<>(User.class), 1));
+        assertEquals(new User(1, "user1"), user);
+        tx.execute(ts -> jdbc.update(DELETE_FROM_USER_BY_ID, 1));
+
+        tx.execute(ts -> {
+            int nb = jdbc.update(INSERT_INTO_USER, 1, "user1");
+            ts.setRollbackOnly();
+            return nb;
+        });
+        try {
+            user = tx.execute(ts -> jdbc.queryForObject(SELECT_FROM_USER_BY_ID, new BeanPropertyRowMapper<>(User.class), 1));
+            fail("Expected a EmptyResultDataAccessException");
+        } catch (EmptyResultDataAccessException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testSpringLocalTx() throws Exception {
+        DataSource ds = wrap(createH2DataSource());
+        JdbcTemplate jdbc = new JdbcTemplate(ds);
+        TransactionTemplate tx = new TransactionTemplate(new DataSourceTransactionManager(ds));
+
+        jdbc.execute(DROP_USER);
+        jdbc.execute(CREATE_TABLE_USER);
+
+        tx.execute(ts -> jdbc.update(INSERT_INTO_USER, 1, "user1"));
+        User user = tx.execute(ts -> jdbc.queryForObject(SELECT_FROM_USER_BY_ID, new BeanPropertyRowMapper<>(User.class), 1));
+        assertEquals(new User(1, "user1"), user);
+        tx.execute(ts -> jdbc.update(DELETE_FROM_USER_BY_ID, 1));
+
+        tx.execute(ts -> {
+            int nb = jdbc.update(INSERT_INTO_USER, 1, "user1");
+            ts.setRollbackOnly();
+            return nb;
+        });
+        try {
+            user = tx.execute(ts -> jdbc.queryForObject(SELECT_FROM_USER_BY_ID, new BeanPropertyRowMapper<>(User.class), 1));
+            fail("Expected a EmptyResultDataAccessException");
+        } catch (EmptyResultDataAccessException e) {
+            // expected
         }
     }
 

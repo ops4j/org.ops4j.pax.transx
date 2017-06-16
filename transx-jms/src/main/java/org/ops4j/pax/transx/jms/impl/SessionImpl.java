@@ -43,6 +43,8 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
 import javax.transaction.xa.XAResource;
 import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -55,8 +57,7 @@ public class SessionImpl implements TopicSession, QueueSession {
     private ManagedConnectionImpl mc;
     private ConnectionImpl con;
 
-    private final Set<MessageConsumer> consumers = new HashSet<>();
-    private final Set<MessageProducer> producers = new HashSet<>();
+    private final Set<AutoCloseable> closeables = new HashSet<>();
 
     public SessionImpl(ManagedConnectionImpl mc, ConnectionRequestInfoImpl cri) {
         this.mc = mc;
@@ -88,8 +89,7 @@ public class SessionImpl implements TopicSession, QueueSession {
             } catch (Throwable t) {
                 // TODO: Log
             }
-            Utils.doClose(consumers);
-            Utils.doClose(producers);
+            Utils.doClose(closeables);
             mc.removeHandle(this);
             ConnectionEvent ev = new ConnectionEvent(mc, ConnectionEvent.CONNECTION_CLOSED);
             ev.setConnectionHandle(this);
@@ -134,92 +134,92 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     @Override
     public QueueReceiver createReceiver(Queue queue) throws JMSException {
-        return call(() -> wrapConsumer(getQueueSessionInternal().createReceiver(queue)));
+        return call(() -> wrap(QueueReceiver.class, getQueueSessionInternal().createReceiver(queue)));
     }
 
     @Override
     public QueueReceiver createReceiver(Queue queue, String messageSelector) throws JMSException {
-        return call(() -> wrapConsumer(getQueueSessionInternal().createReceiver(queue, messageSelector)));
+        return call(() -> wrap(QueueReceiver.class, getQueueSessionInternal().createReceiver(queue, messageSelector)));
     }
 
     @Override
     public QueueSender createSender(Queue queue) throws JMSException {
-        return call(() -> wrapProducer(getQueueSessionInternal().createSender(queue)));
+        return call(() -> wrap(QueueSender.class, getQueueSessionInternal().createSender(queue)));
     }
 
     @Override
     public TopicSubscriber createSubscriber(Topic topic) throws JMSException {
-        return call(() -> wrapConsumer(getTopicSessionInternal().createSubscriber(topic)));
+        return call(() -> wrap(TopicSubscriber.class, getTopicSessionInternal().createSubscriber(topic)));
     }
 
     @Override
     public TopicSubscriber createSubscriber(Topic topic, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrapConsumer(getTopicSessionInternal().createSubscriber(topic, messageSelector, noLocal)));
+        return call(() -> wrap(TopicSubscriber.class, getTopicSessionInternal().createSubscriber(topic, messageSelector, noLocal)));
     }
 
     @Override
     public TopicPublisher createPublisher(Topic topic) throws JMSException {
-        return call(() -> wrapProducer(getTopicSessionInternal().createPublisher(topic)));
+        return call(() -> wrap(TopicPublisher.class, getTopicSessionInternal().createPublisher(topic)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createConsumer(destination)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination, String messageSelector) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createConsumer(destination, messageSelector)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination, messageSelector)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createConsumer(destination, messageSelector, noLocal)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination, messageSelector, noLocal)));
     }
 
     @Override
     public MessageProducer createProducer(Destination destination) throws JMSException {
-        return call(() -> wrapProducer(getSessionInternal().createProducer(destination)));
+        return call(() -> wrap(MessageProducer.class, getSessionInternal().createProducer(destination)));
     }
 
     @Override
     public TopicSubscriber createDurableSubscriber(Topic topic, String name) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createDurableSubscriber(topic, name)));
+        return call(() -> wrap(TopicSubscriber.class, getSessionInternal().createDurableSubscriber(topic, name)));
     }
 
     @Override
     public TopicSubscriber createDurableSubscriber(Topic topic, String name, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createDurableSubscriber(topic, name, messageSelector, noLocal)));
+        return call(() -> wrap(TopicSubscriber.class, getSessionInternal().createDurableSubscriber(topic, name, messageSelector, noLocal)));
     }
 
     @Override
     public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName)));
     }
 
     @Override
     public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName, String messageSelector) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName, messageSelector)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName, messageSelector)));
     }
 
     @Override
     public MessageConsumer createDurableConsumer(Topic topic, String name) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createDurableConsumer(topic, name)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createDurableConsumer(topic, name)));
     }
 
     @Override
     public MessageConsumer createDurableConsumer(Topic topic, String name, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createDurableConsumer(topic, name, messageSelector, noLocal)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createDurableConsumer(topic, name, messageSelector, noLocal)));
     }
 
     @Override
     public MessageConsumer createSharedDurableConsumer(Topic topic, String name) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createSharedDurableConsumer(topic, name)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedDurableConsumer(topic, name)));
     }
 
     @Override
     public MessageConsumer createSharedDurableConsumer(Topic topic, String name, String messageSelector) throws JMSException {
-        return call(() -> wrapConsumer(getSessionInternal().createSharedDurableConsumer(topic, name, messageSelector)));
+        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedDurableConsumer(topic, name, messageSelector)));
     }
 
     @Override
@@ -395,14 +395,18 @@ public class SessionImpl implements TopicSession, QueueSession {
         // TODO: ?
     }
 
-    private <T extends MessageConsumer> T wrapConsumer(T consumer) {
-        consumers.add(consumer);
-        return consumer;
-    }
-
-    private <T extends MessageProducer> T wrapProducer(T producer) {
-        producers.add(producer);
-        return producer;
+    @SuppressWarnings("unchecked")
+    private <T extends AutoCloseable> T wrap(Class<T> clazz, T closeable) {
+        closeables.add(closeable);
+        return (T) Proxy.newProxyInstance(closeable.getClass().getClassLoader(), new Class[]{ clazz },
+                (proxy, method, args) -> {
+                    if ("close".equals(method.getName())
+                            && method.getParameterCount() == 0
+                            && method.getReturnType() == void.class) {
+                        closeables.remove(closeable);
+                    }
+                    return method.invoke(closeable, args);
+                });
     }
 
     void destroy() {
