@@ -14,7 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.recovery.narayana;
+package org.ops4j.pax.transx.connector.impl.narayana;
 
 import org.jboss.tm.XAResourceRecovery;
 import org.ops4j.pax.transx.connector.impl.ConnectionInfo;

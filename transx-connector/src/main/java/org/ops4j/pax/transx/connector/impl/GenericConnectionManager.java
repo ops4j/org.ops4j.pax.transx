@@ -17,9 +17,7 @@
 package org.ops4j.pax.transx.connector.impl;
 
 import org.ops4j.pax.transx.connector.PoolingAttributes;
-import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.SubjectSource;
-import org.ops4j.pax.transx.connector.TransactionSupport;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;

@@ -17,14 +17,16 @@
 package org.ops4j.pax.transx.connector;
 
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
-import org.ops4j.pax.transx.connector.pool.NoPool;
-import org.ops4j.pax.transx.connector.pool.PartitionedPool;
-import org.ops4j.pax.transx.connector.pool.SinglePool;
-import org.ops4j.pax.transx.connector.recovery.geronimo.GeronimoConnectionManager;
-import org.ops4j.pax.transx.connector.recovery.narayana.NarayanaConnectionManager;
-import org.ops4j.pax.transx.connector.transaction.LocalTransactions;
-import org.ops4j.pax.transx.connector.transaction.NoTransactions;
-import org.ops4j.pax.transx.connector.transaction.XATransactions;
+import org.ops4j.pax.transx.connector.impl.LocalTransactions;
+import org.ops4j.pax.transx.connector.impl.NoPool;
+import org.ops4j.pax.transx.connector.impl.NoTransactions;
+import org.ops4j.pax.transx.connector.impl.PartitionedPool;
+import org.ops4j.pax.transx.connector.impl.PoolingSupport;
+import org.ops4j.pax.transx.connector.impl.SinglePool;
+import org.ops4j.pax.transx.connector.impl.TransactionSupport;
+import org.ops4j.pax.transx.connector.impl.XATransactions;
+import org.ops4j.pax.transx.connector.impl.geronimo.GeronimoConnectionManager;
+import org.ops4j.pax.transx.connector.impl.narayana.NarayanaConnectionManager;
 
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;

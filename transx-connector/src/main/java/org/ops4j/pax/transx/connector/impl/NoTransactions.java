@@ -14,21 +14,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector;
-
-import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+package org.ops4j.pax.transx.connector.impl;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-public interface TransactionSupport {
+public class NoTransactions implements TransactionSupport {
 
-    ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name);
+    public static final TransactionSupport INSTANCE = new NoTransactions();
 
-    ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack,
-                                                     TransactionManager transactionManager,
-                                                     TransactionSynchronizationRegistry transactionSynchronizationRegistry);
+    private NoTransactions() {
+    }
 
-    boolean isRecoverable();
+    public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
+        return stack;
+    }
 
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        return stack;
+    }
+    
+    public boolean isRecoverable() {
+        return false;
+    }
 }

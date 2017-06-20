@@ -14,9 +14,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector;
+package org.ops4j.pax.transx.connector.impl;
 
-import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+import org.ops4j.pax.transx.connector.PoolingAttributes;
 
 public interface PoolingSupport extends PoolingAttributes {
 

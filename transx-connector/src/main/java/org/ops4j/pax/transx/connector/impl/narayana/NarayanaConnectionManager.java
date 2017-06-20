@@ -14,36 +14,45 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.recovery.geronimo;
+package org.ops4j.pax.transx.connector.impl.narayana;
 
-import org.apache.geronimo.transaction.manager.RecoverableTransactionManager;
+import org.jboss.tm.XAResourceRecovery;
 import org.ops4j.pax.transx.connector.RecoverableConnectionManager;
 import org.ops4j.pax.transx.connector.SubjectSource;
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
-import org.ops4j.pax.transx.connector.PoolingSupport;
-import org.ops4j.pax.transx.connector.TransactionSupport;
+import org.ops4j.pax.transx.connector.impl.PoolingSupport;
+import org.ops4j.pax.transx.connector.impl.TransactionSupport;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-public class GeronimoConnectionManager extends GenericConnectionManager implements RecoverableConnectionManager {
+public class NarayanaConnectionManager extends GenericConnectionManager implements RecoverableConnectionManager {
 
-    private final RecoverableTransactionManager transactionManager;
+    private final TransactionManager transactionManager;
     private final ManagedConnectionFactory managedConnectionFactory;
     private final String name;
+    private ServiceRegistration<XAResourceRecovery> registration;
 
     public static class TMCheck {
-        public static boolean isGeronimo(TransactionManager transactionManager) {
+
+        public static boolean isNarayana(TransactionManager transactionManager) {
             try {
-                return transactionManager instanceof RecoverableTransactionManager;
+                // Check if the transaction manager comes from Narayana
+                // and if we can load the classes needed for recovery
+                return transactionManager.getClass().getName().contains("narayana")
+                        && TMCheck.class.getClassLoader().loadClass("org.jboss.tm.XAResourceRecovery") != null;
             } catch (Throwable t) {
                 return false;
             }
         }
+
     }
 
-    public GeronimoConnectionManager(
+    public NarayanaConnectionManager(
             TransactionSupport transactionSupport,
             PoolingSupport pooling,
             SubjectSource subjectSource,
@@ -53,7 +62,7 @@ public class GeronimoConnectionManager extends GenericConnectionManager implemen
             ClassLoader classLoader,
             ManagedConnectionFactory mcf) {
         super(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, name, classLoader);
-        this.transactionManager = (RecoverableTransactionManager) transactionManager;
+        this.transactionManager = transactionManager;
         this.managedConnectionFactory = mcf;
         this.name = name;
     }
@@ -62,21 +71,24 @@ public class GeronimoConnectionManager extends GenericConnectionManager implemen
         if (!getIsRecoverable()) {
             return;
         }
-        transactionManager.registerNamedXAResourceFactory(new OutboundNamedXAResourceFactory(name, getRecoveryStack(), managedConnectionFactory));
+        XAResourceRecovery recovery = new XAResourceRecoveryImpl(name, getRecoveryStack(), managedConnectionFactory);
+        BundleContext bundleContext = FrameworkUtil.getBundle(getClass()).getBundleContext();
+        registration = bundleContext.registerService(XAResourceRecovery.class, recovery, null);
     }
 
     public void doStop() throws Exception {
-        if (transactionManager != null) {
-            transactionManager.unregisterNamedXAResourceFactory(name);
+        if (registration != null) {
+            registration.unregister();
+            registration = null;
         }
         super.doStop();
     }
 
     public void doFail() {
-        if (transactionManager != null) {
-            transactionManager.unregisterNamedXAResourceFactory(name);
+        if (registration != null) {
+            registration.unregister();
+            registration = null;
         }
         super.doFail();
     }
-
 }

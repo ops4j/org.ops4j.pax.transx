@@ -14,35 +14,32 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.transaction;
-
-import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
-import org.ops4j.pax.transx.connector.impl.TransactionCachingInterceptor;
-import org.ops4j.pax.transx.connector.impl.TransactionEnlistingInterceptor;
-import org.ops4j.pax.transx.connector.TransactionSupport;
-import org.ops4j.pax.transx.connector.impl.XAResourceInsertionInterceptor;
+package org.ops4j.pax.transx.connector.impl;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-public class XATransactions implements TransactionSupport {
+/**
+ *
+ *
+ * */
+public class LocalTransactions implements TransactionSupport {
 
-    public static final XATransactions INSTANCE = new XATransactions();
+    public static final TransactionSupport INSTANCE = new LocalTransactions();
 
-    private XATransactions() {
+    private LocalTransactions() {
     }
 
     public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return new XAResourceInsertionInterceptor(stack, name);
+        return new LocalXAResourceInsertionInterceptor(stack, name);
     }
 
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry tsr) {
         stack = new TransactionEnlistingInterceptor(stack, transactionManager);
-        stack = new TransactionCachingInterceptor(stack, transactionManager, transactionSynchronizationRegistry);
-        return stack;
+        return new TransactionCachingInterceptor(stack, transactionManager, tsr);
     }
-
+    
     public boolean isRecoverable() {
-        return true;
+        return false;
     }
 }

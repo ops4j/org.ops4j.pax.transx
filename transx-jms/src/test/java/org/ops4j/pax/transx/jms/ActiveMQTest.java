@@ -239,7 +239,6 @@ public class ActiveMQTest {
                 .transactionManager(tm, tm)
                 .name("vmbroker")
                 .managedConnectionFactory(mcf)
-                .pooling(true)
                 .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)
                 .build();
         return (ConnectionFactory) mcf.createConnectionFactory(cm);

@@ -14,7 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.recovery.geronimo;
+package org.ops4j.pax.transx.connector.impl.geronimo;
 
 import org.apache.geronimo.transaction.manager.NamedXAResource;
 import org.apache.geronimo.transaction.manager.NamedXAResourceFactory;

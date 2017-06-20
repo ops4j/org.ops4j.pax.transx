@@ -14,30 +14,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.transaction;
-
-import org.ops4j.pax.transx.connector.TransactionSupport;
-import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+package org.ops4j.pax.transx.connector.impl;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
-public class NoTransactions implements TransactionSupport {
+public class XATransactions implements TransactionSupport {
 
-    public static final TransactionSupport INSTANCE = new NoTransactions();
+    public static final XATransactions INSTANCE = new XATransactions();
 
-    private NoTransactions() {
+    private XATransactions() {
     }
 
     public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return stack;
+        return new XAResourceInsertionInterceptor(stack, name);
     }
 
     public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        stack = new TransactionEnlistingInterceptor(stack, transactionManager);
+        stack = new TransactionCachingInterceptor(stack, transactionManager, transactionSynchronizationRegistry);
         return stack;
     }
-    
+
     public boolean isRecoverable() {
-        return false;
+        return true;
     }
 }
