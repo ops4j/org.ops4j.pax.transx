@@ -38,6 +38,11 @@ public class SubjectInterceptor implements ConnectionInterceptor {
         this.subjectSource = subjectSource;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
+
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         Subject currentSubject = null;
         if (!connectionInfo.isApplicationManagedSecurity()) {

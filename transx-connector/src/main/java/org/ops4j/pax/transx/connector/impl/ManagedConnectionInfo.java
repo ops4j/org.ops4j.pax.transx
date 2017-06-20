@@ -21,6 +21,7 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAResource;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public class ManagedConnectionInfo {
     private Subject subject;
     private ManagedConnection managedConnection;
     private XAResource xares;
-    private long lastUsed;
+    private Instant lastUsed;
     private ConnectionInterceptor poolInterceptor;
 
     private ConnectionEventListenerImpl listener;
@@ -84,11 +85,11 @@ public class ManagedConnectionInfo {
         this.xares = xares;
     }
 
-    public long getLastUsed() {
+    public Instant getLastUsed() {
         return lastUsed;
     }
 
-    public void setLastUsed(long lastUsed) {
+    public void setLastUsed(Instant lastUsed) {
         this.lastUsed = lastUsed;
     }
 

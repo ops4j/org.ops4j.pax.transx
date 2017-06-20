@@ -17,28 +17,36 @@
 package org.ops4j.pax.transx.connector.pool;
 
 import org.ops4j.pax.transx.connector.PoolingAttributes;
-import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.SinglePoolConnectionInterceptor;
 import org.ops4j.pax.transx.connector.impl.SinglePoolMatchAllConnectionInterceptor;
+
+import java.time.Duration;
 
 public class SinglePool implements PoolingSupport {
 
     private int maxSize;
     private int minSize;
-    private int blockingTimeoutMilliseconds;
-    private int idleTimeoutMinutes;
+    private Duration blockingTimeout;
+    private Duration idleTimeout;
+    private boolean backgroundValidation;
+    private Duration validatingPeriod;
+    private boolean validateOnMatch;
     private boolean matchOne;
     private boolean matchAll;
     private boolean selectOneAssumeMatch;
 
     private transient PoolingAttributes pool;
 
-    public SinglePool(int maxSize, int minSize, int blockingTimeoutMilliseconds, int idleTimeoutMinutes, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch) {
+    public SinglePool(int maxSize, int minSize, Duration blockingTimeout, Duration idleTimeout, boolean backgroundValidation, Duration validatingPeriod, boolean validateOnMatch, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch) {
         this.maxSize = maxSize;
         this.minSize = minSize;
-        this.blockingTimeoutMilliseconds = blockingTimeoutMilliseconds;
-        this.idleTimeoutMinutes = idleTimeoutMinutes;
+        this.blockingTimeout = blockingTimeout;
+        this.idleTimeout = idleTimeout;
+        this.backgroundValidation = backgroundValidation;
+        this.validatingPeriod = validatingPeriod;
+        this.validateOnMatch = validateOnMatch;
         this.matchOne = matchOne;
         this.matchAll = matchAll;
         this.selectOneAssumeMatch = selectOneAssumeMatch;
@@ -60,26 +68,53 @@ public class SinglePool implements PoolingSupport {
         this.minSize = minSize;
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return blockingTimeoutMilliseconds;
+    public Duration getBlockingTimeout() {
+        return blockingTimeout;
     }
 
-    public void setBlockingTimeoutMilliseconds(int blockingTimeoutMilliseconds) {
-        this.blockingTimeoutMilliseconds = blockingTimeoutMilliseconds;
+    public void setBlockingTimeout(Duration blockingTimeout) {
+        this.blockingTimeout = blockingTimeout;
         if (pool != null) {
-            pool.setBlockingTimeoutMilliseconds(blockingTimeoutMilliseconds);
+            pool.setBlockingTimeout(blockingTimeout);
         }
     }
 
-    public int getIdleTimeoutMinutes() {
-        return idleTimeoutMinutes;
+    public Duration getIdleTimeout() {
+        return idleTimeout;
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
-        this.idleTimeoutMinutes = idleTimeoutMinutes;
+    public void setIdleTimeout(Duration idleTimeout) {
+        this.idleTimeout = idleTimeout;
         if (pool != null) {
-            pool.setIdleTimeoutMinutes(idleTimeoutMinutes);
+            pool.setIdleTimeout(idleTimeout);
         }
+    }
+
+    public boolean isBackgroundValidation() {
+        return backgroundValidation;
+    }
+
+    public void setBackgroundValidation(boolean backgroundValidation) {
+        this.backgroundValidation = backgroundValidation;
+    }
+
+    public Duration getValidatingPeriod() {
+        return validatingPeriod;
+    }
+
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        this.validatingPeriod = validatingPeriod;
+        if (pool != null) {
+            pool.setValidatingPeriod(validatingPeriod);
+        }
+    }
+
+    public boolean isValidateOnMatch() {
+        return validateOnMatch;
+    }
+
+    public void setValidateOnMatch(boolean validateOnMatch) {
+        this.validateOnMatch = validateOnMatch;
     }
 
     public boolean isMatchOne() {
@@ -111,16 +146,22 @@ public class SinglePool implements PoolingSupport {
             SinglePoolMatchAllConnectionInterceptor pool = new SinglePoolMatchAllConnectionInterceptor(tail,
                     getMaxSize(),
                     getMinSize(),
-                    getBlockingTimeoutMilliseconds(),
-                    getIdleTimeoutMinutes());
+                    getBlockingTimeout(),
+                    getIdleTimeout(),
+                    isBackgroundValidation(),
+                    getValidatingPeriod(),
+                    isValidateOnMatch());
             this.pool = pool;
             return pool;
         } else {
             SinglePoolConnectionInterceptor pool = new SinglePoolConnectionInterceptor(tail,
                     getMaxSize(),
                     getMinSize(),
-                    getBlockingTimeoutMilliseconds(),
-                    getIdleTimeoutMinutes(),
+                    getBlockingTimeout(),
+                    getIdleTimeout(),
+                    isBackgroundValidation(),
+                    getValidatingPeriod(),
+                    isValidateOnMatch(),
                     isSelectOneAssumeMatch());
             this.pool = pool;
             return pool;

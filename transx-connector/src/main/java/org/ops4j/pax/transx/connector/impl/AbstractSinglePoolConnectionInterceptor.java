@@ -22,9 +22,14 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
@@ -43,26 +48,41 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
     protected final ConnectionInterceptor next;
     private final ReadWriteLock resizeLock = new ReentrantReadWriteLock();
     protected Semaphore permits;
-    protected int blockingTimeoutMilliseconds;
+    protected Duration blockingTimeout;
     protected int connectionCount = 0;
-    protected long idleTimeoutMilliseconds;
+    protected Duration idleTimeout;
     private IdleReleaser idleReleaser;
     protected int maxSize = 0;
     protected int minSize = 0;
     protected int shrinkLater = 0;
     protected volatile boolean destroyed = false;
+    private boolean backgroundValidation;
+    private Duration validatingPeriod;
+    private boolean validateOnMatch;
+    private ValidationTask validationTask;
 
     public AbstractSinglePoolConnectionInterceptor(ConnectionInterceptor next,
                                                    int maxSize,
                                                    int minSize,
-                                                   int blockingTimeoutMilliseconds,
-                                                   int idleTimeoutMinutes) {
+                                                   Duration blockingTimeout,
+                                                   Duration idleTimeout,
+                                                   boolean backgroundValidation,
+                                                   Duration validatingPeriod,
+                                                   boolean validateOnMatch) {
         this.next = next;
         this.maxSize = maxSize;
         this.minSize = minSize;
-        this.blockingTimeoutMilliseconds = blockingTimeoutMilliseconds;
-        setIdleTimeoutMinutes(idleTimeoutMinutes);
+        this.blockingTimeout = blockingTimeout;
+        this.backgroundValidation = backgroundValidation;
+        this.validatingPeriod = validatingPeriod;
+        this.validateOnMatch = validateOnMatch;
+        setIdleTimeout(idleTimeout);
         permits = new Semaphore(maxSize, true);
+    }
+
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
     }
 
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
@@ -75,17 +95,27 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
         try {
             resizeLock.readLock().lock();
             try {
-                if (permits.tryAcquire(blockingTimeoutMilliseconds, TimeUnit.MILLISECONDS)) {
-                    try {
-                        internalGetConnection(connectionInfo);
-                    } catch (ResourceException e) {
-                        permits.release();
-                        throw e;
+                if (permits.tryAcquire(blockingTimeout.toNanos(), TimeUnit.NANOSECONDS)) {
+                    while (true) {
+                        try {
+                            internalGetConnection(connectionInfo);
+                        } catch (ResourceException e) {
+                            permits.release();
+                            throw e;
+                        }
+                        if (validateOnMatch) {
+                            ManagedConnectionInfo mci = connectionInfo.getManagedConnectionInfo();
+                            if (!isValid(mci)) {
+                                returnConnection(new ConnectionInfo(mci), ConnectionReturnAction.RETURN_HANDLE);
+                                continue;
+                            }
+                        }
+                        break;
                     }
                 } else {
                     throw new ResourceException("No ManagedConnections available "
                             + "within configured blocking timeout ( "
-                            + blockingTimeoutMilliseconds
+                            + blockingTimeout
                             + " [ms] ) for pool " + this);
 
                 }
@@ -166,7 +196,7 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
                 shrinkLater--;
                 releasePermit = false;
             } else if (connectionReturnAction == ConnectionReturnAction.RETURN_HANDLE) {
-                mci.setLastUsed(System.currentTimeMillis());
+                mci.setLastUsed(Instant.now());
                 doAdd(mci);
                 return true;
             } else {
@@ -278,40 +308,62 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
         this.minSize = minSize;
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return blockingTimeoutMilliseconds;
+    public Duration getBlockingTimeout() {
+        return blockingTimeout;
     }
 
-    public void setBlockingTimeoutMilliseconds(int blockingTimeoutMilliseconds) {
-        if (blockingTimeoutMilliseconds < 0) {
-            throw new IllegalArgumentException("blockingTimeoutMilliseconds must be positive or 0, not " + blockingTimeoutMilliseconds);
+    public void setBlockingTimeout(Duration blockingTimeout) {
+        if (blockingTimeout != null && blockingTimeout.getSeconds() < 0) {
+            throw new IllegalArgumentException("blockingTimeout must be positive, zero or null, not " + blockingTimeout);
         }
-        if (blockingTimeoutMilliseconds == 0) {
-            this.blockingTimeoutMilliseconds = Integer.MAX_VALUE;
+        if (blockingTimeout == null) {
+            this.blockingTimeout = Duration.ofDays(Integer.MAX_VALUE);
         } else {
-            this.blockingTimeoutMilliseconds = blockingTimeoutMilliseconds;
+            this.blockingTimeout = blockingTimeout;
         }
     }
 
-    public int getIdleTimeoutMinutes() {
-        return (int) idleTimeoutMilliseconds / (1000 * 60);
+    public Duration getIdleTimeout() {
+        return idleTimeout;
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
-        if (idleTimeoutMinutes < 0) {
-            throw new IllegalArgumentException("idleTimeoutMinutes must be positive or 0, not " + idleTimeoutMinutes);
+    public void setIdleTimeout(Duration idleTimeout) {
+        if (idleTimeout == null || idleTimeout.getSeconds() < 0) {
+            throw new IllegalArgumentException("idleTimeout must be positive or 0, not " + idleTimeout);
         }
         if (idleReleaser != null) {
             idleReleaser.cancel();
         }
-        if (idleTimeoutMinutes > 0) {
-            this.idleTimeoutMilliseconds = idleTimeoutMinutes * 60 * 1000;
-            idleReleaser = new IdleReleaser(this);
-            timer.schedule(idleReleaser, this.idleTimeoutMilliseconds, this.idleTimeoutMilliseconds);
+        this.idleTimeout = idleTimeout;
+        idleReleaser = new IdleReleaser(this);
+        long p = idleTimeout.toMillis();
+        timer.schedule(idleReleaser, p, p);
+    }
+
+    @Override
+    public Duration getValidatingPeriod() {
+        return validatingPeriod;
+    }
+
+    @Override
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        if (validatingPeriod != null && validatingPeriod.getSeconds() < 0) {
+            throw new IllegalArgumentException("validatingPeriod must be positive, zero or null, not " + validatingPeriod);
+        }
+        if (validationTask != null) {
+            validationTask.cancel();
+        }
+        this.validatingPeriod = validatingPeriod;
+        if (validatingPeriod != null) {
+            validationTask = new ValidationTask(this);
+            long p = idleTimeout.toMillis();
+            timer.schedule(validationTask, p, p);
         }
     }
 
-    protected abstract void getExpiredManagedConnectionInfos(long threshold, List<ManagedConnectionInfo> killList);
+    protected abstract void getExpiredManagedConnectionInfos(Instant threshold, List<ManagedConnectionInfo> killList);
+
+    abstract void getManagedConnectionInfos(List<ManagedConnectionInfo> mcis);
 
     protected boolean addToPool(ManagedConnectionInfo mci) {
         boolean added;
@@ -323,6 +375,67 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
             }
         }
         return added;
+    }
+
+    boolean isValid(ManagedConnectionInfo mci) {
+        if (mci.getManagedConnectionFactory() instanceof ValidatingManagedConnectionFactory) {
+            try {
+                Set s = ((ValidatingManagedConnectionFactory) mci.getManagedConnectionFactory())
+                        .getInvalidConnections(Collections.singleton(mci.getManagedConnection()));
+                if (s != null && s.contains(mci.getManagedConnection())) {
+                    return false;
+                }
+            } catch (ResourceException e) {
+                // Ignore
+            }
+        } else {
+            LOG.warning("Connection validation configured, but the ManagedConnectionFactory does not implement the ValidatingManagedConnectionFactory interface");
+        }
+        return true;
+    }
+
+    // static class to permit chain of strong references from preventing ClassLoaders
+    // from being GC'ed.
+    private class ValidationTask extends TimerTask {
+        private AbstractSinglePoolConnectionInterceptor parent;
+
+        public ValidationTask(AbstractSinglePoolConnectionInterceptor parent) {
+            this.parent = parent;
+        }
+
+        public boolean cancel() {
+            this.parent = null;
+            return super.cancel();
+        }
+
+        public void run() {
+            // protect against interceptor being set to null mid-execution
+            AbstractSinglePoolConnectionInterceptor interceptor = parent;
+            if (interceptor == null)
+                return;
+
+            List<ManagedConnectionInfo> mcis = new ArrayList<>();
+            interceptor.getManagedConnectionInfos(mcis);
+            for (ManagedConnectionInfo mci : mcis) {
+                if (mci.getManagedConnectionFactory() instanceof ValidatingManagedConnectionFactory) {
+                    try {
+                        Set s = ((ValidatingManagedConnectionFactory) mci.getManagedConnectionFactory())
+                                .getInvalidConnections(Collections.singleton(mci.getManagedConnection()));
+                        if (s != null && s.contains(mci.getManagedConnection())) {
+                            interceptor.resizeLock.readLock().lock();
+                            try {
+                                ConnectionInfo killInfo = new ConnectionInfo(mci);
+                                parent.next.returnConnection(killInfo, ConnectionReturnAction.DESTROY);
+                            } finally {
+                                interceptor.resizeLock.readLock().unlock();
+                            }
+                        }
+                    } catch (ResourceException e) {
+                    }
+                }
+            }
+        }
+
     }
 
     // static class to permit chain of strong references from preventing ClassLoaders
@@ -347,7 +460,7 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
 
             interceptor.resizeLock.readLock().lock();
             try {
-                long threshold = System.currentTimeMillis() - interceptor.idleTimeoutMilliseconds;
+                Instant threshold = Instant.now().minus(interceptor.idleTimeout);
                 List<ManagedConnectionInfo> killList = new ArrayList<>(interceptor.getPartitionMaxSize());
                 interceptor.getExpiredManagedConnectionInfos(threshold, killList);
                 for (ManagedConnectionInfo managedConnectionInfo : killList) {
@@ -355,7 +468,7 @@ public abstract class AbstractSinglePoolConnectionInterceptor implements Connect
                     parent.next.returnConnection(killInfo, ConnectionReturnAction.DESTROY);
                 }
             } catch (Throwable t) {
-                LOG.log(Level.SEVERE, "Error occurred during execution of ExpirationMonitor TimerTask", t);
+                LOG.log(Level.SEVERE, "Error occurred during execution of idle TimerTask", t);
             } finally {
                 interceptor.resizeLock.readLock().unlock();
             }

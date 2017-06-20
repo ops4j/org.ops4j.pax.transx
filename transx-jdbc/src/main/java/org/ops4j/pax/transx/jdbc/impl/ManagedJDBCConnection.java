@@ -65,7 +65,19 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<Connection,
         return localTx;
     }
 
-	protected void localTransactionStart(boolean isSPI) throws ResourceException {
+    @Override
+    protected boolean isValid() {
+        try {
+            if (getPhysicalConnection().isValid(0)) {
+                return true;
+            }
+        } catch (SQLException e) {
+            // no-op
+        }
+        return false;
+    }
+
+    protected void localTransactionStart(boolean isSPI) throws ResourceException {
         try {
             physicalConnection.setAutoCommit(false);
         } catch (SQLException e) {

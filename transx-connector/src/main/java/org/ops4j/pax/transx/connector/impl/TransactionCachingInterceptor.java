@@ -65,6 +65,11 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
         this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
+
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         //There can be an inactive transaction context when a connection is requested in
         //Synchronization.afterCompletion().

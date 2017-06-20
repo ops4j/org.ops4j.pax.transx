@@ -22,6 +22,7 @@ import org.ops4j.pax.transx.connector.PoolingSupport;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.security.auth.Subject;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,6 +55,11 @@ public class MultiPoolConnectionInterceptor implements ConnectionInterceptor, Po
         this.singlePoolFactory = singlePoolFactory;
         this.useSubject = useSubject;
         this.useCRI = useCRI;
+    }
+
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
     }
 
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
@@ -139,25 +145,38 @@ public class MultiPoolConnectionInterceptor implements ConnectionInterceptor, Po
         return count;
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return singlePoolFactory.getBlockingTimeoutMilliseconds();
+    public Duration getBlockingTimeout() {
+        return singlePoolFactory.getBlockingTimeout();
     }
 
-    public void setBlockingTimeoutMilliseconds(int timeoutMilliseconds) {
-        singlePoolFactory.setBlockingTimeoutMilliseconds(timeoutMilliseconds);
+    public void setBlockingTimeout(Duration timeoutMilliseconds) {
+        singlePoolFactory.setBlockingTimeout(timeoutMilliseconds);
         for (PoolingAttributes poolingAttributes : pools.values()) {
-            poolingAttributes.setBlockingTimeoutMilliseconds(timeoutMilliseconds);
+            poolingAttributes.setBlockingTimeout(timeoutMilliseconds);
         }
     }
 
-    public int getIdleTimeoutMinutes() {
-        return singlePoolFactory.getIdleTimeoutMinutes();
+    public Duration getIdleTimeout() {
+        return singlePoolFactory.getIdleTimeout();
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
-        singlePoolFactory.setIdleTimeoutMinutes(idleTimeoutMinutes);
+    public void setIdleTimeout(Duration idleTimeout) {
+        singlePoolFactory.setIdleTimeout(idleTimeout);
         for (PoolingAttributes poolingAttributes : pools.values()) {
-            poolingAttributes.setIdleTimeoutMinutes(idleTimeoutMinutes);
+            poolingAttributes.setIdleTimeout(idleTimeout);
+        }
+    }
+
+    @Override
+    public Duration getValidatingPeriod() {
+        return singlePoolFactory.getValidatingPeriod();
+    }
+
+    @Override
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        singlePoolFactory.setValidatingPeriod(validatingPeriod);
+        for (PoolingAttributes poolingAttributes : pools.values()) {
+            poolingAttributes.setValidatingPeriod(validatingPeriod);
         }
     }
 
@@ -166,11 +185,10 @@ public class MultiPoolConnectionInterceptor implements ConnectionInterceptor, Po
         next.info(s);
     }
 
-
     static class SubjectCRIKey {
         private final Subject subject;
         private final ConnectionRequestInfo cri;
-        private final int hashcode;
+        private final transient int hashcode;
 
         public SubjectCRIKey(
                 final Subject subject,

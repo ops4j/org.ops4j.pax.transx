@@ -20,10 +20,6 @@ import org.ops4j.pax.transx.connector.PoolingAttributes;
 import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.SubjectSource;
 import org.ops4j.pax.transx.connector.TransactionSupport;
-import org.ops4j.pax.transx.connector.pool.PartitionedPool;
-import org.ops4j.pax.transx.connector.transaction.LocalTransactions;
-import org.ops4j.pax.transx.connector.transaction.NoTransactions;
-import org.ops4j.pax.transx.connector.transaction.XATransactions;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
@@ -32,6 +28,7 @@ import javax.resource.spi.LazyAssociatableConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
+import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,38 +46,8 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
             SubjectSource subjectSource,
             TransactionManager transactionManager,
             TransactionSynchronizationRegistry transactionSynchronizationRegistry,
-            ManagedConnectionFactory mcf,
             String name,
             ClassLoader classLoader) {
-
-        //check for consistency between attributes
-        if (subjectSource == null && pooling instanceof PartitionedPool && ((PartitionedPool) pooling).isPartitionBySubject()) {
-            throw new IllegalStateException("To use Subject in pooling, you need a SecurityDomain");
-        }
-
-        if (mcf == null) {
-            throw new NullPointerException("No ManagedConnectionFactory supplied for " + name);
-        }
-        if (mcf instanceof javax.resource.spi.TransactionSupport) {
-            javax.resource.spi.TransactionSupport txSupport = (javax.resource.spi.TransactionSupport)mcf;
-            javax.resource.spi.TransactionSupport.TransactionSupportLevel txSupportLevel = txSupport.getTransactionSupport();
-            LOG.info("Runtime TransactionSupport level: " + txSupportLevel);
-            if (txSupportLevel != null) {
-                if (txSupportLevel == javax.resource.spi.TransactionSupport.TransactionSupportLevel.NoTransaction) {
-                    transactionSupport = NoTransactions.INSTANCE;
-                } else if (txSupportLevel == javax.resource.spi.TransactionSupport.TransactionSupportLevel.LocalTransaction) {
-                    if (transactionSupport != NoTransactions.INSTANCE) {
-                        transactionSupport = LocalTransactions.INSTANCE;
-                    }
-                } else {
-                    if (transactionSupport != NoTransactions.INSTANCE && transactionSupport != LocalTransactions.INSTANCE) {
-                        transactionSupport = new XATransactions(true, false);
-                    }
-                }
-            }
-        } else {
-            LOG.info("No runtime TransactionSupport");
-        }
 
         //Set up the interceptor stack
         MCFConnectionInterceptor tail = new MCFConnectionInterceptor();
@@ -188,20 +155,34 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         return getPooling().getConnectionCount();
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return getPooling().getBlockingTimeoutMilliseconds();
+    public Duration getBlockingTimeout() {
+        return getPooling().getBlockingTimeout();
     }
 
-    public void setBlockingTimeoutMilliseconds(int timeoutMilliseconds) {
-        getPooling().setBlockingTimeoutMilliseconds(timeoutMilliseconds);
+    public void setBlockingTimeout(Duration blockingTimeout) {
+        getPooling().setBlockingTimeout(blockingTimeout);
     }
 
-    public int getIdleTimeoutMinutes() {
-        return getPooling().getIdleTimeoutMinutes();
+    public Duration getIdleTimeout() {
+        return getPooling().getIdleTimeout();
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
-        getPooling().setIdleTimeoutMinutes(idleTimeoutMinutes);
+    public void setIdleTimeout(Duration idleTimeout) {
+        getPooling().setIdleTimeout(idleTimeout);
+    }
+
+    @Override
+    public Duration getValidatingPeriod() {
+        return getPooling().getValidatingPeriod();
+    }
+
+    @Override
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        getPooling().setValidatingPeriod(validatingPeriod);
+    }
+
+    protected ConnectionInterceptor getStack() {
+        return stack;
     }
 
     protected ConnectionInterceptor getRecoveryStack() {

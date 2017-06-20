@@ -17,9 +17,11 @@
 package org.ops4j.pax.transx.connector.pool;
 
 import org.ops4j.pax.transx.connector.PoolingAttributes;
-import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
 import org.ops4j.pax.transx.connector.impl.MultiPoolConnectionInterceptor;
+import org.ops4j.pax.transx.connector.PoolingSupport;
+
+import java.time.Duration;
 
 public class PartitionedPool implements PoolingSupport {
 
@@ -30,8 +32,8 @@ public class PartitionedPool implements PoolingSupport {
 
     private transient PoolingAttributes poolingAttributes;
 
-    public PartitionedPool(int maxSize, int minSize, int blockingTimeoutMilliseconds, int idleTimeoutMinutes, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch, boolean partitionByConnectionRequestInfo, boolean partitionBySubject) {
-        singlePool = new SinglePool(maxSize, minSize, blockingTimeoutMilliseconds, idleTimeoutMinutes, matchOne, matchAll, selectOneAssumeMatch);
+    public PartitionedPool(int maxSize, int minSize, Duration blockingTimeout, Duration idleTimeout, boolean backgroundValidation, Duration validatingPeriod, boolean validateOnMatch, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch, boolean partitionByConnectionRequestInfo, boolean partitionBySubject) {
+        singlePool = new SinglePool(maxSize, minSize, blockingTimeout, idleTimeout, backgroundValidation, validatingPeriod, validateOnMatch, matchOne, matchAll, selectOneAssumeMatch);
         this.partitionByConnectionRequestInfo = partitionByConnectionRequestInfo;
         this.partitionBySubject = partitionBySubject;
     }
@@ -60,20 +62,28 @@ public class PartitionedPool implements PoolingSupport {
         singlePool.setMaxSize(maxSize);
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return poolingAttributes.getBlockingTimeoutMilliseconds();
+    public Duration getBlockingTimeout() {
+        return poolingAttributes.getBlockingTimeout();
     }
 
-    public void setBlockingTimeoutMilliseconds(int blockingTimeoutMilliseconds) {
-        poolingAttributes.setBlockingTimeoutMilliseconds(blockingTimeoutMilliseconds);
+    public void setBlockingTimeout(Duration blockingTimeout) {
+        poolingAttributes.setBlockingTimeout(blockingTimeout);
     }
 
-    public int getIdleTimeoutMinutes() {
-        return poolingAttributes.getIdleTimeoutMinutes();
+    public Duration getIdleTimeout() {
+        return poolingAttributes.getIdleTimeout();
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
-        poolingAttributes.setIdleTimeoutMinutes(idleTimeoutMinutes);
+    public void setIdleTimeout(Duration idleTimeout) {
+        poolingAttributes.setIdleTimeout(idleTimeout);
+    }
+
+    public Duration getValidatingPeriod() {
+        return poolingAttributes.getValidatingPeriod();
+    }
+
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        poolingAttributes.setValidatingPeriod(validatingPeriod);
     }
 
     public boolean isMatchOne() {

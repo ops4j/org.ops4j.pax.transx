@@ -16,32 +16,20 @@
  */
 package org.ops4j.pax.transx.connector.transaction;
 
-import org.ops4j.pax.transx.connector.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
-import org.ops4j.pax.transx.connector.impl.ThreadLocalCachingConnectionInterceptor;
 import org.ops4j.pax.transx.connector.impl.TransactionCachingInterceptor;
 import org.ops4j.pax.transx.connector.impl.TransactionEnlistingInterceptor;
+import org.ops4j.pax.transx.connector.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.XAResourceInsertionInterceptor;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
 public class XATransactions implements TransactionSupport {
-    
-    private final boolean useTransactionCaching;
-    private final boolean useThreadCaching;
 
-    public XATransactions(boolean useTransactionCaching, boolean useThreadCaching) {
-        this.useTransactionCaching = useTransactionCaching;
-        this.useThreadCaching = useThreadCaching;
-    }
+    public static final XATransactions INSTANCE = new XATransactions();
 
-    public boolean isUseTransactionCaching() {
-        return useTransactionCaching;
-    }
-
-    public boolean isUseThreadCaching() {
-        return useThreadCaching;
+    private XATransactions() {
     }
 
     public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
@@ -49,18 +37,11 @@ public class XATransactions implements TransactionSupport {
     }
 
     public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
-        //experimental thread local caching
-        if (useThreadCaching) {
-            //useMatching should be configurable
-            stack = new ThreadLocalCachingConnectionInterceptor(stack, false);
-        }
         stack = new TransactionEnlistingInterceptor(stack, transactionManager);
-        if (useTransactionCaching) {
-            stack = new TransactionCachingInterceptor(stack, transactionManager, transactionSynchronizationRegistry);
-        }
+        stack = new TransactionCachingInterceptor(stack, transactionManager, transactionSynchronizationRegistry);
         return stack;
     }
-    
+
     public boolean isRecoverable() {
         return true;
     }

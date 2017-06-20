@@ -16,6 +16,8 @@
  */
 package org.ops4j.pax.transx.connector;
 
+import java.time.Duration;
+
 public interface PoolingAttributes {
 
     int getPartitionCount();
@@ -32,11 +34,15 @@ public interface PoolingAttributes {
 
     void setPartitionMinSize(int minSize);
 
-    int getBlockingTimeoutMilliseconds();
+    Duration getBlockingTimeout();
 
-    void setBlockingTimeoutMilliseconds(int timeoutMilliseconds);
+    void setBlockingTimeout(Duration blockingTimeout);
 
-    int getIdleTimeoutMinutes();
+    Duration getIdleTimeout();
 
-    void setIdleTimeoutMinutes(int idleTimeoutMinutes);
+    void setIdleTimeout(Duration idleTimeout);
+
+    Duration getValidatingPeriod();
+
+    void setValidatingPeriod(Duration validatingPeriod);
 }

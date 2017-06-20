@@ -28,53 +28,364 @@ import org.ops4j.pax.transx.connector.transaction.XATransactions;
 
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
+import java.time.Duration;
 
 public class ConnectionManagerFactory {
 
-    public static ConnectionManager create(
-            TransactionSupport transactionSupport,
-            PoolingSupport pooling,
-            SubjectSource subjectSource,
-            TransactionManager transactionManager,
-            TransactionSynchronizationRegistry transactionSynchronizationRegistry,
-            ManagedConnectionFactory mcf,
-            String name,
-            ClassLoader classLoader)
-    {
-        if (transactionSupport.isRecoverable()) {
-            if (GeronimoConnectionManager.TMCheck.isGeronimo(transactionManager)) {
-                return new GeronimoConnectionManager(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, mcf, name, classLoader);
-            } else if (NarayanaConnectionManager.TMCheck.isNarayana(transactionManager)) {
-                return new NarayanaConnectionManager(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, mcf, name, classLoader);
+    public enum TransactionSupportLevel {
+        None, Local, Xa
+    }
+
+    public enum Partition {
+        None,
+        ByConnectorProperties,
+        BySubject
+    }
+
+    public static class Builder {
+        private final ConnectionManagerFactory connectionManagerFactory = new ConnectionManagerFactory();
+
+        public Builder name(String name) {
+            connectionManagerFactory.setName(name);
+            return this;
+        }
+
+        public Builder managedConnectionFactory(ManagedConnectionFactory managedConnectionFactory) {
+            connectionManagerFactory.setManagedConnectionFactory(managedConnectionFactory);
+            return this;
+        }
+
+        public Builder transaction(TransactionSupportLevel tx) {
+            connectionManagerFactory.setTransaction(tx);
+            return this;
+        }
+
+        public Builder transactionManager(TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+            connectionManagerFactory.setTransactionManager(transactionManager);
+            connectionManagerFactory.setTransactionSynchronizationRegistry(transactionSynchronizationRegistry);
+            return this;
+        }
+
+        public Builder pooling(boolean pooling) {
+            connectionManagerFactory.setPooling(pooling);
+            return this;
+        }
+
+        public Builder partition(Partition partition) {
+            connectionManagerFactory.setPartitionStrategy(partition);
+            return this;
+        }
+
+        public ConnectionManager build() throws Exception {
+            connectionManagerFactory.init();
+            return connectionManagerFactory.getConnectionManager();
+        }
+
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private TransactionManager transactionManager;
+    private TransactionSynchronizationRegistry transactionSynchronizationRegistry;
+    private ManagedConnectionFactory managedConnectionFactory;
+
+    private String name;
+
+    private TransactionSupportLevel transaction;
+
+    private boolean pooling = true;
+    private Partition partitionStrategy; //: none, by-subject, by-connector-properties
+    private int poolMaxSize = 10;
+    private int poolMinSize = 0;
+    private boolean allConnectionsEqual = true;
+    private Duration connectionMaxWait = Duration.ofSeconds(5);
+    private Duration connectionMaxIdle = Duration.ofMinutes(15);
+
+    private Boolean backgroundValidation;
+    private Duration validatingPeriod = Duration.ofMinutes(10);
+    private Boolean validateOnMatch;
+
+    private SubjectSource subjectSource;
+
+    private GenericConnectionManager connectionManager;
+
+    public ConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
+
+    public void init() throws Exception {
+        if (transactionManager == null && transaction == TransactionSupportLevel.Xa) {
+            throw new IllegalArgumentException("transactionManager must be set");
+        }
+        if (transactionSynchronizationRegistry == null && transaction == TransactionSupportLevel.Xa) {
+            throw new IllegalArgumentException("transactionSynchronizationRegistry must be set");
+        }
+        if (managedConnectionFactory == null) {
+            throw new IllegalArgumentException("managedConnectionFactory must be set");
+        }
+        if (backgroundValidation == null) {
+            backgroundValidation = managedConnectionFactory instanceof ValidatingManagedConnectionFactory;
+        }
+        if (validateOnMatch == null) {
+            validateOnMatch = managedConnectionFactory instanceof ValidatingManagedConnectionFactory;
+        }
+        // Transaction support
+        TransactionSupport transactionSupport = null;
+        if (transaction != null) {
+            switch (transaction) {
+                case None:
+                    transactionSupport = NoTransactions.INSTANCE;
+                    break;
+                case Local:
+                    transactionSupport = LocalTransactions.INSTANCE;
+                    break;
+                case Xa:
+                    transactionSupport = XATransactions.INSTANCE;
+                    break;
             }
         }
-        return new GenericConnectionManager(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, mcf, name, classLoader);
+        if (managedConnectionFactory instanceof javax.resource.spi.TransactionSupport) {
+            javax.resource.spi.TransactionSupport ts = javax.resource.spi.TransactionSupport.class.cast(managedConnectionFactory);
+            javax.resource.spi.TransactionSupport.TransactionSupportLevel txSupportLevel = ts.getTransactionSupport();
+            if (txSupportLevel != null) {
+                if (txSupportLevel == javax.resource.spi.TransactionSupport.TransactionSupportLevel.NoTransaction) {
+                    transactionSupport = NoTransactions.INSTANCE;
+                } else if (txSupportLevel == javax.resource.spi.TransactionSupport.TransactionSupportLevel.LocalTransaction) {
+                    if (transactionSupport != NoTransactions.INSTANCE) {
+                        transactionSupport = LocalTransactions.INSTANCE;
+                    }
+                } else {
+                    if (transactionSupport != NoTransactions.INSTANCE && transactionSupport != LocalTransactions.INSTANCE) {
+                        transactionSupport = XATransactions.INSTANCE;
+                    }
+                }
+            }
+        }
+        if (transactionSupport == null) {
+            transactionSupport = NoTransactions.INSTANCE;
+        }
+        // Pooling support
+        PoolingSupport poolingSupport;
+        if (!pooling) {
+            // No pool
+            poolingSupport = new NoPool();
+        } else {
+            switch (partitionStrategy == null ? Partition.None : partitionStrategy) {
+                // unpartitioned pool
+                default:
+                case None:
+                    poolingSupport = new SinglePool(poolMaxSize,
+                        poolMinSize,
+                        connectionMaxWait,
+                        connectionMaxIdle,
+                        backgroundValidation,
+                        validatingPeriod,
+                        validateOnMatch,
+                        allConnectionsEqual,
+                        !allConnectionsEqual,
+                        false);
+                    break;
+                // partition by connector properties such as username and password on a jdbc connection
+                case ByConnectorProperties:
+                    poolingSupport = new PartitionedPool(poolMaxSize,
+                        poolMinSize,
+                        connectionMaxWait,
+                        connectionMaxIdle,
+                        backgroundValidation,
+                        validatingPeriod,
+                        validateOnMatch,
+                        allConnectionsEqual,
+                        !allConnectionsEqual,
+                        false,
+                        true,
+                        false);
+                    break;
+                // partition by caller subject
+                case BySubject:
+                    if (subjectSource == null) {
+                        throw new IllegalStateException("To use Subject in pooling, you need a SecurityDomain");
+                    }
+                    poolingSupport = new PartitionedPool(poolMaxSize,
+                        poolMinSize,
+                        connectionMaxWait,
+                        connectionMaxIdle,
+                        backgroundValidation,
+                        validatingPeriod,
+                        validateOnMatch,
+                        allConnectionsEqual,
+                        !allConnectionsEqual,
+                        false,
+                        false,
+                        true);
+                    break;
+            }
+        }
+        if (connectionManager == null) {
+            // Instantiate the Connection Manager
+            if (transactionSupport.isRecoverable()) {
+                if (GeronimoConnectionManager.TMCheck.isGeronimo(transactionManager)) {
+                    connectionManager = new GeronimoConnectionManager(
+                            transactionSupport,
+                            poolingSupport,
+                            subjectSource,
+                            transactionManager,
+                            transactionSynchronizationRegistry,
+                            name != null ? name : getClass().getName(),
+                            getClass().getClassLoader(),
+                            managedConnectionFactory);
+                } else if (NarayanaConnectionManager.TMCheck.isNarayana(transactionManager)) {
+                    connectionManager = new NarayanaConnectionManager(
+                            transactionSupport,
+                            poolingSupport,
+                            subjectSource,
+                            transactionManager,
+                            transactionSynchronizationRegistry,
+                            name != null ? name : getClass().getName(),
+                            getClass().getClassLoader(),
+                            managedConnectionFactory);
+                }
+            }
+            connectionManager.doStart();
+        }
     }
 
-    public static TransactionSupport noTransactions() {
-        return NoTransactions.INSTANCE;
+    public void destroy() throws Exception {
+        if (connectionManager != null) {
+            connectionManager.doStop();
+            connectionManager = null;
+        }
     }
 
-    public static TransactionSupport localTransactions() {
-        return LocalTransactions.INSTANCE;
+    public TransactionManager getTransactionManager() {
+        return transactionManager;
     }
 
-    public static TransactionSupport xaTransactions(boolean useTransactionCaching, boolean useThreadCaching) {
-        return new XATransactions(useTransactionCaching, useThreadCaching);
+    public void setTransactionManager(TransactionManager transactionManager) {
+        this.transactionManager = transactionManager;
     }
 
-    public static PoolingSupport noPool() {
-        return NoPool.INSTANCE;
+    public TransactionSynchronizationRegistry getTransactionSynchronizationRegistry() {
+        return transactionSynchronizationRegistry;
     }
 
-    public static PoolingSupport singlePool(int maxSize, int minSize, int blockingTimeoutMilliseconds, int idleTimeoutMinutes, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch) {
-        return new SinglePool(maxSize, minSize, blockingTimeoutMilliseconds, idleTimeoutMinutes, matchOne, matchAll, selectOneAssumeMatch);
+    public void setTransactionSynchronizationRegistry(TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
     }
 
-    public static PoolingSupport partitionedPool(int maxSize, int minSize, int blockingTimeoutMilliseconds, int idleTimeoutMinutes, boolean matchOne, boolean matchAll, boolean selectOneAssumeMatch, boolean partitionByConnectionRequestInfo, boolean partitionBySubject) {
-        return new PartitionedPool(maxSize, minSize, blockingTimeoutMilliseconds, idleTimeoutMinutes, matchOne, matchAll, selectOneAssumeMatch, partitionByConnectionRequestInfo, partitionBySubject);
+    public ManagedConnectionFactory getManagedConnectionFactory() {
+        return managedConnectionFactory;
     }
 
+    public void setManagedConnectionFactory(ManagedConnectionFactory managedConnectionFactory) {
+        this.managedConnectionFactory = managedConnectionFactory;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public TransactionSupportLevel getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(TransactionSupportLevel transaction) {
+        this.transaction = transaction;
+    }
+
+    public boolean isPooling() {
+        return pooling;
+    }
+
+    public void setPooling(boolean pooling) {
+        this.pooling = pooling;
+    }
+
+    public Partition getPartitionStrategy() {
+        return partitionStrategy;
+    }
+
+    public void setPartitionStrategy(Partition partitionStrategy) {
+        this.partitionStrategy = partitionStrategy;
+    }
+
+    public int getPoolMaxSize() {
+        return poolMaxSize;
+    }
+
+    public void setPoolMaxSize(int poolMaxSize) {
+        this.poolMaxSize = poolMaxSize;
+    }
+
+    public int getPoolMinSize() {
+        return poolMinSize;
+    }
+
+    public void setPoolMinSize(int poolMinSize) {
+        this.poolMinSize = poolMinSize;
+    }
+
+    public boolean isAllConnectionsEqual() {
+        return allConnectionsEqual;
+    }
+
+    public void setAllConnectionsEqual(boolean allConnectionsEqual) {
+        this.allConnectionsEqual = allConnectionsEqual;
+    }
+
+    public Duration getConnectionMaxWait() {
+        return connectionMaxWait;
+    }
+
+    public void setConnectionMaxWait(Duration connectionMaxWait) {
+        this.connectionMaxWait = connectionMaxWait;
+    }
+
+    public Duration getConnectionMaxIdle() {
+        return connectionMaxIdle;
+    }
+
+    public void setConnectionMaxIdle(Duration connectionMaxIdle) {
+        this.connectionMaxIdle = connectionMaxIdle;
+    }
+
+    public boolean isBackgroundValidation() {
+        return backgroundValidation;
+    }
+
+    public void setBackgroundValidation(boolean backgroundValidation) {
+        this.backgroundValidation = backgroundValidation;
+    }
+
+    public Duration getValidatingPeriod() {
+        return validatingPeriod;
+    }
+
+    public void setValidatingPeriod(Duration validatingPeriod) {
+        this.validatingPeriod = validatingPeriod;
+    }
+
+    public boolean isValidateOnMatch() {
+        return validateOnMatch;
+    }
+
+    public void setValidateOnMatch(boolean validateOnMatch) {
+        this.validateOnMatch = validateOnMatch;
+    }
+
+    public SubjectSource getSubjectSource() {
+        return subjectSource;
+    }
+
+    public void setSubjectSource(SubjectSource subjectSource) {
+        this.subjectSource = subjectSource;
+    }
 }

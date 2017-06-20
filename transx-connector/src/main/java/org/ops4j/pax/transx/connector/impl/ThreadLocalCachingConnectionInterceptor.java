@@ -35,6 +35,10 @@ public class ThreadLocalCachingConnectionInterceptor implements ConnectionInterc
         this.matchConnections = matchConnections;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
 
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         if (connectionInfo.isUnshareable()) {

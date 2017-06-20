@@ -43,7 +43,6 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
 import javax.transaction.xa.XAResource;
 import java.io.Serializable;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;

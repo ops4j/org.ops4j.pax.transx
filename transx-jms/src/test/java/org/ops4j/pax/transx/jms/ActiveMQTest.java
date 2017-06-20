@@ -35,18 +35,12 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.jms.XAConnectionFactory;
-import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.partitionedPool;
-import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.xaTransactions;
+import static org.junit.Assert.*;
 
 public class ActiveMQTest {
 
@@ -155,7 +149,7 @@ public class ActiveMQTest {
     }
 
     @Test
-    public void testSpring() throws ResourceException {
+    public void testSpring() throws Exception {
         ConnectionFactory cf = createCF(BROKER_URL);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
@@ -167,7 +161,7 @@ public class ActiveMQTest {
     }
 
     @Test
-    public void testSpringXa() throws ResourceException {
+    public void testSpringXa() throws Exception {
         ConnectionFactory cf = createCF(BROKER_URL);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
@@ -192,7 +186,7 @@ public class ActiveMQTest {
     }
 
     @Test
-    public void testSpringLocalTx() throws ResourceException {
+    public void testSpringLocalTx() throws Exception {
         ConnectionFactory cf = createCF(BROKER_URL);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
@@ -236,20 +230,18 @@ public class ActiveMQTest {
         }
     }
 
-    private ConnectionFactory createCF(String brokerUrl) throws ResourceException {
+    private ConnectionFactory createCF(String brokerUrl) throws Exception {
         ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(
                 new ActiveMQConnectionFactory(brokerUrl),
                 new ActiveMQXAConnectionFactory(brokerUrl));
-        ConnectionManager cm = ConnectionManagerFactory.create(
-                xaTransactions(true, false),
-                partitionedPool(8, 1, 5000, 15, true, false, false, true, false),
-                null,
-                tm,
-                tm,
-                mcf,
-                "vmbroker",
-                null
-        );
+        ConnectionManager cm = ConnectionManagerFactory.builder()
+                .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
+                .transactionManager(tm, tm)
+                .name("vmbroker")
+                .managedConnectionFactory(mcf)
+                .pooling(true)
+                .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)
+                .build();
         return (ConnectionFactory) mcf.createConnectionFactory(cm);
     }
 }

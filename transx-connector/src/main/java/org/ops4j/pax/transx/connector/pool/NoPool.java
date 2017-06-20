@@ -16,8 +16,10 @@
  */
 package org.ops4j.pax.transx.connector.pool;
 
-import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.ConnectionInterceptor;
+import org.ops4j.pax.transx.connector.PoolingSupport;
+
+import java.time.Duration;
 
 /**
  *
@@ -57,17 +59,27 @@ public class NoPool implements PoolingSupport {
     public void setPartitionMinSize(int minSize) {
     }
 
-    public int getBlockingTimeoutMilliseconds() {
-        return 0;
+    public Duration getBlockingTimeout() {
+        return Duration.ZERO;
     }
 
-    public void setBlockingTimeoutMilliseconds(int timeoutMilliseconds) {
+    public void setBlockingTimeout(Duration blockingTimeout) {
     }
 
-    public int getIdleTimeoutMinutes() {
-        return 0;
+    public Duration getIdleTimeout() {
+        return Duration.ZERO;
     }
 
-    public void setIdleTimeoutMinutes(int idleTimeoutMinutes) {
+    public void setIdleTimeout(Duration idleTimeout) {
+    }
+
+    @Override
+    public Duration getValidatingPeriod() {
+        return Duration.ZERO;
+    }
+
+    @Override
+    public void setValidatingPeriod(Duration validatingPeriod) {
+
     }
 }

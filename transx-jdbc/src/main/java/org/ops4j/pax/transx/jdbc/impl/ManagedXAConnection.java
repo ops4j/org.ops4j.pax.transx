@@ -123,6 +123,18 @@ public class ManagedXAConnection extends AbstractManagedConnection<Connection, C
         return xaResource;
     }
 
+    @Override
+    protected boolean isValid() {
+        try {
+            if (getPhysicalConnection().isValid(0)) {
+                return true;
+            }
+        } catch (SQLException e) {
+            // no-op
+        }
+        return false;
+    }
+
     public void cleanup() throws ResourceException {
         super.cleanup();
         try {

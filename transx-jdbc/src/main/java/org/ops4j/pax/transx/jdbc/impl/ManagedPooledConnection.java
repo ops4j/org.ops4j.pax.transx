@@ -118,7 +118,19 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         throw new NotSupportedException("XAResource not available from a LocalTransaction connection");
     }
 
-	public void cleanup() throws ResourceException {
+    @Override
+    protected boolean isValid() {
+        try {
+            if (getPhysicalConnection().isValid(0)) {
+                return true;
+            }
+        } catch (SQLException e) {
+            // no-op
+        }
+        return false;
+    }
+
+    public void cleanup() throws ResourceException {
         super.cleanup();
         try {
             //TODO reset tx isolation level

@@ -26,12 +26,14 @@ import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory, AutocommitSpecCompliant {
+public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory, AutocommitSpecCompliant, ValidatingManagedConnectionFactory {
 
     protected ExceptionSorter exceptionSorter;
     protected String userName;
@@ -161,6 +163,20 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
             }
         }
         return null;
+    }
+
+    @Override
+    public Set getInvalidConnections(Set set) throws ResourceException {
+        Set newSet = new HashSet();
+        for (Object o : set) {
+            if (o instanceof AbstractManagedConnection) {
+                AbstractManagedConnection mc = (AbstractManagedConnection) o;
+                if (!mc.isValid()) {
+                    newSet.add(o);
+                }
+            }
+        }
+        return newSet;
     }
 
     protected Class<?> loadClass(String name) throws ClassNotFoundException {

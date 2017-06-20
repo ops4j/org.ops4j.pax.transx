@@ -42,4 +42,6 @@ public interface ConnectionInterceptor {
 
     void info(StringBuilder s);
 
+    ConnectionInterceptor next();
+
 } // ConnectionInterceptor

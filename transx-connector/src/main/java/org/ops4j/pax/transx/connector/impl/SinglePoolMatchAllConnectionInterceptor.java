@@ -19,6 +19,8 @@ package org.ops4j.pax.transx.connector.impl;
 import javax.resource.ResourceException;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -40,10 +42,13 @@ public class SinglePoolMatchAllConnectionInterceptor extends AbstractSinglePoolC
     public SinglePoolMatchAllConnectionInterceptor(ConnectionInterceptor next,
                                                    int maxSize,
                                                    int minSize,
-                                                   int blockingTimeoutMilliseconds,
-                                                   int idleTimeoutMinutes) {
+                                                   Duration blockingTimeout,
+                                                   Duration idleTimeout,
+                                                   boolean backgroundValidation,
+                                                   Duration validatingPeriod,
+                                                   boolean validateOnMatch) {
 
-        super(next, maxSize, minSize, blockingTimeoutMilliseconds, idleTimeoutMinutes);
+        super(next, maxSize, minSize, blockingTimeout, idleTimeout, backgroundValidation, validatingPeriod, validateOnMatch);
         pool = new IdentityHashMap<>(maxSize);
     }
 
@@ -133,26 +138,32 @@ public class SinglePoolMatchAllConnectionInterceptor extends AbstractSinglePoolC
         }
     }
 
-    protected void getExpiredManagedConnectionInfos(long threshold, List<ManagedConnectionInfo> killList) {
+    protected void getExpiredManagedConnectionInfos(Instant threshold, List<ManagedConnectionInfo> killList) {
         synchronized (pool) {
             for (Iterator<Map.Entry<ManagedConnection, ManagedConnectionInfo>> mcis = pool.entrySet().iterator(); mcis.hasNext(); ) {
                 ManagedConnectionInfo mci = mcis.next().getValue();
-                if (mci.getLastUsed() < threshold) {
+                if (mci.getLastUsed().isBefore(threshold)) {
                     mcis.remove();
                     killList.add(mci);
                     connectionCount--;
                 }
             }
         }
+    }
 
+    @Override
+    void getManagedConnectionInfos(List<ManagedConnectionInfo> mcis) {
+        synchronized (pool) {
+            mcis.addAll(pool.values());
+        }
     }
 
     public void info(StringBuilder s) {
         s.append(getClass().getName());
         s.append("[minSize=").append(minSize);
         s.append(",maxSize=").append(maxSize);
-        s.append(",idleTimeoutMilliseconds=").append(idleTimeoutMilliseconds);
-        s.append(",blockingTimeoutMilliseconds=").append(blockingTimeoutMilliseconds).append("]\n");
+        s.append(",idleTimeout=").append(idleTimeout);
+        s.append(",blockingTimeout=").append(blockingTimeout).append("]\n");
         next.info(s);
     }
 

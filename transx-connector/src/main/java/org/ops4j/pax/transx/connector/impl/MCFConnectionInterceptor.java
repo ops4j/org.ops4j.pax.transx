@@ -31,6 +31,11 @@ public class MCFConnectionInterceptor implements ConnectionInterceptor {
     public MCFConnectionInterceptor() {
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return null;
+    }
+
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         ManagedConnectionInfo mci = connectionInfo.getManagedConnectionInfo();
         if (mci.getManagedConnection() != null) {

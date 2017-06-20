@@ -91,6 +91,8 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         return credentialExtractor;
     }
 
+    protected abstract boolean isValid();
+
     /**
      * Default implementation dissociates the connection handles.
      * Sub-classes should override to perform any cleanup needed on the physical connection.

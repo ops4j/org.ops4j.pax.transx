@@ -130,6 +130,7 @@ public class JMSConsumerImpl implements JMSConsumer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T> T getBody(Class<T> c, Message msg) throws JMSException {
         if (msg == null) {
             return null;

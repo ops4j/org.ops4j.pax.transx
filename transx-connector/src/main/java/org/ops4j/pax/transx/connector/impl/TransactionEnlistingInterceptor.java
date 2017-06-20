@@ -25,14 +25,6 @@ import javax.transaction.xa.XAResource;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * TransactionEnlistingInterceptor.java
- * <p/>
- * <p/>
- * Created: Fri Sep 26 14:52:24 2003
- *
- * @version 1.0
- */
 public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
 
     private static final Logger LOG = Logger.getLogger(TransactionEnlistingInterceptor.class.getName());
@@ -43,6 +35,11 @@ public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
     public TransactionEnlistingInterceptor(ConnectionInterceptor next, TransactionManager transactionManager) {
         this.next = next;
         this.transactionManager = transactionManager;
+    }
+
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
     }
 
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {

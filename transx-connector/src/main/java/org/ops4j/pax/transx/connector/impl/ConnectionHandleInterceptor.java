@@ -26,6 +26,11 @@ public class ConnectionHandleInterceptor implements ConnectionInterceptor {
         this.next = next;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
+
     /**
      * in: connectionInfo not null, managedConnectionInfo not null. ManagedConnection may or may not be null.  ConnectionHandle may or may not be null
      * out: managedConnection not null. connection handle not null. managedConnectionInfo has connection handle registered.  Connection handle is associated with ManagedConnection.

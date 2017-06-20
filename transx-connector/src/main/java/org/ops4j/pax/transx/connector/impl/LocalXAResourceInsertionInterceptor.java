@@ -32,6 +32,11 @@ public class LocalXAResourceInsertionInterceptor implements ConnectionIntercepto
         this.name = name;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
+
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         next.getConnection(connectionInfo);
         ManagedConnectionInfo mci = connectionInfo.getManagedConnectionInfo();

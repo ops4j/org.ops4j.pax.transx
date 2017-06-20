@@ -26,12 +26,10 @@ import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.sql.DataSource;
@@ -41,12 +39,9 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.Objects;
 
 import static org.junit.Assert.*;
-import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.partitionedPool;
-import static org.ops4j.pax.transx.connector.ConnectionManagerFactory.xaTransactions;
 
 public class H2Test {
 
@@ -218,20 +213,16 @@ public class H2Test {
     }
 
 
-    private DataSource wrap(XADataSource xaDs) throws ResourceException {
+    private DataSource wrap(XADataSource xaDs) throws Exception {
         ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(xaDs);
         ((XADataSourceMCF) mcf).setUserName("sa");
         ((XADataSourceMCF) mcf).setPassword("");
-        ConnectionManager cm = ConnectionManagerFactory.create(
-                xaTransactions(true, false),
-                partitionedPool(8, 1, 5000, 15, true, false, false, true, false),
-                null,
-                tm,
-                tm,
-                mcf,
-                "h2invm",
-                null
-        );
+        ConnectionManager cm = ConnectionManagerFactory.builder()
+                .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
+                .transactionManager(tm, tm)
+                .name("h2invm")
+                .managedConnectionFactory(mcf)
+                .build();
         return (DataSource) mcf.createConnectionFactory(cm);
     }
 

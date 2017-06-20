@@ -17,11 +17,11 @@
 package org.ops4j.pax.transx.connector.recovery.geronimo;
 
 import org.apache.geronimo.transaction.manager.RecoverableTransactionManager;
-import org.ops4j.pax.transx.connector.PoolingSupport;
 import org.ops4j.pax.transx.connector.RecoverableConnectionManager;
 import org.ops4j.pax.transx.connector.SubjectSource;
-import org.ops4j.pax.transx.connector.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
+import org.ops4j.pax.transx.connector.PoolingSupport;
+import org.ops4j.pax.transx.connector.TransactionSupport;
 
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.transaction.TransactionManager;
@@ -49,10 +49,10 @@ public class GeronimoConnectionManager extends GenericConnectionManager implemen
             SubjectSource subjectSource,
             TransactionManager transactionManager,
             TransactionSynchronizationRegistry transactionSynchronizationRegistry,
-            ManagedConnectionFactory mcf,
             String name,
-            ClassLoader classLoader) {
-        super(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, mcf, name, classLoader);
+            ClassLoader classLoader,
+            ManagedConnectionFactory mcf) {
+        super(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, name, classLoader);
         this.transactionManager = (RecoverableTransactionManager) transactionManager;
         this.managedConnectionFactory = mcf;
         this.name = name;

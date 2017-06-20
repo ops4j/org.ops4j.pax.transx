@@ -27,6 +27,10 @@ public class TCCLInterceptor implements ConnectionInterceptor {
         this.classLoader = classLoader;
     }
 
+    @Override
+    public ConnectionInterceptor next() {
+        return next;
+    }
 
     public void getConnection(ConnectionInfo connectionInfo) throws ResourceException {
         Thread currentThread = Thread.currentThread();

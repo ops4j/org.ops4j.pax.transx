@@ -18,6 +18,8 @@ package org.ops4j.pax.transx.connector.impl;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ManagedConnection;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -44,10 +46,13 @@ public class SinglePoolConnectionInterceptor extends AbstractSinglePoolConnectio
     public SinglePoolConnectionInterceptor(ConnectionInterceptor next,
                                            int maxSize,
                                            int minSize,
-                                           int blockingTimeoutMilliseconds,
-                                           int idleTimeoutMinutes,
+                                           Duration blockingTimeout,
+                                           Duration idleTimeout,
+                                           boolean backgroundValidation,
+                                           Duration validatingPeriod,
+                                           boolean validateOnMatch,
                                            boolean selectOneAssumeMatch) {
-        super(next, maxSize, minSize, blockingTimeoutMilliseconds, idleTimeoutMinutes);
+        super(next, maxSize, minSize, blockingTimeout, idleTimeout, backgroundValidation, validatingPeriod, validateOnMatch);
         pool = new ArrayList<>(maxSize);
         this.selectOneAssumeMatch = selectOneAssumeMatch;
     }
@@ -148,11 +153,11 @@ public class SinglePoolConnectionInterceptor extends AbstractSinglePoolConnectio
     }
 
 
-    protected void getExpiredManagedConnectionInfos(long threshold, List<ManagedConnectionInfo> killList) {
+    protected void getExpiredManagedConnectionInfos(Instant threshold, List<ManagedConnectionInfo> killList) {
         synchronized (pool) {
             for (Iterator<ManagedConnectionInfo> mcis = pool.iterator(); mcis.hasNext(); ) {
                 ManagedConnectionInfo mci = mcis.next();
-                if (mci.getLastUsed() < threshold) {
+                if (mci.getLastUsed().isBefore(threshold)) {
                     mcis.remove();
                     killList.add(mci);
                     connectionCount--;
@@ -161,12 +166,18 @@ public class SinglePoolConnectionInterceptor extends AbstractSinglePoolConnectio
         }
     }
 
+    protected void getManagedConnectionInfos(List<ManagedConnectionInfo> mciList) {
+        synchronized (pool) {
+            mciList.addAll(pool);
+        }
+    }
+
     public void info(StringBuilder s) {
         s.append(getClass().getName());
         s.append("[minSize=").append(minSize);
         s.append(",maxSize=").append(maxSize);
-        s.append(",idleTimeoutMilliseconds=").append(idleTimeoutMilliseconds);
-        s.append(",blockingTimeoutMilliseconds=").append(blockingTimeoutMilliseconds);
+        s.append(",idleTimeout=").append(idleTimeout);
+        s.append(",blockingTimeout=").append(blockingTimeout);
         s.append(".selectOneAssumeMatch=").append(selectOneAssumeMatch).append("]\n");
         next.info(s);
     }
