@@ -28,21 +28,13 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.jboss.narayana.jta</groupId>
-            <artifactId>narayana-jta</artifactId>
-            <version>5.5.3.Final</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.narayana.osgi</groupId>
-            <artifactId>narayana-osgi-jta</artifactId>
-            <version>5.5.3.Final</version>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>org.jboss</groupId>
             <artifactId>jboss-transaction-spi</artifactId>
-            <version>7.5.1.Final</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
