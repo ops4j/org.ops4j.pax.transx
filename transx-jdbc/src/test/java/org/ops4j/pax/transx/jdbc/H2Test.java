@@ -219,7 +219,7 @@ public class H2Test {
         ((XADataSourceMCF) mcf).setPassword("");
         ConnectionManager cm = ConnectionManagerFactory.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
-                .transactionManager(tm, tm)
+                .transactionManager(tm)
                 .name("h2invm")
                 .managedConnectionFactory(mcf)
                 .build();

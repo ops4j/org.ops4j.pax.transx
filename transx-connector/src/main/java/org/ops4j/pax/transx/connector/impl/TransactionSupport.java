@@ -16,16 +16,14 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+import org.ops4j.pax.transx.connector.TransactionManager;
 
 public interface TransactionSupport {
 
     ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name);
 
     ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack,
-                                                     TransactionManager transactionManager,
-                                                     TransactionSynchronizationRegistry transactionSynchronizationRegistry);
+                                                     TransactionManager transactionManager);
 
     boolean isRecoverable();
 

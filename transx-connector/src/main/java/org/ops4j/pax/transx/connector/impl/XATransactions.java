@@ -16,8 +16,7 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+import org.ops4j.pax.transx.connector.TransactionManager;
 
 public class XATransactions implements TransactionSupport {
 
@@ -30,9 +29,9 @@ public class XATransactions implements TransactionSupport {
         return new XAResourceInsertionInterceptor(stack, name);
     }
 
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager) {
         stack = new TransactionEnlistingInterceptor(stack, transactionManager);
-        stack = new TransactionCachingInterceptor(stack, transactionManager, transactionSynchronizationRegistry);
+        stack = new TransactionCachingInterceptor(stack, transactionManager);
         return stack;
     }
 

@@ -17,11 +17,9 @@
 package org.ops4j.pax.transx.connector.impl;
 
 import javax.resource.ResourceException;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+
+import org.ops4j.pax.transx.connector.TransactionManager;
+import org.ops4j.pax.transx.connector.TransactionManager.Transaction;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,15 +52,13 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
 
     private final ConnectionInterceptor next;
     private final TransactionManager transactionManager;
-    private final TransactionSynchronizationRegistry transactionSynchronizationRegistry;
 
     private final ConcurrentHashMap<Transaction, ManagedConnectionInfos> infos = new ConcurrentHashMap<>();
 
 
-    public TransactionCachingInterceptor(ConnectionInterceptor next, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+    public TransactionCachingInterceptor(ConnectionInterceptor next, TransactionManager transactionManager) {
         this.next = next;
         this.transactionManager = transactionManager;
-        this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
     }
 
     @Override
@@ -75,8 +71,8 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
         //Synchronization.afterCompletion().
 
         // get the current transaction and status... if there is a problem just assume there is no transaction present
-        Transaction transaction = TxUtil.getTransaction(transactionManager);
-        if (TxUtil.isActive(transaction)) {
+        Transaction transaction = transactionManager.getTransaction();
+        if (transaction.isActive()) {
             ManagedConnectionInfos managedConnectionInfos = getManagedConnectionInfos(transaction);
             if (connectionInfo.isUnshareable()) {
                 if (!managedConnectionInfos.containsUnshared(connectionInfo.getManagedConnectionInfo())) {
@@ -127,25 +123,21 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
             next.returnConnection(connectionInfo, connectionReturnAction);
             return;
         }
-        try {
-            Transaction transaction = transactionManager.getTransaction();
-            if (transaction != null) {
-                if (TxUtil.isActive(transaction)) {
-                    if (LOG.isLoggable(Level.FINEST)) {
-                        LOG.log(Level.FINEST, "tx active, not returning connection  " + infoString(connectionInfo));
-                    }
-                    return;
-                }
-                //We are called from an afterCompletion synchronization.  Remove the MCI from the ManagedConnectionInfos
-                //so we don't close it twice
-                ManagedConnectionInfos managedConnectionInfos = getManagedConnectionInfos(transaction);
-                managedConnectionInfos.remove(connectionInfo.getManagedConnectionInfo());
+        Transaction transaction = transactionManager.getTransaction();
+        if (transaction != null) {
+            if (transaction.isActive()) {
                 if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.log(Level.FINEST, "tx ended, return during synchronization afterCompletion " + infoString(connectionInfo));
+                    LOG.log(Level.FINEST, "tx active, not returning connection  " + infoString(connectionInfo));
                 }
+                return;
             }
-        } catch (SystemException e) {
-            //ignore
+            //We are called from an afterCompletion synchronization.  Remove the MCI from the ManagedConnectionInfos
+            //so we don't close it twice
+            ManagedConnectionInfos managedConnectionInfos = getManagedConnectionInfos(transaction);
+            managedConnectionInfos.remove(connectionInfo.getManagedConnectionInfo());
+            if (LOG.isLoggable(Level.FINEST)) {
+                LOG.log(Level.FINEST, "tx ended, return during synchronization afterCompletion " + infoString(connectionInfo));
+            }
         }
         if (LOG.isLoggable(Level.FINEST)) {
             LOG.log(Level.FINEST, "tx ended, returning connection " + infoString(connectionInfo));
@@ -241,15 +233,9 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
 
     private ManagedConnectionInfos createManagedConnectionInfos(Transaction transaction) {
         ManagedConnectionInfos mci = new ManagedConnectionInfos();
-        transactionSynchronizationRegistry.registerInterposedSynchronization(new Synchronization() {
-            @Override
-            public void beforeCompletion() {
-            }
-            @Override
-            public void afterCompletion(int status) {
-                infos.remove(transaction);
-                TransactionCachingInterceptor.this.afterCompletion(mci);
-            }
+        transaction.postCompletion(status -> {
+            infos.remove(transaction);
+            TransactionCachingInterceptor.this.afterCompletion(mci);
         });
         return mci;
     }

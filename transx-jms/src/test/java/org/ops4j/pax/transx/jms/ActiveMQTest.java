@@ -236,7 +236,7 @@ public class ActiveMQTest {
                 new ActiveMQXAConnectionFactory(brokerUrl));
         ConnectionManager cm = ConnectionManagerFactory.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
-                .transactionManager(tm, tm)
+                .transactionManager(tm)
                 .name("vmbroker")
                 .managedConnectionFactory(mcf)
                 .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)

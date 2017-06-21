@@ -17,6 +17,7 @@
 package org.ops4j.pax.transx.connector;
 
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
+import org.ops4j.pax.transx.connector.impl.JtaTransactionManager;
 import org.ops4j.pax.transx.connector.impl.LocalTransactions;
 import org.ops4j.pax.transx.connector.impl.NoPool;
 import org.ops4j.pax.transx.connector.impl.NoTransactions;
@@ -31,8 +32,6 @@ import org.ops4j.pax.transx.connector.impl.narayana.NarayanaConnectionManager;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.ValidatingManagedConnectionFactory;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
 import java.time.Duration;
 
 public class ConnectionManagerFactory {
@@ -65,9 +64,13 @@ public class ConnectionManagerFactory {
             return this;
         }
 
-        public Builder transactionManager(TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        public Builder transactionManager(TransactionManager transactionManager) {
             connectionManagerFactory.setTransactionManager(transactionManager);
-            connectionManagerFactory.setTransactionSynchronizationRegistry(transactionSynchronizationRegistry);
+            return this;
+        }
+
+        public Builder transactionManager(javax.transaction.TransactionManager transactionManager) {
+            connectionManagerFactory.setTransactionManager(new JtaTransactionManager(transactionManager));
             return this;
         }
 
@@ -93,7 +96,6 @@ public class ConnectionManagerFactory {
     }
 
     private TransactionManager transactionManager;
-    private TransactionSynchronizationRegistry transactionSynchronizationRegistry;
     private ManagedConnectionFactory managedConnectionFactory;
 
     private String name;
@@ -123,9 +125,6 @@ public class ConnectionManagerFactory {
     public void init() throws Exception {
         if (transactionManager == null && transaction == TransactionSupportLevel.Xa) {
             throw new IllegalArgumentException("transactionManager must be set");
-        }
-        if (transactionSynchronizationRegistry == null && transaction == TransactionSupportLevel.Xa) {
-            throw new IllegalArgumentException("transactionSynchronizationRegistry must be set");
         }
         if (managedConnectionFactory == null) {
             throw new IllegalArgumentException("managedConnectionFactory must be set");
@@ -236,7 +235,6 @@ public class ConnectionManagerFactory {
                             poolingSupport,
                             subjectSource,
                             transactionManager,
-                            transactionSynchronizationRegistry,
                             name != null ? name : getClass().getName(),
                             getClass().getClassLoader(),
                             managedConnectionFactory);
@@ -246,11 +244,19 @@ public class ConnectionManagerFactory {
                             poolingSupport,
                             subjectSource,
                             transactionManager,
-                            transactionSynchronizationRegistry,
                             name != null ? name : getClass().getName(),
                             getClass().getClassLoader(),
                             managedConnectionFactory);
                 }
+            }
+            if (connectionManager == null) {
+                connectionManager = new GenericConnectionManager(
+                        transactionSupport,
+                        poolingSupport,
+                        subjectSource,
+                        transactionManager,
+                        name != null ? name : getClass().getName(),
+                        getClass().getClassLoader());
             }
             connectionManager.doStart();
         }
@@ -269,14 +275,6 @@ public class ConnectionManagerFactory {
 
     public void setTransactionManager(TransactionManager transactionManager) {
         this.transactionManager = transactionManager;
-    }
-
-    public TransactionSynchronizationRegistry getTransactionSynchronizationRegistry() {
-        return transactionSynchronizationRegistry;
-    }
-
-    public void setTransactionSynchronizationRegistry(TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
-        this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
     }
 
     public ManagedConnectionFactory getManagedConnectionFactory() {

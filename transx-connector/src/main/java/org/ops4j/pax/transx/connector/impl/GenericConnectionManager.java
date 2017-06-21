@@ -18,14 +18,13 @@ package org.ops4j.pax.transx.connector.impl;
 
 import org.ops4j.pax.transx.connector.PoolingAttributes;
 import org.ops4j.pax.transx.connector.SubjectSource;
+import org.ops4j.pax.transx.connector.TransactionManager;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LazyAssociatableConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
 import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +42,6 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
             PoolingSupport pooling,
             SubjectSource subjectSource,
             TransactionManager transactionManager,
-            TransactionSynchronizationRegistry transactionSynchronizationRegistry,
             String name,
             ClassLoader classLoader) {
 
@@ -58,7 +56,8 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         }
 
         this.poolingSupport = pooling;
-        stack = transactionSupport.addTransactionInterceptors(stack, transactionManager, transactionSynchronizationRegistry);
+        stack = transactionSupport.addTransactionInterceptors(stack,
+                transactionManager);
 
         if (subjectSource != null) {
             stack = new SubjectInterceptor(stack, subjectSource);

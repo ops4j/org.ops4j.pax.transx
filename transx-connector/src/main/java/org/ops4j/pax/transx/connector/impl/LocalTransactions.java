@@ -16,8 +16,7 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+import org.ops4j.pax.transx.connector.TransactionManager;
 
 /**
  *
@@ -34,9 +33,9 @@ public class LocalTransactions implements TransactionSupport {
         return new LocalXAResourceInsertionInterceptor(stack, name);
     }
 
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry tsr) {
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager) {
         stack = new TransactionEnlistingInterceptor(stack, transactionManager);
-        return new TransactionCachingInterceptor(stack, transactionManager, tsr);
+        return new TransactionCachingInterceptor(stack, transactionManager);
     }
     
     public boolean isRecoverable() {

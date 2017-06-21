@@ -16,8 +16,7 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
+import org.ops4j.pax.transx.connector.TransactionManager;
 
 public class NoTransactions implements TransactionSupport {
 
@@ -30,7 +29,7 @@ public class NoTransactions implements TransactionSupport {
         return stack;
     }
 
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager) {
         return stack;
     }
     

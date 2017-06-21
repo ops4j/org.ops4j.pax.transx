@@ -21,14 +21,13 @@ import org.ops4j.pax.transx.connector.RecoverableConnectionManager;
 import org.ops4j.pax.transx.connector.SubjectSource;
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
 import org.ops4j.pax.transx.connector.impl.PoolingSupport;
+import org.ops4j.pax.transx.connector.TransactionManager;
 import org.ops4j.pax.transx.connector.impl.TransactionSupport;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
 
 import javax.resource.spi.ManagedConnectionFactory;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
 
 public class NarayanaConnectionManager extends GenericConnectionManager implements RecoverableConnectionManager {
 
@@ -57,11 +56,10 @@ public class NarayanaConnectionManager extends GenericConnectionManager implemen
             PoolingSupport pooling,
             SubjectSource subjectSource,
             TransactionManager transactionManager,
-            TransactionSynchronizationRegistry transactionSynchronizationRegistry,
             String name,
             ClassLoader classLoader,
             ManagedConnectionFactory mcf) {
-        super(transactionSupport, pooling, subjectSource, transactionManager, transactionSynchronizationRegistry, name, classLoader);
+        super(transactionSupport, pooling, subjectSource, transactionManager, name, classLoader);
         this.transactionManager = transactionManager;
         this.managedConnectionFactory = mcf;
         this.name = name;
