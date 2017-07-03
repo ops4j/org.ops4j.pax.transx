@@ -18,13 +18,18 @@ package org.ops4j.pax.transx.connector.impl;
 
 import org.ops4j.pax.transx.connector.PoolingAttributes;
 import org.ops4j.pax.transx.connector.SubjectSource;
-import org.ops4j.pax.transx.connector.TransactionManager;
+import org.ops4j.pax.transx.tm.NamedResource;
+import org.ops4j.pax.transx.tm.RecoverableResourceFactory;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LazyAssociatableConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +41,9 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
     private final ConnectionInterceptor stack;
     private final ConnectionInterceptor recoveryStack;
     private final PoolingSupport poolingSupport;
+    private final TransactionManager transactionManager;
+    private final String name;
+    private final ManagedConnectionFactory managedConnectionFactory;
 
     public GenericConnectionManager(
             TransactionSupport transactionSupport,
@@ -43,7 +51,8 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
             SubjectSource subjectSource,
             TransactionManager transactionManager,
             String name,
-            ClassLoader classLoader) {
+            ClassLoader classLoader,
+            ManagedConnectionFactory managedConnectionFactory) {
 
         //Set up the interceptor stack
         MCFConnectionInterceptor tail = new MCFConnectionInterceptor();
@@ -79,6 +88,10 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
             stack.info(s);
             LOG.log(Level.FINE, s.toString());
         }
+
+        this.transactionManager = transactionManager;
+        this.name = name;
+        this.managedConnectionFactory = managedConnectionFactory;
     }
 
     /**
@@ -196,7 +209,9 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
     }
 
     public void doStart() throws Exception {
-
+        if (recoveryStack != null) {
+            transactionManager.registerResource(new RecoverableResourceFactoryImpl());
+        }
     }
 
     public void doStop() throws Exception {
@@ -207,4 +222,92 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         stack.destroy();
     }
 
+
+    private static class NamedXAResourceWithConnectioninfo implements NamedResource {
+
+        private final NamedResource delegate;
+        private final ConnectionInfo connectionInfo;
+
+        private NamedXAResourceWithConnectioninfo(NamedResource delegate, ConnectionInfo connectionInfo) {
+            this.delegate = delegate;
+            this.connectionInfo = connectionInfo;
+        }
+
+        public ConnectionInfo getConnectionInfo() {
+            return connectionInfo;
+        }
+
+        public String getName() {
+            return delegate.getName();
+        }
+
+        public void commit(Xid xid, boolean b) throws XAException {
+            delegate.commit(xid, b);
+        }
+
+        public void end(Xid xid, int i) throws XAException {
+            delegate.end(xid, i);
+        }
+
+        public void forget(Xid xid) throws XAException {
+            delegate.forget(xid);
+        }
+
+        public int getTransactionTimeout() throws XAException {
+            return delegate.getTransactionTimeout();
+        }
+
+        public boolean isSameRM(XAResource xaResource) throws XAException {
+            return delegate.isSameRM(xaResource);
+        }
+
+        public int prepare(Xid xid) throws XAException {
+            return delegate.prepare(xid);
+        }
+
+        public Xid[] recover(int i) throws XAException {
+            return delegate.recover(i);
+        }
+
+        public void rollback(Xid xid) throws XAException {
+            delegate.rollback(xid);
+        }
+
+        public boolean setTransactionTimeout(int i) throws XAException {
+            return delegate.setTransactionTimeout(i);
+        }
+
+        public void start(Xid xid, int i) throws XAException {
+            delegate.start(xid, i);
+        }
+    }
+
+    private class RecoverableResourceFactoryImpl implements RecoverableResourceFactory {
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public NamedResource getResource() {
+            try {
+                ManagedConnectionInfo mci = new ManagedConnectionInfo(managedConnectionFactory, null);
+
+                ConnectionInfo recoveryConnectionInfo = new ConnectionInfo(mci);
+                recoveryStack.getConnection(recoveryConnectionInfo);
+
+                // For pooled resources, we may now have a new MCI (not the one constructed above). Make sure we use the correct MCI
+                return new NamedXAResourceWithConnectioninfo(recoveryConnectionInfo.getManagedConnectionInfo().getXAResource(), recoveryConnectionInfo);
+            } catch (ResourceException e) {
+                throw new RuntimeException("Could not get XAResource for recovery for jms: " + name, e);
+            }
+        }
+
+        @Override
+        public void returnResource(NamedResource resource) {
+            NamedXAResourceWithConnectioninfo xares = (NamedXAResourceWithConnectioninfo) resource;
+            recoveryStack.returnConnection(xares.getConnectionInfo(), ConnectionInterceptor.ConnectionReturnAction.DESTROY);
+        }
+    }
 }

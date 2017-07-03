@@ -75,7 +75,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
 
     private void setup() throws ResourceException {
         try {
-            boolean transacted = cri.isTransacted();
+            boolean transacted = cri != null && cri.isTransacted();
             int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
             String userName = credentialExtractor.getUserName();
             String password = credentialExtractor.getPassword();

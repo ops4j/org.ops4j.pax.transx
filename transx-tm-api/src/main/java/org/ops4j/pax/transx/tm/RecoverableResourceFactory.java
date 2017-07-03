@@ -14,26 +14,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.impl;
+package org.ops4j.pax.transx.tm;
 
-import org.ops4j.pax.transx.tm.TransactionManager;
+public interface RecoverableResourceFactory {
 
-public class NoTransactions implements TransactionSupport {
+    String getName();
 
-    public static final TransactionSupport INSTANCE = new NoTransactions();
+    NamedResource getResource();
 
-    private NoTransactions() {
-    }
+    void returnResource(NamedResource resource);
 
-    public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return stack;
-    }
-
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager) {
-        return stack;
-    }
-    
-    public boolean isRecoverable() {
-        return false;
-    }
 }

@@ -16,11 +16,13 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
+import org.ops4j.pax.transx.tm.NamedResource;
+import org.ops4j.pax.transx.tm.Transaction;
+import org.ops4j.pax.transx.tm.TransactionManager;
+
 import javax.resource.ResourceException;
 import javax.transaction.RollbackException;
 import javax.transaction.SystemException;
-import org.ops4j.pax.transx.connector.TransactionManager;
-import org.ops4j.pax.transx.connector.TransactionManager.Transaction;
 import javax.transaction.xa.XAResource;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +52,7 @@ public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
             // get the current transation and status... if there is a problem just assume there is no transaction present
             Transaction transaction = transactionManager.getTransaction();
             if (transaction.isActive()) {
-                XAResource xares = mci.getXAResource();
+                NamedResource xares = mci.getXAResource();
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.log(Level.FINEST, "Enlisting connection " + connectionInfo + " with XAResource " + xares + " in transaction: " + transaction);
                 }
@@ -88,7 +90,7 @@ public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
             ManagedConnectionInfo mci = connectionInfo.getManagedConnectionInfo();
             Transaction transaction = transactionManager.getTransaction();
             if (transaction.isActive()) {
-                XAResource xares = mci.getXAResource();
+                NamedResource xares = mci.getXAResource();
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.log(Level.FINEST, "Delisting connection " + connectionInfo + " with XAResource " + xares + " in transaction: " + transaction, new Exception("stack trace"));
                 }

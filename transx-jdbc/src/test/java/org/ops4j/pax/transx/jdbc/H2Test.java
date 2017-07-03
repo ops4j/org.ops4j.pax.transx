@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
+import org.ops4j.pax.transx.tm.TransactionManager;
+import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,7 +55,8 @@ public class H2Test {
     private static final String DELETE_FROM_USER = "DELETE * FROM USER";
     private static final String COUNT_USER = "SELECT COUNT(*) FROM USER";
 
-    GeronimoTransactionManager tm;
+    PlatformTransactionManager ptm;
+    TransactionManager tm;
 
     public static class User {
         private int id;
@@ -100,31 +103,33 @@ public class H2Test {
 
     @Before
     public void setUp() throws Exception {
-        tm = new AriesPlatformTransactionManager();
+        AriesPlatformTransactionManager atm = new AriesPlatformTransactionManager();
+        tm = new TransactionManagerWrapper(atm);
+        ptm = atm;
     }
 
     @Test
     public void testContextWithXaTx() throws Exception {
         DataSource ds = wrap(createH2DataSource());
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (Connection con = ds.getConnection()) {
             Statement st = con.createStatement();
             st.execute(DROP_USER);
             st.execute(CREATE_TABLE_USER);
         }
-        tm.commit();
+        tm.getTransaction().commit();
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (Connection con = ds.getConnection()) {
             PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER);
             ps.setInt(1, 1);
             ps.setString(2, "user1");
             ps.executeUpdate();
         }
-        tm.commit();
+        tm.getTransaction().commit();
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (Connection con = ds.getConnection()) {
             PreparedStatement ps = con.prepareStatement(SELECT_FROM_USER_BY_ID);
             ps.setInt(1, 1);
@@ -132,7 +137,7 @@ public class H2Test {
             Statement st2 = rs.getStatement();
             assertSame(ps, st2);
         }
-        tm.commit();
+        tm.getTransaction().commit();
 
         try (Connection con = ds.getConnection()) {
             DatabaseMetaData dmd = con.getMetaData();
@@ -162,7 +167,7 @@ public class H2Test {
     public void testSpringXaTx() throws Exception {
         DataSource ds = wrap(createH2DataSource());
         JdbcTemplate jdbc = new JdbcTemplate(ds);
-        TransactionTemplate tx = new TransactionTemplate((PlatformTransactionManager) tm);
+        TransactionTemplate tx = new TransactionTemplate(ptm);
 
         jdbc.execute(DROP_USER);
         jdbc.execute(CREATE_TABLE_USER);

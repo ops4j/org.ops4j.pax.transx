@@ -16,7 +16,7 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import org.apache.geronimo.transaction.manager.NamedXAResource;
+import org.ops4j.pax.transx.tm.NamedResource;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
@@ -30,7 +30,7 @@ import javax.transaction.xa.Xid;
  * semantics.
  *
  */
-public class LocalXAResource implements NamedXAResource {
+public class LocalXAResource implements NamedResource {
 
     //accessible in package for testing
     final LocalTransaction localTransaction;

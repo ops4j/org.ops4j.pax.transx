@@ -16,6 +16,8 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
+import org.ops4j.pax.transx.tm.NamedResource;
+
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
@@ -31,7 +33,7 @@ public class ManagedConnectionInfo {
     private ConnectionRequestInfo connectionRequestInfo;
     private Subject subject;
     private ManagedConnection managedConnection;
-    private XAResource xares;
+    private NamedResource xares;
     private Instant lastUsed;
     private ConnectionInterceptor poolInterceptor;
 
@@ -77,11 +79,11 @@ public class ManagedConnectionInfo {
         this.managedConnection = managedConnection;
     }
 
-    public XAResource getXAResource() {
+    public NamedResource getXAResource() {
         return xares;
     }
 
-    public void setXAResource(XAResource xares) {
+    public void setXAResource(NamedResource xares) {
         this.xares = xares;
     }
 

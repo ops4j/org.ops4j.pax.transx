@@ -14,26 +14,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector.impl;
+package org.ops4j.pax.transx.tm;
 
-import org.ops4j.pax.transx.tm.TransactionManager;
-
-public class NoTransactions implements TransactionSupport {
-
-    public static final TransactionSupport INSTANCE = new NoTransactions();
-
-    private NoTransactions() {
-    }
-
-    public ConnectionInterceptor addXAResourceInsertionInterceptor(ConnectionInterceptor stack, String name) {
-        return stack;
-    }
-
-    public ConnectionInterceptor addTransactionInterceptors(ConnectionInterceptor stack, TransactionManager transactionManager) {
-        return stack;
-    }
-    
-    public boolean isRecoverable() {
-        return false;
-    }
+/**
+ * Interface implemented by a resource to be registered as a last resource committer.
+ */
+public interface LastResource extends NamedResource {
 }

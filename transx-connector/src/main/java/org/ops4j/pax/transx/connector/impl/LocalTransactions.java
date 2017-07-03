@@ -16,7 +16,7 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import org.ops4j.pax.transx.connector.TransactionManager;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 /**
  *

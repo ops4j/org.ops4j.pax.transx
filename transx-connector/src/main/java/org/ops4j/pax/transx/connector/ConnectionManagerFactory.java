@@ -17,7 +17,6 @@
 package org.ops4j.pax.transx.connector;
 
 import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
-import org.ops4j.pax.transx.connector.impl.JtaTransactionManager;
 import org.ops4j.pax.transx.connector.impl.LocalTransactions;
 import org.ops4j.pax.transx.connector.impl.NoPool;
 import org.ops4j.pax.transx.connector.impl.NoTransactions;
@@ -26,8 +25,7 @@ import org.ops4j.pax.transx.connector.impl.PoolingSupport;
 import org.ops4j.pax.transx.connector.impl.SinglePool;
 import org.ops4j.pax.transx.connector.impl.TransactionSupport;
 import org.ops4j.pax.transx.connector.impl.XATransactions;
-import org.ops4j.pax.transx.connector.impl.geronimo.GeronimoConnectionManager;
-import org.ops4j.pax.transx.connector.impl.narayana.NarayanaConnectionManager;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
@@ -66,11 +64,6 @@ public class ConnectionManagerFactory {
 
         public Builder transactionManager(TransactionManager transactionManager) {
             connectionManagerFactory.setTransactionManager(transactionManager);
-            return this;
-        }
-
-        public Builder transactionManager(javax.transaction.TransactionManager transactionManager) {
-            connectionManagerFactory.setTransactionManager(new JtaTransactionManager(transactionManager));
             return this;
         }
 
@@ -228,36 +221,14 @@ public class ConnectionManagerFactory {
         }
         if (connectionManager == null) {
             // Instantiate the Connection Manager
-            if (transactionSupport.isRecoverable()) {
-                if (GeronimoConnectionManager.TMCheck.isGeronimo(transactionManager)) {
-                    connectionManager = new GeronimoConnectionManager(
-                            transactionSupport,
-                            poolingSupport,
-                            subjectSource,
-                            transactionManager,
-                            name != null ? name : getClass().getName(),
-                            getClass().getClassLoader(),
-                            managedConnectionFactory);
-                } else if (NarayanaConnectionManager.TMCheck.isNarayana(transactionManager)) {
-                    connectionManager = new NarayanaConnectionManager(
-                            transactionSupport,
-                            poolingSupport,
-                            subjectSource,
-                            transactionManager,
-                            name != null ? name : getClass().getName(),
-                            getClass().getClassLoader(),
-                            managedConnectionFactory);
-                }
-            }
-            if (connectionManager == null) {
-                connectionManager = new GenericConnectionManager(
-                        transactionSupport,
-                        poolingSupport,
-                        subjectSource,
-                        transactionManager,
-                        name != null ? name : getClass().getName(),
-                        getClass().getClassLoader());
-            }
+            connectionManager = new GenericConnectionManager(
+                    transactionSupport,
+                    poolingSupport,
+                    subjectSource,
+                    transactionManager,
+                    name != null ? name : getClass().getName(),
+                    getClass().getClassLoader(),
+                    managedConnectionFactory);
             connectionManager.doStart();
         }
     }

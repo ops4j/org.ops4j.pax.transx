@@ -18,6 +18,11 @@
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>transx-tm-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
                 <artifactId>transx-connection</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -98,8 +103,18 @@
                 <version>5.5.3.Final</version>
             </dependency>
             <dependency>
+                <groupId>org.jboss.narayana.jts</groupId>
+                <artifactId>narayana-jts-integration</artifactId>
+                <version>5.5.3.Final</version>
+            </dependency>
+            <dependency>
                 <groupId>org.jboss.narayana.osgi</groupId>
                 <artifactId>narayana-osgi-jta</artifactId>
+                <version>5.5.3.Final</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.narayana.arjunacore</groupId>
+                <artifactId>arjuna</artifactId>
                 <version>5.5.3.Final</version>
             </dependency>
             <dependency>
@@ -111,6 +126,27 @@
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
                 <version>4.3.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atomikos</groupId>
+                <artifactId>transactions-jta</artifactId>
+                <version>4.0.4</version>
+            </dependency>
+            <dependency>
+                <groupId>com.atomikos</groupId>
+                <artifactId>transactions-osgi</artifactId>
+                <version>4.0.4</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.10.19</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-jdk14</artifactId>
+                <version>1.7.24</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -153,6 +189,7 @@
     </build>
 
     <modules>
+        <module>transx-tm-api</module>
         <module>transx-connector</module>
         <module>transx-connection</module>
         <module>transx-jms</module>

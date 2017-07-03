@@ -19,10 +19,11 @@ package org.ops4j.pax.transx.jms;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQXAConnectionFactory;
 import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
-import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.tm.TransactionManager;
+import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -48,11 +49,14 @@ public class ActiveMQTest {
     public static final String QUEUE = "myqueue";
 
 
-    GeronimoTransactionManager tm;
+    PlatformTransactionManager ptm;
+    TransactionManager tm;
 
     @Before
     public void setUp() throws Exception {
-        tm = new AriesPlatformTransactionManager();
+        AriesPlatformTransactionManager atm = new AriesPlatformTransactionManager();
+        tm = new TransactionManagerWrapper(atm);
+        ptm = atm;
     }
 
     @Test
@@ -61,20 +65,20 @@ public class ActiveMQTest {
 
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (JMSContext context = cf.createContext()) {
             Queue queue = context.createQueue(QUEUE);
             context.createProducer().send(queue, "Hello");
         }
-        tm.rollback();
+        tm.getTransaction().rollback();
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (JMSContext context = cf.createContext()) {
             Queue queue = context.createQueue(QUEUE);
             context.createProducer().send(queue, "Hello");
         }
-        tm.commit();
+        tm.getTransaction().commit();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
 
         try (JMSContext context = cf.createContext()) {
@@ -90,24 +94,24 @@ public class ActiveMQTest {
 
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession()) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
             }
         }
-        tm.rollback();
+        tm.getTransaction().rollback();
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.begin();
+        tm.getTransaction().begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession()) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
             }
         }
-        tm.commit();
+        tm.getTransaction().commit();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
 
         try (Connection con = cf.createConnection()) {
@@ -166,7 +170,7 @@ public class ActiveMQTest {
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
         jms.setReceiveTimeout(100);
-        TransactionTemplate xaTx = new TransactionTemplate((PlatformTransactionManager) tm);
+        TransactionTemplate xaTx = new TransactionTemplate(ptm);
 
         xaTx.execute(ts -> {
             jms.convertAndSend("Hello");
@@ -175,7 +179,7 @@ public class ActiveMQTest {
         Object msg = xaTx.execute(ts -> jms.receiveAndConvert());
         assertEquals("Hello", msg);
 
-        xaTx = new TransactionTemplate((PlatformTransactionManager) tm);
+        xaTx = new TransactionTemplate(ptm);
         xaTx.execute(ts -> {
             jms.convertAndSend("Hello");
             ts.setRollbackOnly();

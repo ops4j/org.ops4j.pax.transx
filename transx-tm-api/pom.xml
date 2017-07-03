@@ -11,20 +11,12 @@
     </parent>
 
     <packaging>bundle</packaging>
-    <artifactId>transx-connector</artifactId>
+    <artifactId>transx-tm-api</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.ops4j.pax.transx</groupId>
-            <artifactId>transx-tm-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-jta_1.1_spec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.geronimo.components</groupId>
@@ -32,18 +24,49 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.jboss</groupId>
-            <artifactId>jboss-transaction-spi</artifactId>
+            <groupId>org.jboss.narayana.jta</groupId>
+            <artifactId>narayana-jta</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <groupId>org.jboss.narayana.osgi</groupId>
+            <artifactId>narayana-osgi-jta</artifactId>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.jboss.narayana.jts</groupId>
+            <artifactId>narayana-jts-integration</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.narayana.arjunacore</groupId>
+            <artifactId>arjuna</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.atomikos</groupId>
+            <artifactId>transactions-jta</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.atomikos</groupId>
+            <artifactId>transactions-osgi</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -56,7 +79,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            org.ops4j.pax.transx.connector
+                            org.ops4j.pax.transx.tm;-noimport:=true
                         </Export-Package>
                     </instructions>
                 </configuration>

@@ -16,10 +16,11 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
+import org.ops4j.pax.transx.tm.Transaction;
+import org.ops4j.pax.transx.tm.TransactionManager;
+
 import javax.resource.ResourceException;
 
-import org.ops4j.pax.transx.connector.TransactionManager;
-import org.ops4j.pax.transx.connector.TransactionManager.Transaction;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -233,7 +234,7 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
 
     private ManagedConnectionInfos createManagedConnectionInfos(Transaction transaction) {
         ManagedConnectionInfos mci = new ManagedConnectionInfos();
-        transaction.postCompletion(status -> {
+        transaction.synchronization(null, status -> {
             infos.remove(transaction);
             TransactionCachingInterceptor.this.afterCompletion(mci);
         });

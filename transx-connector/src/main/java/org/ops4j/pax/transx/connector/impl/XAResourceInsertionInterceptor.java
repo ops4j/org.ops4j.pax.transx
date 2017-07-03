@@ -17,8 +17,6 @@
 package org.ops4j.pax.transx.connector.impl;
 
 
-import org.apache.geronimo.transaction.manager.WrapperNamedXAResource;
-
 import javax.resource.ResourceException;
 
 /**

@@ -14,10 +14,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.ops4j.pax.transx.connector;
-
-import javax.transaction.xa.XAResource;
-import java.util.function.IntConsumer;
+package org.ops4j.pax.transx.tm;
 
 /**
  * JTA Transaction manager
@@ -25,40 +22,26 @@ import java.util.function.IntConsumer;
 public interface TransactionManager {
 
     /**
+     * Check if LRC is supported by this transaction manager
+     */
+    boolean isLastResourceCommitSupported();
+
+    /**
      * Returns the current transaction, always non null.
      */
     Transaction getTransaction();
 
+    Transaction suspend();
+
+    void resume(Transaction transaction);
+
     /**
-     * Transaction
+     * Register a resource for recovery
      */
-    interface Transaction {
+    void registerResource(RecoverableResourceFactory resource);
 
-        /**
-         * Check if a transaction is running or not
-         */
-        boolean isActive();
+    void unregisterResource(String name);
 
-        /**
-         * Enlist the resource
-         */
-        void enlistResource(XAResource xares) throws Exception;
-
-        /**
-         * Delist the resource
-         */
-        void delistResource(XAResource xares, int flags) throws Exception;
-
-        /**
-         * Add a pre-completion job
-         */
-        void preCompletion(Runnable cb);
-
-        /**
-         * Add a post-completion job
-         */
-        void postCompletion(IntConsumer cb);
-
-    }
+    RecoverableResourceFactory getResource(String name);
 
 }
