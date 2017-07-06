@@ -22,7 +22,6 @@ import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.security.auth.Subject;
-import javax.transaction.xa.XAResource;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Objects;

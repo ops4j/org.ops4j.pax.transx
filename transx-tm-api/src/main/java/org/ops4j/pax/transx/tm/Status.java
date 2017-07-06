@@ -53,6 +53,10 @@ public enum Status {
     /**
      * The transaction has been rolled back
      */
-    ROLLED_BACK;
+    ROLLED_BACK,
+    /**
+     * The transaction is suspended
+     */
+    SUSPENDED
 
 }

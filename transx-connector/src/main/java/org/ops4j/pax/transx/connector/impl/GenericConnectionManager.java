@@ -19,7 +19,7 @@ package org.ops4j.pax.transx.connector.impl;
 import org.ops4j.pax.transx.connector.PoolingAttributes;
 import org.ops4j.pax.transx.connector.SubjectSource;
 import org.ops4j.pax.transx.tm.NamedResource;
-import org.ops4j.pax.transx.tm.RecoverableResourceFactory;
+import org.ops4j.pax.transx.tm.ResourceFactory;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.ResourceException;
@@ -282,7 +282,7 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         }
     }
 
-    private class RecoverableResourceFactoryImpl implements RecoverableResourceFactory {
+    private class RecoverableResourceFactoryImpl implements ResourceFactory {
 
         @Override
         public String getName() {
@@ -290,7 +290,7 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         }
 
         @Override
-        public NamedResource getResource() {
+        public NamedResource create() {
             try {
                 ManagedConnectionInfo mci = new ManagedConnectionInfo(managedConnectionFactory, null);
 
@@ -305,7 +305,7 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         }
 
         @Override
-        public void returnResource(NamedResource resource) {
+        public void release(NamedResource resource) {
             NamedXAResourceWithConnectioninfo xares = (NamedXAResourceWithConnectioninfo) resource;
             recoveryStack.returnConnection(xares.getConnectionInfo(), ConnectionInterceptor.ConnectionReturnAction.DESTROY);
         }

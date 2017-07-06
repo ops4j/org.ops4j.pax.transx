@@ -51,7 +51,7 @@ public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
 
             // get the current transation and status... if there is a problem just assume there is no transaction present
             Transaction transaction = transactionManager.getTransaction();
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 NamedResource xares = mci.getXAResource();
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.log(Level.FINEST, "Enlisting connection " + connectionInfo + " with XAResource " + xares + " in transaction: " + transaction);
@@ -89,7 +89,7 @@ public class TransactionEnlistingInterceptor implements ConnectionInterceptor {
         try {
             ManagedConnectionInfo mci = connectionInfo.getManagedConnectionInfo();
             Transaction transaction = transactionManager.getTransaction();
-            if (transaction.isActive()) {
+            if (transaction != null && transaction.isActive()) {
                 NamedResource xares = mci.getXAResource();
                 if (LOG.isLoggable(Level.FINEST)) {
                     LOG.log(Level.FINEST, "Delisting connection " + connectionInfo + " with XAResource " + xares + " in transaction: " + transaction, new Exception("stack trace"));

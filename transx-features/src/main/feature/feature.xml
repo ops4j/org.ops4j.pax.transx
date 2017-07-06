@@ -28,6 +28,21 @@
         <bundle>mvn:org.ops4j.pax.transx/transx-tm-api/${project.version}</bundle>
     </feature>
 
+    <feature name="transx-tm-geronimo" version="${project.version}">
+        <feature>transx-tm-api</feature>
+        <bundle>mvn:org.ops4j.pax.transx/transx-tm-geronimo/${project.version}</bundle>
+    </feature>
+
+    <feature name="transx-tm-atomikos" version="${project.version}">
+        <feature>transx-tm-api</feature>
+        <bundle>mvn:org.ops4j.pax.transx/transx-tm-atomikos/${project.version}</bundle>
+    </feature>
+
+    <feature name="transx-tm-narayana" version="${project.version}">
+        <feature>transx-tm-api</feature>
+        <bundle>mvn:org.ops4j.pax.transx/transx-tm-narayana/${project.version}</bundle>
+    </feature>
+
     <feature name="transx-connector" version="${project.version}">
         <feature version="${project.version}">transx-tm-api</feature>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-connector_1.6_spec/1.0</bundle>

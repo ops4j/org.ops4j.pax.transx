@@ -16,14 +16,14 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
-import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
-import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
+import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
+import org.ops4j.pax.transx.tm.impl.geronimo.GeronimoPlatformTransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -103,7 +103,7 @@ public class H2Test {
 
     @Before
     public void setUp() throws Exception {
-        AriesPlatformTransactionManager atm = new AriesPlatformTransactionManager();
+        GeronimoPlatformTransactionManager atm = new GeronimoPlatformTransactionManager();
         tm = new TransactionManagerWrapper(atm);
         ptm = atm;
     }
@@ -112,24 +112,24 @@ public class H2Test {
     public void testContextWithXaTx() throws Exception {
         DataSource ds = wrap(createH2DataSource());
 
-        tm.getTransaction().begin();
+        Transaction tx = tm.begin();
         try (Connection con = ds.getConnection()) {
             Statement st = con.createStatement();
             st.execute(DROP_USER);
             st.execute(CREATE_TABLE_USER);
         }
-        tm.getTransaction().commit();
+        tx.commit();
 
-        tm.getTransaction().begin();
+        tx = tm.begin();
         try (Connection con = ds.getConnection()) {
             PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER);
             ps.setInt(1, 1);
             ps.setString(2, "user1");
             ps.executeUpdate();
         }
-        tm.getTransaction().commit();
+        tx.commit();
 
-        tm.getTransaction().begin();
+        tx = tm.begin();
         try (Connection con = ds.getConnection()) {
             PreparedStatement ps = con.prepareStatement(SELECT_FROM_USER_BY_ID);
             ps.setInt(1, 1);
@@ -137,7 +137,7 @@ public class H2Test {
             Statement st2 = rs.getStatement();
             assertSame(ps, st2);
         }
-        tm.getTransaction().commit();
+        tx.commit();
 
         try (Connection con = ds.getConnection()) {
             DatabaseMetaData dmd = con.getMetaData();

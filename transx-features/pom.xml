@@ -25,6 +25,13 @@
             <type>kar</type>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>standard</artifactId>
+            <version>${karaf.version}</version>
+            <type>xml</type>
+            <classifier>features</classifier>
+        </dependency>
 
         <dependency>
             <groupId>org.ops4j.pax.transx</groupId>
@@ -47,6 +54,9 @@
                     <descriptors>
                         <descriptor>file:${project.build.directory}/feature/feature.xml</descriptor>
                     </descriptors>
+                    <framework>
+                        <feature>framework</feature>
+                    </framework>
                 </configuration>
             </plugin>
         </plugins>

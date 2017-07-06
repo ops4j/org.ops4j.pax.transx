@@ -29,9 +29,9 @@ public interface Transaction {
     boolean isActive();
 
     /**
-     * Begin the transaction
+     * Get the transaction status
      */
-    void begin() throws Exception;
+    Status getStatus();
 
     /**
      * Commit the transaction
@@ -49,9 +49,14 @@ public interface Transaction {
     void setRollbackOnly() throws Exception;
 
     /**
-     * Get the transaction status
+     * Suspend this transaction
      */
-    Status getStatus();
+    void suspend() throws Exception;
+
+    /**
+     * Resume this transaction
+     */
+    void resume() throws Exception;
 
     /**
      * Enlist the resource

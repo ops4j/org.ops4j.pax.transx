@@ -22,6 +22,7 @@ import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
 import org.springframework.jms.connection.JmsTransactionManager;
@@ -65,20 +66,20 @@ public class ActiveMQTest {
 
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.getTransaction().begin();
+        Transaction tx = tm.begin();
         try (JMSContext context = cf.createContext()) {
             Queue queue = context.createQueue(QUEUE);
             context.createProducer().send(queue, "Hello");
         }
-        tm.getTransaction().rollback();
+        tx.rollback();
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.getTransaction().begin();
+        tx = tm.begin();
         try (JMSContext context = cf.createContext()) {
             Queue queue = context.createQueue(QUEUE);
             context.createProducer().send(queue, "Hello");
         }
-        tm.getTransaction().commit();
+        tx.commit();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
 
         try (JMSContext context = cf.createContext()) {
@@ -94,24 +95,24 @@ public class ActiveMQTest {
 
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.getTransaction().begin();
+        Transaction tx = tm.begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession()) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
             }
         }
-        tm.getTransaction().rollback();
+        tx.rollback();
         assertEquals(0, consumeMessages(cf, QUEUE).size());
 
-        tm.getTransaction().begin();
+        tx = tm.begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession()) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
             }
         }
-        tm.getTransaction().commit();
+        tx.commit();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
 
         try (Connection con = cf.createConnection()) {

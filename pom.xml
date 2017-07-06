@@ -13,12 +13,32 @@
         <dependencies>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-connector</artifactId>
+                <artifactId>transx-tm-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-api</artifactId>
+                <artifactId>transx-tm-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>transx-tm-geronimo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>transx-tm-narayana</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>transx-tm-atomikos</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>transx-connector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -84,6 +104,11 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
+                <artifactId>spring-tx</artifactId>
+                <version>4.3.7.RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
                 <artifactId>spring-jdbc</artifactId>
                 <version>4.3.7.RELEASE</version>
             </dependency>
@@ -125,7 +150,12 @@
             <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
-                <version>4.3.1</version>
+                <version>6.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.compendium</artifactId>
+                <version>5.0.0</version>
             </dependency>
             <dependency>
                 <groupId>com.atomikos</groupId>
@@ -190,6 +220,10 @@
 
     <modules>
         <module>transx-tm-api</module>
+        <module>transx-tm-core</module>
+        <module>transx-tm-atomikos</module>
+        <module>transx-tm-geronimo</module>
+        <module>transx-tm-narayana</module>
         <module>transx-connector</module>
         <module>transx-connection</module>
         <module>transx-jms</module>

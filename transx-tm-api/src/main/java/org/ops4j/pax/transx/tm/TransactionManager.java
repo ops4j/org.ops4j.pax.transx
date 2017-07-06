@@ -31,17 +31,24 @@ public interface TransactionManager {
      */
     Transaction getTransaction();
 
-    Transaction suspend();
-
-    void resume(Transaction transaction);
+    /**
+     * Start a transaction
+     */
+    Transaction begin() throws Exception;
 
     /**
      * Register a resource for recovery
      */
-    void registerResource(RecoverableResourceFactory resource);
+    void registerResource(ResourceFactory resource);
 
+    /**
+     * Unregister a previously registered resource factory
+     */
     void unregisterResource(String name);
 
-    RecoverableResourceFactory getResource(String name);
+    /**
+     * Get the resource factory registered for the given name.
+     */
+    ResourceFactory getResource(String name);
 
 }

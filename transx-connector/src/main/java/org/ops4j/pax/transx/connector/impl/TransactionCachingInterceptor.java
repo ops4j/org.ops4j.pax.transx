@@ -20,7 +20,6 @@ import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.ResourceException;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -73,7 +72,7 @@ public class TransactionCachingInterceptor implements ConnectionInterceptor {
 
         // get the current transaction and status... if there is a problem just assume there is no transaction present
         Transaction transaction = transactionManager.getTransaction();
-        if (transaction.isActive()) {
+        if (transaction != null && transaction.isActive()) {
             ManagedConnectionInfos managedConnectionInfos = getManagedConnectionInfos(transaction);
             if (connectionInfo.isUnshareable()) {
                 if (!managedConnectionInfos.containsUnshared(connectionInfo.getManagedConnectionInfo())) {
