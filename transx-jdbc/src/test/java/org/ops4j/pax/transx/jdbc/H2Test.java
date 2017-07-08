@@ -220,8 +220,6 @@ public class H2Test {
 
     private DataSource wrap(XADataSource xaDs) throws Exception {
         ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(xaDs);
-        ((XADataSourceMCF) mcf).setUserName("sa");
-        ((XADataSourceMCF) mcf).setPassword("");
         ConnectionManager cm = ConnectionManagerFactory.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)

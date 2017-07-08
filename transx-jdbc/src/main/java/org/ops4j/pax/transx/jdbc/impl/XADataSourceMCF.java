@@ -75,7 +75,13 @@ public class XADataSourceMCF extends AbstractManagedConnectionFactory implements
 
     protected XAConnection getPhysicalConnection(CredentialExtractor credentialExtractor) throws ResourceException {
         try {
-            return xaDataSource.getXAConnection(credentialExtractor.getUserName(), credentialExtractor.getPassword());
+            String username = credentialExtractor.getUserName();
+            String password = credentialExtractor.getPassword();
+            if (username != null) {
+                return xaDataSource.getXAConnection(username, password);
+            } else {
+                return xaDataSource.getXAConnection();
+            }
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Unable to obtain physical connection to " + xaDataSource, e);
         }
