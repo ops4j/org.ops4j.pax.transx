@@ -37,14 +37,15 @@ public class TestConfiguration {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        List<FrameworkPropertyOption> frameworkOptions = new ArrayList<>();
+        List<Option> options = new ArrayList<>();
         for (Enumeration<?> e = props.propertyNames(); e.hasMoreElements();) {
             String k = (String) e.nextElement();
-            frameworkOptions.add(CoreOptions.frameworkProperty(k).value(props.getProperty(k)));
+            options.add(CoreOptions.frameworkProperty(k).value(props.getProperty(k)));
+            options.add(CoreOptions.systemProperty(k).value(props.getProperty(k)));
         }
         return composite(
                 // Framework
-                frameworkProperties(frameworkOptions.toArray(new FrameworkPropertyOption[frameworkOptions.size()])),
+                composite(options.toArray(new Option[options.size()])),
                 // Logging
                 mvnBundle("org.slf4j", "slf4j-api"),
                 mvnBundle("ch.qos.logback", "logback-core"),

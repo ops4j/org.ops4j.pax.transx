@@ -23,7 +23,7 @@ import org.ops4j.pax.transx.tm.impl.AbstractActivator;
  */
 public class Activator extends AbstractActivator {
 
-    public static final String PID = "org.apache.geronimo.tm";
+    public static final String PID = "org.ops4j.pax.transx.tm.geronimo";
 
     private TransactionManagerService manager;
 

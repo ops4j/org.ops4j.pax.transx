@@ -31,7 +31,7 @@ import java.util.List;
 
 public class Activator extends AbstractActivator {
 
-    public static final String PID = "org.jboss.narayana";
+    public static final String PID = "org.ops4j.pax.transx.tm.narayana";
     public static final String INTERN_PACKAGE = "org.jboss.narayana.osgi.jta.internal";
     public static final String SERVER_CLASS = INTERN_PACKAGE + ".OsgiServer";
 

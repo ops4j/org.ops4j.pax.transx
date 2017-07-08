@@ -21,6 +21,8 @@ import com.atomikos.icatch.provider.imp.AssemblerImp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -41,12 +43,22 @@ public class OsgiAssembler extends AssemblerImp {
         } catch (IOException e) {
             // Ignore
         }
+        props.putAll(System.getProperties());
         if (properties != null) {
             for (Enumeration<String> ke = properties.keys(); ke.hasMoreElements();) {
                 String key = ke.nextElement();
                 props.put(key, properties.get(key));
             }
         }
+
+        // Not really nice, but create the log file dir now
+        String dir = props.getProperty("com.atomikos.icatch.log_base_dir");
+        try {
+            Files.createDirectories(Paths.get(dir));
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create log file directory", e);
+        }
+
         return new ConfigProperties(props);
     }
 

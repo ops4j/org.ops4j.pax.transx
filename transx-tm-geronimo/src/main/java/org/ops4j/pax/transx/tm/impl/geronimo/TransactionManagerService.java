@@ -40,6 +40,8 @@ import java.util.List;
  */
 public class TransactionManagerService {
 
+    public static final String PROPERTY_PREFIX = "org.apache.geronimo.tm.";
+
     public static final String TRANSACTION_TIMEOUT = "timeout";
     public static final String RECOVERABLE = "recoverable";
     public static final String TMID = "tmid";
@@ -63,10 +65,7 @@ public class TransactionManagerService {
 
     private static final String PLATFORM_TRANSACTION_MANAGER_CLASS = "org.springframework.transaction.PlatformTransactionManager";
 
-    @SuppressWarnings("unused")
-    private final String pid;
-    @SuppressWarnings("rawtypes")
-    private final Dictionary properties;
+    private final Dictionary<String, ?> properties;
     private final BundleContext bundleContext;
     private boolean useSpring;
     private GeronimoTransactionManager transactionManager;
@@ -74,8 +73,7 @@ public class TransactionManagerService {
     private ServiceRegistration<?> serviceRegistration;
     private ServiceRegistration<?> wrapperRegistration;
 
-    public TransactionManagerService(String pid, @SuppressWarnings("rawtypes") Dictionary properties, BundleContext bundleContext) throws ConfigurationException {
-        this.pid = pid;
+    public TransactionManagerService(String pid, Dictionary<String, ?> properties, BundleContext bundleContext) throws ConfigurationException {
         this.properties = properties;
         this.bundleContext = bundleContext;
         // Transaction timeout
@@ -190,7 +188,7 @@ public class TransactionManagerService {
     }
 
     private String getString(String property, String dflt) throws ConfigurationException {
-        String value = properties != null ? (String) properties.get(property) : null;
+        String value = getRawString(property);
         if (value != null) {
             return value;
         }
@@ -198,7 +196,7 @@ public class TransactionManagerService {
     }
 
     private int getInt(String property, int dflt) throws ConfigurationException {
-        String value = properties != null ? (String) properties.get(property) : null;
+        String value = getRawString(property);
         if (value != null) {
             try {
                 return Integer.parseInt(value);
@@ -210,7 +208,7 @@ public class TransactionManagerService {
     }
 
     private boolean getBool(String property, boolean dflt) throws ConfigurationException {
-        String value = properties != null ? (String) properties.get(property) : null;
+        String value = getRawString(property);
         if (value != null) {
             try {
                 return Boolean.parseBoolean(value);
@@ -219,6 +217,15 @@ public class TransactionManagerService {
             }
         }
         return dflt;
+    }
+
+    private String getRawString(String property) {
+        String name = PROPERTY_PREFIX + property;
+        String value = properties != null ? (String) properties.get(name) : null;
+        if (value == null && bundleContext != null) {
+            value = bundleContext.getProperty(name);
+        }
+        return value;
     }
 
     /**

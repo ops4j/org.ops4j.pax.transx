@@ -93,6 +93,7 @@ public class OsgiServer implements ServiceTrackerCustomizer<XAResourceRecovery, 
 
     public void doStart() throws Exception {
         Properties properties = PropertiesFactory.getDefaultProperties();
+        properties.putAll(System.getProperties());
         if (configuration != null) {
             for (Enumeration<String> keyEnum = configuration.keys(); keyEnum.hasMoreElements(); ) {
                 String key = keyEnum.nextElement();

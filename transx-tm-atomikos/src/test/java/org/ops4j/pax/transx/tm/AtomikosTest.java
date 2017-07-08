@@ -16,6 +16,7 @@
  */
 package org.ops4j.pax.transx.tm;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -24,6 +25,12 @@ import org.ops4j.pax.transx.tm.impl.atomikos.TransactionManagerWrapper;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
@@ -35,6 +42,14 @@ public class AtomikosTest {
     LastResource xares1;
     @Mock
     NamedResource xares2;
+
+    @Before
+    public void setUp() throws IOException {
+        Path basedir = Paths.get(getClass().getClassLoader().getResource("foo").getPath()).getParent().getParent().getParent();
+        Path dir = basedir.resolve("target/data/atomikos");
+        Files.createDirectories(dir);
+        System.setProperty("com.atomikos.icatch.log_base_dir", dir.toString());
+    }
 
     @Test
     public void testLRC() throws Exception {
