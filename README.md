@@ -3,7 +3,7 @@ Pax TransX
 
 Pax TransX aims at providing support for JTA/JTS transaction management in OSGi, along with resource pooling for JDBC and JMS.
 
-This is the official source repository of the OPS4J Pax CDI project.
+This is the official source repository of the OPS4J Pax TransX project.
 Its licensed under the Apache Software License 2.0 by the OPS4J community.
 
 ## Build
