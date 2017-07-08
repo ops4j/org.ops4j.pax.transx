@@ -63,11 +63,6 @@
             <artifactId>spring-jms</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.ops4j.pax.transx</groupId>
-            <artifactId>transx-tm-geronimo</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
