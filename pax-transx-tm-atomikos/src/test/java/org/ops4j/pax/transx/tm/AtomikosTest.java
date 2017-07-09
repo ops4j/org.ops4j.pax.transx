@@ -26,6 +26,7 @@ import org.ops4j.pax.transx.tm.impl.atomikos.TransactionManagerWrapper;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,8 +43,8 @@ public class AtomikosTest {
     NamedResource xares2;
 
     @Before
-    public void setUp() throws IOException {
-        Path basedir = Paths.get(getClass().getClassLoader().getResource("foo").getPath()).getParent().getParent().getParent();
+    public void setUp() throws URISyntaxException, IOException {
+        Path basedir = Paths.get(getClass().getClassLoader().getResource("foo").toURI()).getParent().getParent().getParent();
         Path dir = basedir.resolve("target/data/atomikos");
         Files.createDirectories(dir);
         System.setProperty("com.atomikos.icatch.log_base_dir", dir.toString());
