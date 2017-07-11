@@ -14,11 +14,13 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
+import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
 import org.ops4j.pax.transx.jdbc.impl.ConnectionPoolDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.JDBCDriverMCF;
 import org.ops4j.pax.transx.jdbc.impl.LocalDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
+import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.ResourceException;
@@ -73,6 +75,7 @@ public class ManagedConnectionFactoryFactory {
 
         private ConnectionManagerFactory.Builder builder = ConnectionManagerFactory.builder();
         private CommonDataSource dataSource;
+        private ExceptionSorter exceptionSorter;
         private ManagedConnectionFactory managedConnectionFactory;
 
         private Builder() {
@@ -85,6 +88,11 @@ public class ManagedConnectionFactoryFactory {
 
         public Builder dataSource(CommonDataSource dataSource) {
             this.dataSource = dataSource;
+            return this;
+        }
+
+        public Builder exceptionSorter(ExceptionSorter exceptionSorter) {
+            this.exceptionSorter = exceptionSorter;
             return this;
         }
 
@@ -114,6 +122,9 @@ public class ManagedConnectionFactoryFactory {
             }
             if (managedConnectionFactory == null) {
                 managedConnectionFactory = create(dataSource);
+            }
+            if (exceptionSorter != null) {
+                ((AbstractManagedConnectionFactory) managedConnectionFactory).setExceptionSorter(exceptionSorter);
             }
             builder.managedConnectionFactory(managedConnectionFactory);
             ConnectionManager cm = builder.build();

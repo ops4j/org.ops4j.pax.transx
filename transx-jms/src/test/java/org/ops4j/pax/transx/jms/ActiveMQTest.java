@@ -37,8 +37,6 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ManagedConnectionFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -236,16 +234,13 @@ public class ActiveMQTest {
     }
 
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
-        ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(
-                new ActiveMQConnectionFactory(brokerUrl),
-                new ActiveMQXAConnectionFactory(brokerUrl));
-        ConnectionManager cm = ConnectionManagerFactory.builder()
+        return ManagedConnectionFactoryFactory.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("vmbroker")
-                .managedConnectionFactory(mcf)
+                .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
+                                   new ActiveMQXAConnectionFactory(brokerUrl))
                 .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)
                 .build();
-        return (ConnectionFactory) mcf.createConnectionFactory(cm);
     }
 }

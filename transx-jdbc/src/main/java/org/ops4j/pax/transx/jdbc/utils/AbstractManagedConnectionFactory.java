@@ -145,6 +145,10 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
         }
     }
 
+    public void setExceptionSorter(ExceptionSorter exceptionSorter) {
+        this.exceptionSorter = exceptionSorter;
+    }
+
     public Object createConnectionFactory() throws ResourceException {
         throw new NotSupportedException("ConnectionManager is required");
     }
