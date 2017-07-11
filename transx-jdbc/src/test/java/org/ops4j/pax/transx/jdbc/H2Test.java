@@ -218,14 +218,12 @@ public class H2Test {
 
 
     private DataSource wrap(XADataSource xaDs) throws Exception {
-        ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(xaDs);
-        ConnectionManager cm = ConnectionManagerFactory.builder()
+        return ManagedConnectionFactoryFactory.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("h2invm")
-                .managedConnectionFactory(mcf)
+                .dataSource(xaDs)
                 .build();
-        return (DataSource) mcf.createConnectionFactory(cm);
     }
 
     private XADataSource createH2DataSource() {
