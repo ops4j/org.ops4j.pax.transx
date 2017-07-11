@@ -15,7 +15,6 @@ package org.ops4j.pax.transx.itests;
 
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.options.FrameworkPropertyOption;
 import org.ops4j.pax.exam.options.MavenArtifactProvisionOption;
 import org.ops4j.pax.exam.util.PathUtils;
 
@@ -57,6 +56,7 @@ public class TestConfiguration {
                         "file:" + PathUtils.getBaseDir() + "/src/test/resources/logback.xml"),
                 // JUnit
                 junitBundles(),
+                mvnBundle("org.mockito", "mockito-all"),
                 // Config Admin
                 mvnBundle("org.apache.felix", "org.apache.felix.configadmin")
         );

@@ -13,6 +13,7 @@
  */
 package org.ops4j.pax.transx.itests;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,8 +28,6 @@ import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
 
 import javax.inject.Inject;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ManagedConnectionFactory;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
 import java.util.Properties;
@@ -70,23 +69,19 @@ public class NarayanaTest {
 
     @Test
     public void createJdbcResource() throws Exception {
-        System.out.println("DSF: " + dsf);
-
         Properties jdbc = new Properties();
         jdbc.setProperty("url", "jdbc:h2:mem:test");
         jdbc.setProperty("user", "sa");
         jdbc.setProperty("password", "");
         XADataSource xaDs = dsf.createXADataSource(jdbc);
-        ManagedConnectionFactory mcf = ManagedConnectionFactoryFactory.create(xaDs);
-        ConnectionManager cm = ConnectionManagerFactory.builder()
+
+        DataSource ds = ManagedConnectionFactoryFactory.builder()
+                .dataSource(xaDs)
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
-                .managedConnectionFactory(mcf)
                 .transactionManager(tm)
                 .name("h2")
                 .build();
-        DataSource ds = (DataSource) mcf.createConnectionFactory(cm);
-
-        Thread.sleep(5000);
+        Assert.assertNotNull(ds);
     }
 
 }

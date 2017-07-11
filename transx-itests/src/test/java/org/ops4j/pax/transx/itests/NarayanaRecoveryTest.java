@@ -13,38 +13,42 @@
  */
 package org.ops4j.pax.transx.itests;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.util.Filter;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
 import org.ops4j.pax.transx.jdbc.ManagedConnectionFactoryFactory;
 import org.ops4j.pax.transx.tm.TransactionManager;
-import org.osgi.service.jdbc.DataSourceFactory;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
+import javax.sql.XAConnection;
 import javax.sql.XADataSource;
-import java.util.Properties;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
+import java.sql.Connection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import static javax.transaction.xa.XAResource.TMSTARTRSCAN;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.ops4j.pax.exam.CoreOptions.options;
+import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 import static org.ops4j.pax.transx.itests.TestConfiguration.mvnBundle;
 import static org.ops4j.pax.transx.itests.TestConfiguration.regressionDefaults;
 
 @RunWith(PaxExam.class)
-public class AtomikosTest {
+public class NarayanaRecoveryTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Inject
-    @Filter(value = "(osgi.jdbc.driver.name=H2 JDBC Driver)")
-    private DataSourceFactory dsf;
 
     @Inject
     private TransactionManager tm;
@@ -57,21 +61,33 @@ public class AtomikosTest {
                 mvnBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec"),
                 mvnBundle("org.apache.geronimo.specs", "geronimo-jms_2.0_spec"),
                 mvnBundle("org.ops4j.pax.transx", "transx-tm-api"),
-                mvnBundle("org.ops4j.pax.transx", "transx-tm-atomikos"),
+                mvnBundle("org.ops4j.pax.transx", "transx-tm-narayana"),
                 mvnBundle("org.ops4j.pax.transx", "transx-connector"),
                 mvnBundle("org.ops4j.pax.transx", "transx-jms"),
                 mvnBundle("org.ops4j.pax.transx", "transx-jdbc"),
-                mvnBundle("com.h2database", "h2")
+                systemProperty("com.arjuna.ats.arjuna.recovery.periodicRecoveryInitilizationOffset").value("1")
         );
     }
 
     @Test
-    public void createJdbcResource() throws Exception {
-        Properties jdbc = new Properties();
-        jdbc.setProperty("url", "jdbc:h2:mem:test");
-        jdbc.setProperty("user", "sa");
-        jdbc.setProperty("password", "");
-        XADataSource xaDs = dsf.createXADataSource(jdbc);
+    public void testRecovery() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        XADataSource xaDs = Mockito.mock(XADataSource.class);
+        XAConnection xaCon = Mockito.mock(XAConnection.class);
+        XAResource xaRes = Mockito.mock(XAResource.class);
+        Connection con = Mockito.mock(Connection.class);
+
+        Mockito.when(xaDs.getXAConnection()).thenReturn(xaCon);
+        Mockito.when(xaCon.getXAResource()).thenReturn(xaRes);
+        Mockito.when(xaCon.getConnection()).thenReturn(con);
+
+        Mockito.when(xaRes.recover(TMSTARTRSCAN)).thenAnswer(invocation -> {
+            latch.countDown();
+            return new Xid[0];
+        });
+        Mockito.when(con.getAutoCommit()).thenReturn(true);
+        Mockito.when(con.isValid(anyInt())).thenReturn(true);
 
         DataSource ds = ManagedConnectionFactoryFactory.builder()
                 .dataSource(xaDs)
@@ -79,7 +95,8 @@ public class AtomikosTest {
                 .transactionManager(tm)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds);
+        assertNotNull(ds);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
     }
 
 }

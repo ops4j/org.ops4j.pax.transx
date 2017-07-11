@@ -110,7 +110,8 @@
                             com.atomikos.*,
                             org.ops4j.pax.transx.tm.impl,
                             org.ops4j.pax.transx.tm.impl.atomikos,
-                            slf4j.org.slf4j.impl
+                            slf4j.org.slf4j.impl,
+                            META-INF.services
                         </Private-Package>
                         <Bundle-Activator>
                             org.ops4j.pax.transx.tm.impl.atomikos.Activator

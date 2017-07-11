@@ -25,8 +25,6 @@ import org.ops4j.pax.transx.tm.impl.atomikos.TransactionManagerWrapper;
 
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.Xid;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

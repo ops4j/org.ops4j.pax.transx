@@ -20,7 +20,6 @@ import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
-import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.GeronimoPlatformTransactionManager;
