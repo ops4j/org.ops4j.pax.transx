@@ -8,6 +8,13 @@
     <artifactId>transx</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>OPS4J Pax TransX (Reactor POM)</name>
+
+    <parent>
+        <groupId>org.ops4j</groupId>
+        <artifactId>master</artifactId>
+        <version>4.2.0</version>
+    </parent>
 
     <properties>
         <pax.exam.version>4.11.0</pax.exam.version>
