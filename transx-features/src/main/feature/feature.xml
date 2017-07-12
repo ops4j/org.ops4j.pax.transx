@@ -43,6 +43,13 @@
         <bundle>mvn:org.ops4j.pax.transx/transx-tm-narayana/${project.version}</bundle>
     </feature>
 
+    <feature name="transx-tm" version="${project.version}">
+        <feature dependency="true">transx-tm-geronimo</feature>
+        <requirement>
+            osgi.service;objectClass="org.ops4j.pax.transx.tm.TransactionManager"
+        </requirement>
+    </feature>
+
     <feature name="transx-connector" version="${project.version}">
         <feature version="${project.version}">transx-tm-api</feature>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-connector_1.6_spec/1.0</bundle>

@@ -77,6 +77,46 @@ public class ConnectionManagerFactory {
             return this;
         }
 
+        public Builder minSize(int minSize) {
+            connectionManagerFactory.setPoolMinSize(minSize);
+            return this;
+        }
+
+        public Builder maxSize(int maxSize) {
+            connectionManagerFactory.setPoolMaxSize(maxSize);
+            return this;
+        }
+
+        public Builder maxIdle(Duration maxIdle) {
+            connectionManagerFactory.setConnectionMaxIdle(maxIdle);
+            return this;
+        }
+
+        public Builder maxWait(Duration maxWait) {
+            connectionManagerFactory.setConnectionMaxWait(maxWait);
+            return this;
+        }
+
+        public Builder backgroundValidation(boolean backgroundValidation) {
+            connectionManagerFactory.setBackgroundValidation(backgroundValidation);
+            return this;
+        }
+
+        public Builder backgroundValidationPeriod(Duration backgroundValidationPeriod) {
+            connectionManagerFactory.setValidatingPeriod(backgroundValidationPeriod);
+            return this;
+        }
+
+        public Builder validateOnMatch(boolean validateOnMatch) {
+            connectionManagerFactory.setBackgroundValidation(validateOnMatch);
+            return this;
+        }
+
+        public Builder allConnectionsEqual(boolean allConnectionsEqual) {
+            connectionManagerFactory.setAllConnectionsEqual(allConnectionsEqual);
+            return this;
+        }
+
         public ConnectionManager build() throws Exception {
             connectionManagerFactory.init();
             return connectionManagerFactory.getConnectionManager();
@@ -173,7 +213,8 @@ public class ConnectionManagerFactory {
                 // unpartitioned pool
                 default:
                 case None:
-                    poolingSupport = new SinglePool(poolMaxSize,
+                    poolingSupport = new SinglePool(
+                        poolMaxSize,
                         poolMinSize,
                         connectionMaxWait,
                         connectionMaxIdle,
@@ -186,7 +227,8 @@ public class ConnectionManagerFactory {
                     break;
                 // partition by connector properties such as username and password on a jdbc connection
                 case ByConnectorProperties:
-                    poolingSupport = new PartitionedPool(poolMaxSize,
+                    poolingSupport = new PartitionedPool(
+                        poolMaxSize,
                         poolMinSize,
                         connectionMaxWait,
                         connectionMaxIdle,
@@ -204,7 +246,8 @@ public class ConnectionManagerFactory {
                     if (subjectSource == null) {
                         throw new IllegalStateException("To use Subject in pooling, you need a SecurityDomain");
                     }
-                    poolingSupport = new PartitionedPool(poolMaxSize,
+                    poolingSupport = new PartitionedPool(
+                        poolMaxSize,
                         poolMinSize,
                         connectionMaxWait,
                         connectionMaxIdle,

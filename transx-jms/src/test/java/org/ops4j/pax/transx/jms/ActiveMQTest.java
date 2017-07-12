@@ -234,7 +234,7 @@ public class ActiveMQTest {
     }
 
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
-        return ManagedConnectionFactoryFactory.builder()
+        return ManagedConnectionFactoryBuilder.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("vmbroker")

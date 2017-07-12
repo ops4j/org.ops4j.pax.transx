@@ -22,7 +22,7 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
-import org.ops4j.pax.transx.jdbc.ManagedConnectionFactoryFactory;
+import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.inject.Inject;
@@ -88,7 +88,7 @@ public class AtomikosRecoveryTest {
         Mockito.when(con.getAutoCommit()).thenReturn(true);
         Mockito.when(con.isValid(anyInt())).thenReturn(true);
 
-        DataSource ds = ManagedConnectionFactoryFactory.builder()
+        DataSource ds = ManagedDataSourceBuilder.builder()
                 .dataSource(xaDs)
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)

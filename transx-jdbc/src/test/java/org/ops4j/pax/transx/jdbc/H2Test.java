@@ -31,8 +31,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ManagedConnectionFactory;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
 import java.sql.Connection;
@@ -218,7 +216,7 @@ public class H2Test {
 
 
     private DataSource wrap(XADataSource xaDs) throws Exception {
-        return ManagedConnectionFactoryFactory.builder()
+        return ManagedDataSourceBuilder.builder()
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("h2invm")

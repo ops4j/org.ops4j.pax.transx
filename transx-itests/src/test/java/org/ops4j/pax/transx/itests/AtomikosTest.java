@@ -23,7 +23,7 @@ import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.util.Filter;
 import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
-import org.ops4j.pax.transx.jdbc.ManagedConnectionFactoryFactory;
+import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
 
@@ -73,7 +73,7 @@ public class AtomikosTest {
         jdbc.setProperty("password", "");
         XADataSource xaDs = dsf.createXADataSource(jdbc);
 
-        DataSource ds = ManagedConnectionFactoryFactory.builder()
+        DataSource ds = ManagedDataSourceBuilder.builder()
                 .dataSource(xaDs)
                 .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
