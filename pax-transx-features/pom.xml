@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>pax-transx</artifactId>
+        <groupId>org.ops4j.pax.transx</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>feature</packaging>
+    <artifactId>pax-transx-features</artifactId>
+
+    <dependencies>
+        <!-- Framework distribution -->
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <type>kar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>standard</artifactId>
+            <type>xml</type>
+            <classifier>features</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-jdbc</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-jms</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>file:${project.build.directory}/feature/feature.xml</descriptor>
+                    </descriptors>
+                    <framework>
+                        <feature>framework</feature>
+                    </framework>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.ops4j.pax.transx</groupId>
-    <artifactId>transx</artifactId>
+    <artifactId>pax-transx</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>OPS4J Pax TransX (Reactor POM)</name>
@@ -26,47 +26,47 @@
         <dependencies>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-api</artifactId>
+                <artifactId>pax-transx-tm-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-core</artifactId>
+                <artifactId>pax-transx-tm-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-geronimo</artifactId>
+                <artifactId>pax-transx-tm-geronimo</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-narayana</artifactId>
+                <artifactId>pax-transx-tm-narayana</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-tm-atomikos</artifactId>
+                <artifactId>pax-transx-tm-atomikos</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-connector</artifactId>
+                <artifactId>pax-transx-connector</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-connection</artifactId>
+                <artifactId>pax-transx-connection</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-jdbc</artifactId>
+                <artifactId>pax-transx-jdbc</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>transx-jms</artifactId>
+                <artifactId>pax-transx-jms</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -315,17 +315,17 @@
     </build>
 
     <modules>
-        <module>transx-tm-api</module>
-        <module>transx-tm-core</module>
-        <module>transx-tm-atomikos</module>
-        <module>transx-tm-geronimo</module>
-        <module>transx-tm-narayana</module>
-        <module>transx-connector</module>
-        <module>transx-connection</module>
-        <module>transx-jms</module>
-        <module>transx-jdbc</module>
-        <module>transx-features</module>
-        <module>transx-itests</module>
+        <module>pax-transx-tm-api</module>
+        <module>pax-transx-tm-core</module>
+        <module>pax-transx-tm-atomikos</module>
+        <module>pax-transx-tm-geronimo</module>
+        <module>pax-transx-tm-narayana</module>
+        <module>pax-transx-connector</module>
+        <module>pax-transx-connection</module>
+        <module>pax-transx-jms</module>
+        <module>pax-transx-jdbc</module>
+        <module>pax-transx-features</module>
+        <module>pax-transx-itests</module>
     </modules>
 
 </project>
