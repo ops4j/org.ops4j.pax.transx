@@ -20,6 +20,9 @@ import javax.resource.ResourceException;
 
 public class ConnectionHandleInterceptor implements ConnectionInterceptor {
 
+
+    private static boolean connectionTrace = Boolean.getBoolean("org.ops4j.pax.transx.connectionTrace");
+
     private final ConnectionInterceptor next;
 
     public ConnectionHandleInterceptor(ConnectionInterceptor next) {
@@ -52,7 +55,9 @@ public class ConnectionHandleInterceptor implements ConnectionInterceptor {
                     connectionInfo.getConnectionHandle());
             mci.addConnectionHandle(connectionInfo);
         }
-        connectionInfo.setTrace();
+        if (connectionTrace) {
+            connectionInfo.setTrace();
+        }
     }
 
     /**
