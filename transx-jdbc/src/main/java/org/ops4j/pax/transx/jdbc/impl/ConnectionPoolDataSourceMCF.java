@@ -46,10 +46,6 @@ public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactor
         this.connectionPoolDataSource = connectionPoolDataSource;
     }
 
-   public Object createConnectionFactory(ConnectionManager connectionManager) throws ResourceException {
-        return new TransxDataSource(this, connectionManager);
-    }
-
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         CredentialExtractor credentialExtractor = new CredentialExtractor(subject, connectionRequestInfo, this);
 
