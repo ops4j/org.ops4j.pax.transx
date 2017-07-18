@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 /**
  * DataSource connection factory for JDBC Connections.
  */
-public class TransxDataSource implements javax.sql.DataSource {
+public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(TransxDataSource.class.getName());
 
@@ -41,6 +41,12 @@ public class TransxDataSource implements javax.sql.DataSource {
     public TransxDataSource(UserPasswordManagedConnectionFactory mcf, ConnectionManager cm) {
         this.mcf = mcf;
         this.cm = cm;
+    }
+
+    public void close() throws Exception {
+        if (cm instanceof AutoCloseable) {
+            ((AutoCloseable) cm).close();
+        }
     }
 
     public Connection getConnection() throws SQLException {

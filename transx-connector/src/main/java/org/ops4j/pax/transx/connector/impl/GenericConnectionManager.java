@@ -34,7 +34,7 @@ import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class GenericConnectionManager implements ConnectionManager, LazyAssociatableConnectionManager, PoolingAttributes {
+public class GenericConnectionManager implements ConnectionManager, LazyAssociatableConnectionManager, PoolingAttributes, AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(GenericConnectionManager.class.getName());
 
@@ -208,20 +208,15 @@ public class GenericConnectionManager implements ConnectionManager, LazyAssociat
         return poolingSupport;
     }
 
-    public void doStart() throws Exception {
+    public void init() throws Exception {
         if (recoveryStack != null) {
             transactionManager.registerResource(new RecoverableResourceFactoryImpl());
         }
     }
 
-    public void doStop() throws Exception {
+    public void close() throws Exception {
         stack.destroy();
     }
-
-    public void doFail() {
-        stack.destroy();
-    }
-
 
     private static class NamedXAResourceWithConnectioninfo implements NamedResource {
 

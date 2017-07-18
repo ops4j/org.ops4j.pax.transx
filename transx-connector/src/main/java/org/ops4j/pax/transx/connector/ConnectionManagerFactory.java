@@ -272,13 +272,13 @@ public class ConnectionManagerFactory {
                     name != null ? name : getClass().getName(),
                     getClass().getClassLoader(),
                     managedConnectionFactory);
-            connectionManager.doStart();
+            connectionManager.init();
         }
     }
 
     public void destroy() throws Exception {
         if (connectionManager != null) {
-            connectionManager.doStop();
+            connectionManager.close();
             connectionManager = null;
         }
     }
