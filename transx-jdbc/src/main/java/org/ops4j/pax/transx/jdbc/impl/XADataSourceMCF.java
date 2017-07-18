@@ -33,7 +33,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class XADataSourceMCF extends AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory, AutocommitSpecCompliant {
+public class XADataSourceMCF extends AbstractManagedConnectionFactory {
 
     private final XADataSource xaDataSource;
     private int transactionIsolationLevel = -1;

@@ -31,7 +31,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class LocalDataSourceMCF extends AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory {
+public class LocalDataSourceMCF extends AbstractManagedConnectionFactory {
 
 	private final DataSource dataSource;
     private int transactionIsolationLevel = -1;

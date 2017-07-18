@@ -32,7 +32,7 @@ import javax.sql.PooledConnection;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory, AutocommitSpecCompliant {
+public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactory {
 
     private final ConnectionPoolDataSource connectionPoolDataSource;
     private int transactionIsolationLevel = -1;
