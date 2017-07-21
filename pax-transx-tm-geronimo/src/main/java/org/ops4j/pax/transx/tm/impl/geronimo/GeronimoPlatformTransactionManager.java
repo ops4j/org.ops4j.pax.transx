@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GeronimoPlatformTransactionManager extends GeronimoTransactionManager implements PlatformTransactionManager {
 
     private final PlatformTransactionManager platformTransactionManager;
-    private final Map<Transaction, SuspendedResourcesHolder> suspendedResources = new ConcurrentHashMap<Transaction, SuspendedResourcesHolder>();
+    private final Map<Transaction, SuspendedResourcesHolder> suspendedResources = new ConcurrentHashMap<>();
 
     public GeronimoPlatformTransactionManager() throws XAException {
         platformTransactionManager = new JtaTransactionManager(this, this);
@@ -90,24 +90,23 @@ public class GeronimoPlatformTransactionManager extends GeronimoTransactionManag
                             TransactionSynchronizationManager.setCurrentTransactionReadOnly(holder.isReadOnly());
                             TransactionSynchronizationManager.setCurrentTransactionName(holder.getName());
                             TransactionSynchronizationManager.initSynchronization();
-                            for (Iterator<?> it = holder.getSuspendedSynchronizations().iterator(); it.hasNext();) {
-                                TransactionSynchronization synchronization = (TransactionSynchronization) it.next();
+                            for (TransactionSynchronization synchronization : holder.getSuspendedSynchronizations()) {
                                 synchronization.resume();
                                 TransactionSynchronizationManager.registerSynchronization(synchronization);
                             }
                         }
                     }
                 } catch (SystemException e) {
-                    return;
+                    // Ignore
                 }
             }
             public void threadUnassociated(Transaction transaction) {
                 try {
                     if (transaction.getStatus() == Status.STATUS_ACTIVE) {
                         if (TransactionSynchronizationManager.isSynchronizationActive()) {
-                            List<?> suspendedSynchronizations = TransactionSynchronizationManager.getSynchronizations();
-                            for (Iterator<?> it = suspendedSynchronizations.iterator(); it.hasNext();) {
-                                ((TransactionSynchronization) it.next()).suspend();
+                            List<TransactionSynchronization> suspendedSynchronizations = TransactionSynchronizationManager.getSynchronizations();
+                            for (TransactionSynchronization synchronization : suspendedSynchronizations) {
+                                synchronization.suspend();
                             }
                             TransactionSynchronizationManager.clearSynchronization();
                             String name = TransactionSynchronizationManager.getCurrentTransactionName();
@@ -120,7 +119,7 @@ public class GeronimoPlatformTransactionManager extends GeronimoTransactionManag
                         }
                     }
                 } catch (SystemException e) {
-                    return;
+                    // Ignore
                 }
             }
         });
@@ -134,14 +133,14 @@ public class GeronimoPlatformTransactionManager extends GeronimoTransactionManag
 
         private final Object suspendedResources;
 
-        private final List<?> suspendedSynchronizations;
+        private final List<TransactionSynchronization> suspendedSynchronizations;
 
         private final String name;
 
         private final boolean readOnly;
 
         public SuspendedResourcesHolder(
-                Object suspendedResources, List<?> suspendedSynchronizations, String name, boolean readOnly) {
+                Object suspendedResources, List<TransactionSynchronization> suspendedSynchronizations, String name, boolean readOnly) {
 
             this.suspendedResources = suspendedResources;
             this.suspendedSynchronizations = suspendedSynchronizations;
@@ -154,7 +153,7 @@ public class GeronimoPlatformTransactionManager extends GeronimoTransactionManag
             return suspendedResources;
         }
 
-        public List<?> getSuspendedSynchronizations() {
+        public List<TransactionSynchronization> getSuspendedSynchronizations() {
             return suspendedSynchronizations;
         }
 

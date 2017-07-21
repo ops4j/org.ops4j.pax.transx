@@ -20,7 +20,7 @@ import java.util.HashSet;
 
 public class KnownSQLStateExceptionSorter extends ConfigurableSQLStateExceptionSorter {
 
-    private static final Collection<String> ALLOWED = new HashSet<String>(Arrays.asList(new String[] {
+    private static final Collection<String> ALLOWED = new HashSet<>(Arrays.asList(
             //These values are from http://publib.boulder.ibm.com/infocenter/idshelp/v10/index.jsp?topic=/com.ibm.esqlc.doc/esqlc211.htm
             //allegedly they are all defined by ansi and x/open standards.
             "00000",  //success... should not be in an exception
@@ -68,7 +68,7 @@ public class KnownSQLStateExceptionSorter extends ConfigurableSQLStateExceptionS
             "3C000",  //duplicate cursor name
             "40000",  //transaction rollback
             "40003",  //statement completion unknown
-            "42000",  //syntax error or access violation
+            "42000"  //syntax error or access violation
             /* any codes starting with "S" are db specific
             "S0000",  //invalid name
             "S0001",  //base table or view already exists
@@ -89,7 +89,7 @@ public class KnownSQLStateExceptionSorter extends ConfigurableSQLStateExceptionS
             "08S01",  //communication failure
              */
 
-    }));
+    ));
 
     public KnownSQLStateExceptionSorter() {
         super(ALLOWED);

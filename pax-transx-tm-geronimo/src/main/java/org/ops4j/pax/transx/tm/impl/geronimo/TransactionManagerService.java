@@ -152,7 +152,7 @@ public class TransactionManagerService {
     }
 
     public void init() throws Exception {
-        List<String> clazzes = new ArrayList<String>();
+        List<String> clazzes = new ArrayList<>();
         clazzes.add(TransactionManager.class.getName());
         clazzes.add(TransactionSynchronizationRegistry.class.getName());
         clazzes.add(UserTransaction.class.getName());

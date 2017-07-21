@@ -115,9 +115,7 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
             exceptionSorter = clazz.newInstance();
         } catch (ClassNotFoundException e) {
             throw new InvalidPropertyException("Unable to load class: " + className, e);
-        } catch (IllegalAccessException e) {
-            throw new InvalidPropertyException("Unable to instantiate class: " + className, e);
-        } catch (InstantiationException e) {
+        } catch (IllegalAccessException | InstantiationException e) {
             throw new InvalidPropertyException("Unable to instantiate class: " + className, e);
         } catch (ClassCastException e) {
             throw new InvalidPropertyException("Class is not a "+ ExceptionSorter.class.getName() + ": " + className, e);
