@@ -15,7 +15,7 @@
 package org.ops4j.pax.transx.jdbc;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.jdbc.impl.ConnectionPoolDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.LocalDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
@@ -23,11 +23,12 @@ import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
 import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.sql.CommonDataSource;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
-import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class ManagedDataSourceBuilder {
 
@@ -35,7 +36,7 @@ public class ManagedDataSourceBuilder {
         return new ManagedDataSourceBuilder();
     }
 
-    private ConnectionManagerFactory.Builder builder = ConnectionManagerFactory.builder();
+    private ConnectionManagerBuilder builder = ConnectionManagerBuilder.builder();
     private CommonDataSource dataSource;
     private ExceptionSorter exceptionSorter;
     private String userName;
@@ -76,7 +77,7 @@ public class ManagedDataSourceBuilder {
         return this;
     }
 
-    public ManagedDataSourceBuilder transaction(ConnectionManagerFactory.TransactionSupportLevel tx) {
+    public ManagedDataSourceBuilder transaction(TransactionSupportLevel tx) {
         builder.transaction(tx);
         return this;
     }
@@ -86,53 +87,63 @@ public class ManagedDataSourceBuilder {
         return this;
     }
 
-    public ManagedDataSourceBuilder pooling(boolean pooling) {
-        builder.pooling(pooling);
+    public ManagedDataSourceBuilder minIdle(int minSize) {
+        builder.minIdle(minSize);
         return this;
     }
 
-    public ManagedDataSourceBuilder partition(ConnectionManagerFactory.Partition partition) {
-        builder.partition(partition);
+    public ManagedDataSourceBuilder maxPoolSize(int maxPoolSize) {
+        builder.maxPoolSize(maxPoolSize);
         return this;
     }
 
-    public ManagedDataSourceBuilder minSize(int minSize) {
-        builder.minSize(minSize);
+    public ManagedDataSourceBuilder aliveBypassWindow(long aliveBypassWindowMs) {
+        builder.aliveBypassWindow(aliveBypassWindowMs);
         return this;
     }
 
-    public ManagedDataSourceBuilder maxSize(int maxSize) {
-        builder.maxSize(maxSize);
+    public ManagedDataSourceBuilder aliveBypassWindow(long aliveBypassWindow, TimeUnit unit) {
+        builder.aliveBypassWindow(unit.toMillis(aliveBypassWindow));
         return this;
     }
 
-    public ManagedDataSourceBuilder maxIdle(Duration maxIdle) {
-        builder.maxIdle(maxIdle);
+    public ManagedDataSourceBuilder houseKeepingPeriod(long houseKeepingPeriodMs) {
+        builder.houseKeepingPeriod(houseKeepingPeriodMs);
         return this;
     }
 
-    public ManagedDataSourceBuilder maxWait(Duration maxWait) {
-        builder.maxWait(maxWait);
+    public ManagedDataSourceBuilder houseKeepingPeriod(long houseKeepingPeriod, TimeUnit unit) {
+        builder.houseKeepingPeriod(unit.toMillis(houseKeepingPeriod));
         return this;
     }
 
-    public ManagedDataSourceBuilder backgroundValidation(boolean backgroundValidation) {
-        builder.backgroundValidation(backgroundValidation);
+    public ManagedDataSourceBuilder connectionTimeout(long connectionTimeoutMs) {
+        builder.connectionTimeout(connectionTimeoutMs);
         return this;
     }
 
-    public ManagedDataSourceBuilder backgroundValidationPeriod(Duration backgroundValidationPeriod) {
-        builder.backgroundValidationPeriod(backgroundValidationPeriod);
+    public ManagedDataSourceBuilder connectionTimeout(long connectionTimeout, TimeUnit unit) {
+        builder.connectionTimeout(unit.toMillis(connectionTimeout));
         return this;
     }
 
-    public ManagedDataSourceBuilder validateOnMatch(boolean validateOnMatch) {
-        builder.validateOnMatch(validateOnMatch);
+    public ManagedDataSourceBuilder idleTimeout(long idleTimeoutMs) {
+        builder.idleTimeout(idleTimeoutMs);
         return this;
     }
 
-    public ManagedDataSourceBuilder allConnectionsEqual(boolean allConnectionsEqual) {
-        builder.allConnectionsEqual(allConnectionsEqual);
+    public ManagedDataSourceBuilder idleTimeout(long idleTimeout, TimeUnit unit) {
+        builder.idleTimeout(unit.toMillis(idleTimeout));
+        return this;
+    }
+
+    public ManagedDataSourceBuilder maxLifetime(long maxLifetimeMs) {
+        builder.maxLifetime(maxLifetimeMs);
+        return this;
+    }
+
+    public ManagedDataSourceBuilder maxLifetime(long maxLifetime, TimeUnit unit) {
+        builder.maxLifetime(unit.toMillis(maxLifetime));
         return this;
     }
 

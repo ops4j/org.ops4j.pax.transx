@@ -21,7 +21,7 @@ import org.mockito.Mockito;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
@@ -90,7 +90,6 @@ public class AtomikosRecoveryTest {
 
         DataSource ds = ManagedDataSourceBuilder.builder()
                 .dataSource(xaDs)
-                .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("h2")
                 .build();

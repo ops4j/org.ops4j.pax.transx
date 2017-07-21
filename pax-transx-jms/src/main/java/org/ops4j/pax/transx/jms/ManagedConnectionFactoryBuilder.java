@@ -16,7 +16,7 @@ package org.ops4j.pax.transx.jms;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
-import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.jms.impl.ManagedConnectionFactoryImpl;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
@@ -24,7 +24,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
-import java.time.Duration;
+import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
+import java.util.concurrent.TimeUnit;
 
 public class ManagedConnectionFactoryBuilder {
 
@@ -32,7 +33,7 @@ public class ManagedConnectionFactoryBuilder {
         return new ManagedConnectionFactoryBuilder();
     }
 
-    private ConnectionManagerFactory.Builder builder = ConnectionManagerFactory.builder();
+    private ConnectionManagerBuilder builder = ConnectionManagerBuilder.builder();
     private ConnectionFactory connectionFactory;
     private XAConnectionFactory xaConnectionFactory;
     private ExceptionSorter exceptionSorter;
@@ -42,6 +43,7 @@ public class ManagedConnectionFactoryBuilder {
     private ManagedConnectionFactory managedConnectionFactory;
 
     private ManagedConnectionFactoryBuilder() {
+        builder.aliveBypassWindow(Long.MAX_VALUE);
     }
 
     public ManagedConnectionFactoryBuilder name(String name) {
@@ -75,7 +77,7 @@ public class ManagedConnectionFactoryBuilder {
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder transaction(ConnectionManagerFactory.TransactionSupportLevel tx) {
+    public ManagedConnectionFactoryBuilder transaction(TransactionSupportLevel tx) {
         builder.transaction(tx);
         return this;
     }
@@ -85,53 +87,63 @@ public class ManagedConnectionFactoryBuilder {
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder pooling(boolean pooling) {
-        builder.pooling(pooling);
+    public ManagedConnectionFactoryBuilder minIdle(int minSize) {
+        builder.minIdle(minSize);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder partition(ConnectionManagerFactory.Partition partition) {
-        builder.partition(partition);
+    public ManagedConnectionFactoryBuilder maxPoolSize(int maxPoolSize) {
+        builder.maxPoolSize(maxPoolSize);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder minSize(int minSize) {
-        builder.minSize(minSize);
+    public ManagedConnectionFactoryBuilder aliveBypassWindow(long aliveBypassWindowMs) {
+        builder.aliveBypassWindow(aliveBypassWindowMs);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder maxSize(int maxSize) {
-        builder.maxSize(maxSize);
+    public ManagedConnectionFactoryBuilder aliveBypassWindow(long aliveBypassWindow, TimeUnit unit) {
+        builder.aliveBypassWindow(unit.toMillis(aliveBypassWindow));
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder maxIdle(Duration maxIdle) {
-        builder.maxIdle(maxIdle);
+    public ManagedConnectionFactoryBuilder houseKeepingPeriod(long houseKeepingPeriodMs) {
+        builder.houseKeepingPeriod(houseKeepingPeriodMs);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder maxWait(Duration maxWait) {
-        builder.maxWait(maxWait);
+    public ManagedConnectionFactoryBuilder houseKeepingPeriod(long houseKeepingPeriod, TimeUnit unit) {
+        builder.houseKeepingPeriod(unit.toMillis(houseKeepingPeriod));
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder backgroundValidation(boolean backgroundValidation) {
-        builder.backgroundValidation(backgroundValidation);
+    public ManagedConnectionFactoryBuilder connectionTimeout(long connectionTimeoutMs) {
+        builder.connectionTimeout(connectionTimeoutMs);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder backgroundValidationPeriod(Duration backgroundValidationPeriod) {
-        builder.backgroundValidationPeriod(backgroundValidationPeriod);
+    public ManagedConnectionFactoryBuilder connectionTimeout(long connectionTimeout, TimeUnit unit) {
+        builder.connectionTimeout(unit.toMillis(connectionTimeout));
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder validateOnMatch(boolean validateOnMatch) {
-        builder.validateOnMatch(validateOnMatch);
+    public ManagedConnectionFactoryBuilder idleTimeout(long idleTimeoutMs) {
+        builder.idleTimeout(idleTimeoutMs);
         return this;
     }
 
-    public ManagedConnectionFactoryBuilder allConnectionsEqual(boolean allConnectionsEqual) {
-        builder.allConnectionsEqual(allConnectionsEqual);
+    public ManagedConnectionFactoryBuilder idleTimeout(long idleTimeout, TimeUnit unit) {
+        builder.idleTimeout(unit.toMillis(idleTimeout));
+        return this;
+    }
+
+    public ManagedConnectionFactoryBuilder maxLifetime(long maxLifetimeMs) {
+        builder.maxLifetime(maxLifetimeMs);
+        return this;
+    }
+
+    public ManagedConnectionFactoryBuilder maxLifetime(long maxLifetime, TimeUnit unit) {
+        builder.maxLifetime(unit.toMillis(maxLifetime));
         return this;
     }
 

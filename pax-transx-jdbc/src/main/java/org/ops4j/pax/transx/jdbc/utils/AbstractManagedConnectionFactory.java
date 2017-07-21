@@ -16,6 +16,7 @@ package org.ops4j.pax.transx.jdbc.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.impl.AutocommitSpecCompliant;
 import org.ops4j.pax.transx.jdbc.impl.TransxDataSource;
@@ -26,6 +27,7 @@ import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.TransactionSupport;
 import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
 import java.security.AccessController;
@@ -33,7 +35,8 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory, AutocommitSpecCompliant, ValidatingManagedConnectionFactory {
+public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory,
+        AutocommitSpecCompliant, ValidatingManagedConnectionFactory, TransactionSupport {
 
     protected ExceptionSorter exceptionSorter;
     protected String userName;
@@ -161,7 +164,7 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
         for (Object o : set) {
             if (o instanceof AbstractManagedConnection) {
                 AbstractManagedConnection mc = (AbstractManagedConnection) o;
-                if (mc.matches(this, subject, connectionRequestInfo)) {
+                if (mc.getCredentialExtractor().matches(subject, (UserPasswordConnectionRequestInfo) connectionRequestInfo, this)) {
                     return mc;
                 }
             }

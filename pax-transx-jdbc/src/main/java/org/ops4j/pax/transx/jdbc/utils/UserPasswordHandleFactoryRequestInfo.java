@@ -20,24 +20,21 @@ import javax.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionHandle<?, CI>>
+public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionHandle<?, CI>>
         implements UserPasswordConnectionRequestInfo {
 
-    private final Function<ConnectionRequestInfo, CI> connectionHandleFactory;
     private final String userName;
     private final String password;
+    private final transient int hashcode;
 
-    public UserPasswordHandleFactoryRequestInfo(Function<ConnectionRequestInfo, CI> connectionHandleFactory,
-                                                String userName,
+    public UserPasswordHandleFactoryRequestInfo(String userName,
                                                 String password) {
-        this.connectionHandleFactory = connectionHandleFactory;
         this.userName = userName;
         this.password = password;
+        this.hashcode = Objects.hash(userName, password);
     }
 
-    public Function<ConnectionRequestInfo, CI> getConnectionHandleFactory() {
-        return connectionHandleFactory;
-    }
+    public abstract CI createConnectionHandle(ConnectionRequestInfo cri);
 
     public String getUserName() {
         return userName;
@@ -52,13 +49,14 @@ public class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionH
         if (this == o) return true;
         if (!(o instanceof UserPasswordHandleFactoryRequestInfo)) return false;
         UserPasswordHandleFactoryRequestInfo<?> that = (UserPasswordHandleFactoryRequestInfo<?>) o;
-        return Objects.equals(userName, that.userName) &&
-                Objects.equals(password, that.password);
+        return hashcode == that.hashcode
+                && Objects.equals(userName, that.userName)
+                && Objects.equals(password, that.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userName, password);
+        return hashcode;
     }
 
     @Override

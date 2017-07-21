@@ -16,6 +16,7 @@ package org.ops4j.pax.transx.jdbc.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
 import javax.resource.ResourceException;
@@ -42,8 +43,10 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         implements ManagedConnection, DissociatableManagedConnection {
 
     protected final AbstractManagedConnectionFactory mcf;
-    protected final LinkedList<CI> handles = new LinkedList<>();
-    protected final ArrayDeque<ConnectionEventListener> listeners = new ArrayDeque<>(2);
+    protected CI handle;
+    protected LinkedList<CI> handles;
+    private ConnectionEventListener listener;
+    protected ArrayDeque<ConnectionEventListener> listeners;
     protected final CredentialExtractor credentialExtractor;
     protected final ExceptionSorter exceptionSorter;
     protected final C physicalConnection;
@@ -83,10 +86,6 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         return localTx;
     }
 
-    public boolean matches(ManagedConnectionFactory mcf, Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceAdapterInternalException {
-        return credentialExtractor.matches(subject, connectionRequestInfo, (UserPasswordManagedConnectionFactory) mcf);
-    }
-
     protected CredentialExtractor getCredentialExtractor() {
         return credentialExtractor;
     }
@@ -105,7 +104,8 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
 
     public void destroy() throws ResourceException {
         dissociateConnections();
-        listeners.clear();
+        listener = null;
+        listeners = null;
         closePhysicalConnection();
     }
 
@@ -116,14 +116,19 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         if (mc != null) {
             mc.handles.remove(handle);
         }
-        handle.setAssociation(this);
-        handles.add(handle);
+        doAssociate(handle);
     }
 
     public void dissociateConnections() throws ResourceException {
-        while (!handles.isEmpty()) {
-            CI handle = handles.removeFirst();
+        if (handle != null) {
             dissociateConnection(handle);
+            handle = null;
+        }
+        if (handles != null) {
+            while (!handles.isEmpty()) {
+                CI handle = handles.removeFirst();
+                dissociateConnection(handle);
+            }
         }
     }
 
@@ -135,7 +140,12 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_CLOSED);
         event.setConnectionHandle(handle);
         // count down in case sending the event results in a handle getting removed.
-        for (ConnectionEventListener listener : reverse(listeners)) {
+        if (listeners != null) {
+            for (ConnectionEventListener listener : reverse(listeners)) {
+                listener.connectionClosed(event);
+            }
+        }
+        if (listener != null) {
             listener.connectionClosed(event);
         }
     }
@@ -157,17 +167,36 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
 
     protected void unfilteredConnectionError(Exception e) {
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, e);
-        for (ConnectionEventListener listener : reverse(listeners)) {
+        if (listeners != null) {
+            for (ConnectionEventListener listener : reverse(listeners)) {
+                listener.connectionErrorOccurred(event);
+            }
+        }
+        if (listener != null) {
             listener.connectionErrorOccurred(event);
         }
     }
 
     public void addConnectionEventListener(ConnectionEventListener connectionEventListener) {
-        listeners.add(connectionEventListener);
+        if (listener == null) {
+            listener = connectionEventListener;
+        } else {
+            if (listeners == null) {
+                listeners = new ArrayDeque<>();
+            }
+            listeners.add(connectionEventListener);
+        }
     }
 
     public void removeConnectionEventListener(ConnectionEventListener connectionEventListener) {
-        listeners.remove(connectionEventListener);
+        if (listener == connectionEventListener) {
+            listener = null;
+            if (listeners != null) {
+                listener = listeners.removeFirst();
+            }
+        } else if (listeners != null) {
+            listeners.remove(connectionEventListener);
+        }
     }
 
     public PrintWriter getLogWriter() throws ResourceException {
@@ -181,7 +210,12 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     protected void localTransactionStart(boolean isSPI) throws ResourceException {
         if (!isSPI) {
             ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.LOCAL_TRANSACTION_STARTED);
-            for (ConnectionEventListener listener : reverse(listeners)) {
+            if (listeners != null) {
+                for (ConnectionEventListener listener : reverse(listeners)) {
+                    listener.localTransactionStarted(event);
+                }
+            }
+            if (listener != null) {
                 listener.localTransactionStarted(event);
             }
         }
@@ -190,7 +224,12 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     protected void localTransactionCommit(boolean isSPI) throws ResourceException {
         if (!isSPI) {
             ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.LOCAL_TRANSACTION_COMMITTED);
-            for (ConnectionEventListener listener : reverse(listeners)) {
+            if (listeners != null) {
+                for (ConnectionEventListener listener : reverse(listeners)) {
+                    listener.localTransactionCommitted(event);
+                }
+            }
+            if (listener != null) {
                 listener.localTransactionCommitted(event);
             }
         }
@@ -199,8 +238,13 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     protected void localTransactionRollback(boolean isSPI) throws ResourceException {
         if (!isSPI) {
             ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK);
-            for (ConnectionEventListener listener : listeners) {
+            if (listener != null) {
                 listener.localTransactionRolledback(event);
+            }
+            if (listeners != null) {
+                for (ConnectionEventListener listener : listeners) {
+                    listener.localTransactionRolledback(event);
+                }
             }
         }
     }
@@ -268,14 +312,25 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     }
 
     public Object getConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
-        Function<ConnectionRequestInfo, CI> handleFactory = ((UserPasswordHandleFactoryRequestInfo<CI>) connectionRequestInfo).getConnectionHandleFactory();
-        CI handle = handleFactory.apply(connectionRequestInfo);
-        handle.setAssociation(this);
-        handles.add(handle);
+        UserPasswordHandleFactoryRequestInfo<CI> cri = (UserPasswordHandleFactoryRequestInfo<CI>) connectionRequestInfo;
+        CI handle = cri.createConnectionHandle(connectionRequestInfo);
+        doAssociate(handle);
 
         this.subject = subject;
         this.cri = connectionRequestInfo;
         return handle;
+    }
+
+    private void doAssociate(CI handle) {
+        handle.setAssociation(this);
+        if (this.handle == null) {
+            this.handle = handle;
+        } else {
+            if (handles == null) {
+                handles = new LinkedList<>();
+            }
+            handles.add(handle);
+        }
     }
 
     protected class LocalTransactionImpl implements LocalTransaction {
@@ -372,6 +427,9 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     }
 
     private static <S> Iterable<S> reverse(Deque<S> col) {
+        if (col.size() == 1) {
+            return col;
+        }
         return col::descendingIterator;
     }
 }

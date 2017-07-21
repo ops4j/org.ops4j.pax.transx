@@ -25,6 +25,7 @@ import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ResourceAdapterInternalException;
+import javax.resource.spi.TransactionSupport;
 import javax.security.auth.Subject;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
@@ -46,6 +47,11 @@ public class XADataSourceMCF extends AbstractManagedConnectionFactory {
     protected XADataSourceMCF(XADataSource xaDataSource, ExceptionSorter exceptionSorter) {
         this.xaDataSource = xaDataSource;
         this.exceptionSorter = exceptionSorter;
+    }
+
+    @Override
+    public TransactionSupportLevel getTransactionSupport() {
+        return TransactionSupportLevel.XATransaction;
     }
 
     public int getPreparedStatementCacheSize() {

@@ -19,7 +19,7 @@ package org.ops4j.pax.transx.jdbc;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Before;
 import org.junit.Test;
-import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.GeronimoPlatformTransactionManager;
@@ -146,6 +146,24 @@ public class H2Test {
     }
 
     @Test
+    public void testConnectionsWithTx() throws Exception {
+        DataSource ds = wrap(createH2DataSource());
+
+        Transaction tx = tm.begin();
+        try {
+            try (Connection con = ds.getConnection()) {
+                try (Connection con2 = ds.getConnection()) {
+                    assertNotSame(con, con2);
+                }
+            }
+            tx.commit();
+        } catch (Throwable t) {
+            tx.rollback();
+            throw t;
+        }
+    }
+
+    @Test
     public void testSpring() throws Exception {
         DataSource ds = wrap(createH2DataSource());
         JdbcTemplate jdbc = new JdbcTemplate(ds);
@@ -217,7 +235,6 @@ public class H2Test {
 
     private DataSource wrap(XADataSource xaDs) throws Exception {
         return ManagedDataSourceBuilder.builder()
-                .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
                 .transactionManager(tm)
                 .name("h2invm")
                 .dataSource(xaDs)

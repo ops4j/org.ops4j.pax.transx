@@ -19,7 +19,6 @@ import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactor
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LazyAssociatableConnectionManager;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionHandle<C, CI>> {
 
@@ -27,7 +26,7 @@ public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionH
     protected final UserPasswordManagedConnectionFactory mcf;
     protected final ConnectionRequestInfo cri;
 
-    protected final AtomicBoolean closed = new AtomicBoolean(false);
+    protected volatile boolean closed = false;
     protected AbstractManagedConnection<C, CI> mc;
 
     protected AbstractConnectionHandle(LazyAssociatableConnectionManager cm,
@@ -47,12 +46,17 @@ public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionH
     }
 
     public boolean isClosed() {
-        return closed.get();
+        return closed;
     }
 
     public void close() {
-        if (closed.compareAndSet(false, true)) {
-            doClose();
+        if (!closed) {
+            synchronized (this) {
+                if (!closed) {
+                    closed = true;
+                    doClose();
+                }
+            }
         }
     }
 

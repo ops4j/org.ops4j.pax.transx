@@ -27,6 +27,11 @@
             <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.apache.geronimo.components</groupId>
             <artifactId>geronimo-transaction</artifactId>
             <optional>true</optional>
@@ -58,6 +63,15 @@
                         <Export-Package>
                             org.ops4j.pax.transx.connector
                         </Export-Package>
+                        <Import-Package>
+                            !com.zaxxer.hikari.*,
+                            !javassist.*,
+                            *
+                        </Import-Package>
+                        <Private-Package>
+                            org.ops4j.pax.transx.connector.impl,
+                            com.zaxxer.hikari.util
+                        </Private-Package>
                     </instructions>
                 </configuration>
             </plugin>

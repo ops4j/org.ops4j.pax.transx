@@ -50,11 +50,15 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
     }
 
     public Connection getConnection() throws SQLException {
-        return getConnection(null, null);
+        return getConnection(NULL_CRI);
     }
 
     public Connection getConnection(String user, String password) throws SQLException {
-        UserPasswordHandleFactoryRequestInfo<ConnectionHandle> cri = new UserPasswordHandleFactoryRequestInfo<>(this::doCreate, user, password);
+        TransxUserPasswordHandleFactoryRequestInfo cri = new TransxUserPasswordHandleFactoryRequestInfo(user, password);
+        return getConnection(cri);
+    }
+
+    private Connection getConnection(TransxUserPasswordHandleFactoryRequestInfo cri) throws SQLException {
         try {
             return (Connection) cm.allocateConnection(mcf, cri);
         } catch (ResourceException e) {
@@ -68,8 +72,17 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
         }
     }
 
-    private ConnectionHandle doCreate(ConnectionRequestInfo cri) {
-        return new ConnectionHandle(asLazyAssociatableConnectionManager(cm), mcf, cri);
+    private final TransxUserPasswordHandleFactoryRequestInfo NULL_CRI = new TransxUserPasswordHandleFactoryRequestInfo(null, null);
+
+    private class TransxUserPasswordHandleFactoryRequestInfo extends UserPasswordHandleFactoryRequestInfo<ConnectionHandle> {
+        TransxUserPasswordHandleFactoryRequestInfo(String userName, String password) {
+            super(userName, password);
+        }
+
+        @Override
+        public ConnectionHandle createConnectionHandle(ConnectionRequestInfo cri) {
+            return new ConnectionHandle(asLazyAssociatableConnectionManager(cm), mcf, cri);
+        }
     }
 
     protected LazyAssociatableConnectionManager asLazyAssociatableConnectionManager(ConnectionManager cm) {

@@ -46,6 +46,11 @@ public class LocalDataSourceMCF extends AbstractManagedConnectionFactory {
         this.commitBeforeAutocommit = commitBeforeAutocommit;
     }
 
+    @Override
+    public TransactionSupportLevel getTransactionSupport() {
+        return TransactionSupportLevel.LocalTransaction;
+    }
+
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         CredentialExtractor credentialExtractor = new CredentialExtractor(subject, connectionRequestInfo, this);
         Connection jdbcConnection = getPhysicalConnection(credentialExtractor);

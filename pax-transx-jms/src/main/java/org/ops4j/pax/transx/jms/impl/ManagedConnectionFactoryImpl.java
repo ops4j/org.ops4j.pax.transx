@@ -23,11 +23,12 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.TransactionSupport;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
 import java.util.Set;
 
-public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory {
+public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory, TransactionSupport {
 
     private final XAConnectionFactory xaConnectionFactory;
     private final ConnectionFactory connectionFactory;
@@ -40,6 +41,11 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
         this.connectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
         this.exceptionSorter = exceptionSorter;
+    }
+
+    @Override
+    public TransactionSupportLevel getTransactionSupport() {
+        return xaConnectionFactory != null ? TransactionSupportLevel.XATransaction : TransactionSupportLevel.LocalTransaction;
     }
 
     public ConnectionFactory getConnectionFactory() {

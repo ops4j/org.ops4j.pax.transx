@@ -46,6 +46,11 @@ public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactor
         this.connectionPoolDataSource = connectionPoolDataSource;
     }
 
+    @Override
+    public TransactionSupportLevel getTransactionSupport() {
+        return TransactionSupportLevel.LocalTransaction;
+    }
+
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         CredentialExtractor credentialExtractor = new CredentialExtractor(subject, connectionRequestInfo, this);
 

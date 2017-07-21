@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  */
 public class WrapperNamedXAResource implements NamedResource {
 
-    protected static Logger log = Logger.getLogger(WrapperNamedXAResource.class.getName());
+    protected static final Logger LOG = Logger.getLogger(WrapperNamedXAResource.class.getName());
 
     private final XAResource xaResource;
     private final String name;
@@ -46,17 +46,17 @@ public class WrapperNamedXAResource implements NamedResource {
     }
 
     public void commit(Xid xid, boolean onePhase) throws XAException {
-        log.finest(() -> "Commit called on XAResource " + getName() + "\n Xid: " + xid + "\n onePhase:" + onePhase);
+        LOG.finest(() -> "Commit called on XAResource " + getName() + "\n Xid: " + xid + "\n onePhase:" + onePhase);
         xaResource.commit(xid, onePhase);
     }
 
     public void end(Xid xid, int flags) throws XAException {
-        log.finest(() -> "End called on XAResource " + getName() + "\n Xid: " + xid + "\n flags:" + decodeFlags(flags));
+        LOG.finest(() -> "End called on XAResource " + getName() + "\n Xid: " + xid + "\n flags:" + decodeFlags(flags));
         xaResource.end(xid, flags);
     }
 
     public void forget(Xid xid) throws XAException {
-        log.finest(() -> "Forget called on XAResource " + getName() + "\n Xid: " + xid);
+        LOG.finest(() -> "Forget called on XAResource " + getName() + "\n Xid: " + xid);
         xaResource.forget(xid);
     }
 
@@ -72,17 +72,17 @@ public class WrapperNamedXAResource implements NamedResource {
     }
 
     public int prepare(Xid xid) throws XAException {
-        log.finest(() -> "Prepare called on XAResource " + getName() + "\n Xid: " + xid);
+        LOG.finest(() -> "Prepare called on XAResource " + getName() + "\n Xid: " + xid);
         return xaResource.prepare(xid);
     }
 
     public Xid[] recover(int flag) throws XAException {
-        log.finest(() -> "Recover called on XAResource " + getName() + "\n flags: " + decodeFlags(flag));
+        LOG.finest(() -> "Recover called on XAResource " + getName() + "\n flags: " + decodeFlags(flag));
         return xaResource.recover(flag);
     }
 
     public void rollback(Xid xid) throws XAException {
-        log.finest(() -> "Rollback called on XAResource " + getName() + "\n Xid: " + xid);
+        LOG.finest(() -> "Rollback called on XAResource " + getName() + "\n Xid: " + xid);
         xaResource.rollback(xid);
     }
 
@@ -91,7 +91,7 @@ public class WrapperNamedXAResource implements NamedResource {
     }
 
     public void start(Xid xid, int flags) throws XAException {
-        log.finest(() -> "Start called on XAResource " + getName() + "\n Xid: " + xid + "\n flags:" + decodeFlags(flags));
+        LOG.finest(() -> "Start called on XAResource " + getName() + "\n Xid: " + xid + "\n flags:" + decodeFlags(flags));
         xaResource.start(xid, flags);
     }
     private String decodeFlags(int flags) {
@@ -99,25 +99,26 @@ public class WrapperNamedXAResource implements NamedResource {
             return " TMNOFLAGS";
         }
         StringBuilder b = new StringBuilder();
-        decodeFlag(flags, b, TMENDRSCAN, " TMENDRSCAN");
-        decodeFlag(flags, b, TMFAIL, " TMFAIL");
-        decodeFlag(flags, b, TMJOIN, " TMJOIN");
-        decodeFlag(flags, b, TMONEPHASE, " TMONEPHASE");
-        decodeFlag(flags, b, TMRESUME, " TMRESUME");
-        decodeFlag(flags, b, TMSTARTRSCAN, " TMSTARTRSCAN");
-        decodeFlag(flags, b, TMSUCCESS, " TMSUCCESS");
-        decodeFlag(flags, b, TMSUSPEND, " TMSUSPEND");
+        flags = decodeFlag(flags, b, TMENDRSCAN, " TMENDRSCAN");
+        flags = decodeFlag(flags, b, TMFAIL, " TMFAIL");
+        flags = decodeFlag(flags, b, TMJOIN, " TMJOIN");
+        flags = decodeFlag(flags, b, TMONEPHASE, " TMONEPHASE");
+        flags = decodeFlag(flags, b, TMRESUME, " TMRESUME");
+        flags = decodeFlag(flags, b, TMSTARTRSCAN, " TMSTARTRSCAN");
+        flags = decodeFlag(flags, b, TMSUCCESS, " TMSUCCESS");
+        flags = decodeFlag(flags, b, TMSUSPEND, " TMSUSPEND");
         if (flags != 0) {
             b.append(" remaining: ").append(flags);
         }
         return b.toString();
     }
 
-    private void decodeFlag(int flags, StringBuilder b, int flag, String flagName) {
+    private int decodeFlag(int flags, StringBuilder b, int flag, String flagName) {
         if ((flags & flag) == flag) {
             b.append(flagName);
             flags = flags ^ flag;
         }
+        return flags;
     }
 }
 

@@ -28,12 +28,10 @@ import javax.transaction.xa.Xid;
  * LocalXAResource adapts a local transaction to be controlled by a
  * JTA transaction manager.  Of course, it cannot provide xa
  * semantics.
- *
  */
 public class LocalXAResource implements NamedResource {
 
-    //accessible in package for testing
-    final LocalTransaction localTransaction;
+    private final LocalTransaction localTransaction;
     private final String name;
     private Xid xid;
     private int transactionTimeout;

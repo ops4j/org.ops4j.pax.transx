@@ -21,7 +21,7 @@ import org.apache.activemq.ActiveMQXAConnectionFactory;
 import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.ops4j.pax.transx.connector.ConnectionManagerFactory;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
@@ -37,6 +37,7 @@ import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -235,12 +236,11 @@ public class ActiveMQTest {
 
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
         return ManagedConnectionFactoryBuilder.builder()
-                .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
+                .transaction(TransactionSupportLevel.XATransaction)
                 .transactionManager(tm)
                 .name("vmbroker")
                 .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
                                    new ActiveMQXAConnectionFactory(brokerUrl))
-                .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)
                 .build();
     }
 }

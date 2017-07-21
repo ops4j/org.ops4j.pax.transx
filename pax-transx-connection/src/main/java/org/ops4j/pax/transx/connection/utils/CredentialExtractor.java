@@ -52,7 +52,7 @@ public class CredentialExtractor {
         password = managedConnectionFactory.getPassword();
     }
 
-    public boolean matches(Subject subject, ConnectionRequestInfo connectionRequestInfo, UserPasswordManagedConnectionFactory managedConnectionFactory) throws ResourceAdapterInternalException {
+    public boolean matches(Subject subject, UserPasswordConnectionRequestInfo connectionRequestInfo, UserPasswordManagedConnectionFactory managedConnectionFactory) throws ResourceAdapterInternalException {
         assert managedConnectionFactory != null;
 
         if (subject != null) {
@@ -65,11 +65,11 @@ public class CredentialExtractor {
             }
             throw new ResourceAdapterInternalException("No credential found for this ManagedConnectionFactory: " + managedConnectionFactory);
         }
-        if (connectionRequestInfo != null && ((UserPasswordConnectionRequestInfo) connectionRequestInfo).getUserName() != null) {
-            return (userName.equals(((UserPasswordConnectionRequestInfo) connectionRequestInfo).getUserName()))
+        if (connectionRequestInfo != null && connectionRequestInfo.getUserName() != null) {
+            return (userName.equals(connectionRequestInfo.getUserName()))
                 && (password == null
-                    ? ((UserPasswordConnectionRequestInfo) connectionRequestInfo).getPassword() == null
-                    : password.equals(((UserPasswordConnectionRequestInfo) connectionRequestInfo).getPassword()));
+                    ? connectionRequestInfo.getPassword() == null
+                    : password.equals(connectionRequestInfo.getPassword()));
         }
         return (userName == null ? managedConnectionFactory.getUserName() == null : userName.equals(managedConnectionFactory.getUserName())
             && (password == null ? managedConnectionFactory.getPassword() == null : password.equals(managedConnectionFactory.getPassword())));
