@@ -21,7 +21,6 @@ import org.apache.activemq.ActiveMQXAConnectionFactory;
 import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
