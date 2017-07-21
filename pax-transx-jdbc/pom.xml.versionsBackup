@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.ops4j.pax.transx</groupId>
         <artifactId>pax-transx</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <packaging>bundle</packaging>
-    <artifactId>pax-transx-jms</artifactId>
+    <artifactId>pax-transx-jdbc</artifactId>
 
     <dependencies>
         <dependency>
@@ -23,14 +23,6 @@
             <groupId>org.ops4j.pax.transx</groupId>
             <artifactId>pax-transx-connector</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jms_2.0_spec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.ops4j.pax.transx</groupId>
@@ -38,20 +30,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.aries.transaction</groupId>
-            <artifactId>org.apache.aries.transaction.manager</artifactId>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-tm-core</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-broker</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>geronimo-jms_1.1_spec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -59,8 +40,43 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring-jms</artifactId>
+            <artifactId>spring-jdbc</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.components</groupId>
+            <artifactId>geronimo-transaction</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -73,16 +89,17 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            org.ops4j.pax.transx.jms;-noimport:=true,
+                            org.ops4j.pax.transx.jdbc;-noimport:=true,
                             org.ops4j.pax.transx.connection
                         </Export-Package>
                         <Import-Package>
-                            org.ops4j.pax.transx.connection;version="[0.1,0.2)",
+                            org.ops4j.pax.transx.connection;version="[1.0,1.1)",
                             *
                         </Import-Package>
                         <Private-Package>
                             org.ops4j.pax.transx.connection.utils,
-                            org.ops4j.pax.transx.jms.impl,
+                            org.ops4j.pax.transx.jdbc.impl,
+                            org.ops4j.pax.transx.jdbc.utils
                         </Private-Package>
                     </instructions>
                 </configuration>
