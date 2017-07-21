@@ -18,9 +18,8 @@ import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 
 import javax.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
-import java.util.function.Function;
 
-public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionHandle<?, CI>>
+public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionHandle<?, ?, CI>>
         implements UserPasswordConnectionRequestInfo {
 
     private final String userName;

@@ -17,7 +17,6 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
@@ -33,7 +32,7 @@ import java.sql.SQLException;
 /**
  * Implementation of ManagedConnection that manages a physical JDBC connection.
  */
-public class ManagedJDBCConnection extends AbstractManagedConnection<Connection, ConnectionHandle> {
+public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSourceMCF, Connection, ConnectionHandle<LocalDataSourceMCF>> {
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
@@ -46,7 +45,7 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<Connection,
      * @param credentialExtractor credential extractor
      * @param exceptionSorter the ExceptionSorter to use for classifying Exceptions raised on the physical connection
      */
-    public ManagedJDBCConnection(AbstractManagedConnectionFactory mcf, Connection physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
+    public ManagedJDBCConnection(LocalDataSourceMCF mcf, Connection physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         super(mcf, physicalConnection, credentialExtractor, exceptionSorter);
         localTx = new LocalTransactionImpl(true);
         localClientTx = new LocalTransactionImpl(false);

@@ -15,6 +15,7 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
+import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.utils.UserPasswordHandleFactoryRequestInfo;
 
 import javax.resource.ResourceException;
@@ -72,16 +73,16 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
         }
     }
 
-    private final TransxUserPasswordHandleFactoryRequestInfo NULL_CRI = new TransxUserPasswordHandleFactoryRequestInfo(null, null);
+    private final TransxUserPasswordHandleFactoryRequestInfo<?> NULL_CRI = new TransxUserPasswordHandleFactoryRequestInfo<>(null, null);
 
-    private class TransxUserPasswordHandleFactoryRequestInfo extends UserPasswordHandleFactoryRequestInfo<ConnectionHandle> {
+    private class TransxUserPasswordHandleFactoryRequestInfo<MCF extends AbstractManagedConnectionFactory> extends UserPasswordHandleFactoryRequestInfo<ConnectionHandle<MCF>> {
         TransxUserPasswordHandleFactoryRequestInfo(String userName, String password) {
             super(userName, password);
         }
 
         @Override
-        public ConnectionHandle createConnectionHandle(ConnectionRequestInfo cri) {
-            return new ConnectionHandle(asLazyAssociatableConnectionManager(cm), mcf, cri);
+        public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri) {
+            return new ConnectionHandle<>(asLazyAssociatableConnectionManager(cm), mcf, cri);
         }
     }
 

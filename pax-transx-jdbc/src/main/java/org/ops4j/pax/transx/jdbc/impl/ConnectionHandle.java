@@ -17,6 +17,7 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.utils.AbstractConnectionHandle;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -41,8 +42,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class ConnectionHandle
-        extends AbstractConnectionHandle<Connection, ConnectionHandle> implements Connection {
+public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory>
+        extends AbstractConnectionHandle<MCF, Connection, ConnectionHandle<MCF>> implements Connection {
 
     public ConnectionHandle(LazyAssociatableConnectionManager cm, UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri) {
         super(cm, mcf, cri);
@@ -61,7 +62,7 @@ public class ConnectionHandle
     }
 
     public void commit() throws SQLException {
-        AbstractManagedConnection<Connection, ConnectionHandle> mc = getManagedConnection();
+        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
         Connection c = mc.getPhysicalConnection();
         if (c.getAutoCommit()) {
             return;
@@ -81,7 +82,7 @@ public class ConnectionHandle
     }
 
     public void rollback() throws SQLException {
-        AbstractManagedConnection<Connection, ConnectionHandle> mc = getManagedConnection();
+        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
         Connection c = mc.getPhysicalConnection();
         if (c.getAutoCommit()) {
             return;
@@ -101,7 +102,7 @@ public class ConnectionHandle
     }
 
     public void setAutoCommit(boolean autoCommit) throws SQLException {
-        AbstractManagedConnection<Connection, ConnectionHandle> mc = getManagedConnection();
+        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
         Connection c = mc.getPhysicalConnection();
         if (autoCommit == c.getAutoCommit()) {
             // nothing to do

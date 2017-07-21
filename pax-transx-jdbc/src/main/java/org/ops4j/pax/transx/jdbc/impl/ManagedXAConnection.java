@@ -17,7 +17,6 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
@@ -32,18 +31,18 @@ import javax.transaction.xa.XAResource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ManagedXAConnection extends AbstractManagedConnection<Connection, ConnectionHandle> {
+public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceMCF, Connection, ConnectionHandle<XADataSourceMCF>> {
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
     private final XAConnection xaConnection;
     private final XAResource xaResource;
 
-    public ManagedXAConnection(AbstractManagedConnectionFactory mcf, XAConnection xaConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
+    public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
         this(mcf, xaConnection, xaConnection.getXAResource(), xaConnection.getConnection(), credentialExtractor, exceptionSorter);
     }
 
-    public ManagedXAConnection(AbstractManagedConnectionFactory mcf, XAConnection xaConnection, XAResource xaResource, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
+    public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, XAResource xaResource, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         super(mcf, connection, credentialExtractor, exceptionSorter);
         this.xaConnection = xaConnection;
         xaConnection.addConnectionEventListener(new ConnectionEventListener() {
@@ -88,7 +87,7 @@ public class ManagedXAConnection extends AbstractManagedConnection<Connection, C
             // according to the JDBC spec, reenabling autoCommit commits any current transaction
             // we need to do both here, so we rely on this behaviour in the driver as otherwise
             // commit followed by setAutoCommit(true) may result in 2 commits in the database
-            if (getMCF().isCommitBeforeAutocommit()) {
+            if (mcf.isCommitBeforeAutocommit()) {
                 physicalConnection.commit();
             }
             physicalConnection.setAutoCommit(true);

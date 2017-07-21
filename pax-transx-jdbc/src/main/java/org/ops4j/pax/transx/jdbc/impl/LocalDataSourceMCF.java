@@ -16,33 +16,25 @@ package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.KnownSQLStateExceptionSorter;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ResourceAdapterInternalException;
 import javax.security.auth.Subject;
 import javax.sql.DataSource;
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class LocalDataSourceMCF extends AbstractManagedConnectionFactory {
-
-	private final DataSource dataSource;
-    private int transactionIsolationLevel = -1;
+public class LocalDataSourceMCF extends AbstractJdbcManagedConnectionFactory<DataSource> {
 
     public LocalDataSourceMCF(DataSource datasource) {
         this(datasource, new KnownSQLStateExceptionSorter(), true);
     }
 
     public LocalDataSourceMCF(DataSource dataSource, ExceptionSorter exceptionSorter, boolean commitBeforeAutocommit) {
-        this.dataSource = dataSource;
-        this.exceptionSorter = exceptionSorter;
+        super(dataSource, exceptionSorter);
         this.commitBeforeAutocommit = commitBeforeAutocommit;
     }
 
@@ -54,79 +46,21 @@ public class LocalDataSourceMCF extends AbstractManagedConnectionFactory {
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         CredentialExtractor credentialExtractor = new CredentialExtractor(subject, connectionRequestInfo, this);
         Connection jdbcConnection = getPhysicalConnection(credentialExtractor);
-        return new ManagedJDBCConnection(this, jdbcConnection, credentialExtractor, exceptionSorter);
+        return new ManagedJDBCConnection(this, wrap(jdbcConnection), credentialExtractor, exceptionSorter);
     }
 
     protected Connection getPhysicalConnection(CredentialExtractor credentialExtractor) throws ResourceException {
         try {
-            return dataSource.getConnection(credentialExtractor.getUserName(), credentialExtractor.getPassword());
+            String username = credentialExtractor.getUserName();
+            String password = credentialExtractor.getPassword();
+            if (username != null) {
+                return dataSource.getConnection(username, password);
+            } else {
+                return dataSource.getConnection();
+            }
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Unable to obtain physical connection to " + dataSource, e);
         }
-    }
-
-    public PrintWriter getLogWriter() throws ResourceException {
-        try {
-            return dataSource.getLogWriter();
-        } catch (SQLException e) {
-            throw new ResourceAdapterInternalException(e.getMessage(), e);
-        }
-    }
-
-    public void setLogWriter(PrintWriter log) throws ResourceException {
-        try {
-            dataSource.setLogWriter(log);
-        } catch (SQLException e) {
-            throw new ResourceAdapterInternalException(e.getMessage(), e);
-        }
-    }
-
-    public int getLoginTimeout() {
-        int timeout;
-        try {
-            timeout = dataSource.getLoginTimeout();
-        } catch (SQLException e) {
-            timeout = 0;
-        }
-        return timeout;
-    }
-
-    public void setLoginTimeout(int timeout) throws ResourceException {
-        try {
-            dataSource.setLoginTimeout(timeout);
-        } catch (SQLException e) {
-            throw new InvalidPropertyException(e.getMessage());
-        }
-    }
-
-    public int getTransactionIsolationLevel() {
-        return transactionIsolationLevel;
-    }
-
-    public void setTransactionIsolationLevel(int transactionIsolationLevel) {
-        this.transactionIsolationLevel = transactionIsolationLevel;
-    }
-
-    @Override
-	public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj instanceof LocalDataSourceMCF) {
-            LocalDataSourceMCF other = (LocalDataSourceMCF) obj;
-            return this.dataSource.equals(other.dataSource);
-        }
-        return false;
-    }
-
-    @Override
-	public int hashCode() {
-        return dataSource.hashCode();
-    }
-
-    @Override
-	public String toString() {
-        return "LocalDataSourceMCF[" + dataSource + "]";
     }
 
 }

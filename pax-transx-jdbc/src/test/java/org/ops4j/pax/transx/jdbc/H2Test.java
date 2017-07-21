@@ -18,8 +18,8 @@ package org.ops4j.pax.transx.jdbc;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.GeronimoPlatformTransactionManager;
@@ -111,18 +111,20 @@ public class H2Test {
 
         Transaction tx = tm.begin();
         try (Connection con = ds.getConnection()) {
-            Statement st = con.createStatement();
-            st.execute(DROP_USER);
-            st.execute(CREATE_TABLE_USER);
+            try (Statement st = con.createStatement()) {
+                st.execute(DROP_USER);
+                st.execute(CREATE_TABLE_USER);
+            }
         }
         tx.commit();
 
         tx = tm.begin();
         try (Connection con = ds.getConnection()) {
-            PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER);
-            ps.setInt(1, 1);
-            ps.setString(2, "user1");
-            ps.executeUpdate();
+            try (PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER)) {
+                ps.setInt(1, 1);
+                ps.setString(2, "user1");
+                ps.executeUpdate();
+            }
         }
         tx.commit();
 
@@ -232,12 +234,69 @@ public class H2Test {
         }
     }
 
+    @Test
+    @Ignore
+    public void testBenchPreparedStatement() throws Exception {
+        System.err.println("No cache");
+        doBenchPs(0);
+        System.err.println("PS cache");
+        doBenchPs(10);
+    }
+
+    protected void doBenchPs(int psCacheSize) throws Exception {
+        DataSource ds = wrap(createH2DataSource(), psCacheSize);
+
+        Transaction tx = tm.begin();
+        try (Connection con = ds.getConnection()) {
+            try (Statement st = con.createStatement()) {
+                st.execute(DROP_USER);
+                st.execute(CREATE_TABLE_USER);
+            }
+        }
+        tx.commit();
+
+        tx = tm.begin();
+        try (Connection con = ds.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement(INSERT_INTO_USER)) {
+                ps.setInt(1, 1);
+                ps.setString(2, "user1");
+                ps.executeUpdate();
+            }
+        }
+        tx.commit();
+
+        for (int l = 0; l < 10; l++) {
+            System.gc();
+            long t0 = System.nanoTime();
+            for (int i = 0; i < 100000; i++) {
+                tx = tm.begin();
+                try (Connection con = ds.getConnection()) {
+                    PreparedStatement ps = con.prepareStatement(SELECT_FROM_USER_BY_ID);
+                    ps.setInt(1, 1);
+                    ResultSet rs = ps.executeQuery();
+                    Statement st2 = rs.getStatement();
+                    assertSame(ps, st2);
+                }
+                tx.commit();
+            }
+            long t1 = System.nanoTime();
+            if (l > 0) {
+                System.err.println("Duration: " + (((t1 - t0) + 500_000) / 1_000_000) + "ms");
+            }
+        }
+    }
+
 
     private DataSource wrap(XADataSource xaDs) throws Exception {
+        return wrap(xaDs, 0);
+    }
+
+    private DataSource wrap(XADataSource xaDs, int psCacheSize) throws Exception {
         return ManagedDataSourceBuilder.builder()
                 .transactionManager(tm)
                 .name("h2invm")
                 .dataSource(xaDs)
+                .preparedStatementCacheSize(psCacheSize)
                 .build();
     }
 

@@ -267,6 +267,17 @@
             </dependency>
 
             <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-core</artifactId>
+                <version>1.17.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
+                <version>1.17.2</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.karaf.features</groupId>
                 <artifactId>framework</artifactId>
                 <version>${karaf.version}</version>

@@ -17,33 +17,25 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ResourceAdapterInternalException;
 import javax.security.auth.Subject;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.PooledConnection;
-import java.io.PrintWriter;
+import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactory {
-
-    private final ConnectionPoolDataSource connectionPoolDataSource;
-    private int transactionIsolationLevel = -1;
+public class ConnectionPoolDataSourceMCF extends AbstractJdbcManagedConnectionFactory<ConnectionPoolDataSource> {
 
     public ConnectionPoolDataSourceMCF(ConnectionPoolDataSource connectionPoolDataSource) {
         this(connectionPoolDataSource, new NoExceptionsAreFatalSorter());
     }
 
     public ConnectionPoolDataSourceMCF(ConnectionPoolDataSource connectionPoolDataSource, ExceptionSorter exceptionSorter) {
-        super(exceptionSorter);
-        this.connectionPoolDataSource = connectionPoolDataSource;
+        super(connectionPoolDataSource, exceptionSorter);
     }
 
     @Override
@@ -53,10 +45,10 @@ public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactor
 
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         CredentialExtractor credentialExtractor = new CredentialExtractor(subject, connectionRequestInfo, this);
-
         PooledConnection sqlConnection = getPhysicalConnection(credentialExtractor);
         try {
-            return new ManagedPooledConnection(this, sqlConnection, credentialExtractor, exceptionSorter);
+            Connection pc = wrap(sqlConnection.getConnection());
+            return new ManagedPooledConnection(this, sqlConnection, pc, credentialExtractor, exceptionSorter);
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Could not set up ManagedPooledConnection", e);
         }
@@ -64,74 +56,16 @@ public class ConnectionPoolDataSourceMCF extends AbstractManagedConnectionFactor
 
     protected PooledConnection getPhysicalConnection(CredentialExtractor credentialExtractor) throws ResourceException {
         try {
-            return connectionPoolDataSource.getPooledConnection(credentialExtractor.getUserName(), credentialExtractor.getPassword());
+            String username = credentialExtractor.getUserName();
+            String password = credentialExtractor.getPassword();
+            if (username != null) {
+                return dataSource.getPooledConnection(username, password);
+            } else {
+                return dataSource.getPooledConnection();
+            }
         } catch (SQLException e) {
-            throw new ResourceAdapterInternalException("Unable to obtain physical connection to " + connectionPoolDataSource, e);
+            throw new ResourceAdapterInternalException("Unable to obtain physical connection to " + dataSource, e);
         }
-    }
-
-    public PrintWriter getLogWriter() throws ResourceException {
-        try {
-            return connectionPoolDataSource.getLogWriter();
-        } catch (SQLException e) {
-            throw new ResourceAdapterInternalException(e.getMessage(), e);
-        }
-    }
-
-    public void setLogWriter(PrintWriter log) throws ResourceException {
-        try {
-            connectionPoolDataSource.setLogWriter(log);
-        } catch (SQLException e) {
-            throw new ResourceAdapterInternalException(e.getMessage(), e);
-        }
-    }
-
-    public int getLoginTimeout() {
-        int timeout;
-        try {
-            timeout = connectionPoolDataSource.getLoginTimeout();
-        } catch (SQLException e) {
-            timeout = 0;
-        }
-        return timeout;
-    }
-
-    public void setLoginTimeout(int timeout) throws ResourceException {
-        try {
-            connectionPoolDataSource.setLoginTimeout(timeout);
-        } catch (SQLException e) {
-            throw new InvalidPropertyException(e.getMessage());
-        }
-    }
-
-    public int getTransactionIsolationLevel() {
-        return transactionIsolationLevel;
-    }
-
-    public void setTransactionIsolationLevel(int transactionIsolationLevel) {
-        this.transactionIsolationLevel = transactionIsolationLevel;
-    }
-
-    @Override
-	public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj instanceof ConnectionPoolDataSourceMCF) {
-            ConnectionPoolDataSourceMCF other = (ConnectionPoolDataSourceMCF) obj;
-            return this.connectionPoolDataSource.equals(other.connectionPoolDataSource);
-        }
-        return false;
-    }
-
-    @Override
-	public int hashCode() {
-        return connectionPoolDataSource.hashCode();
-    }
-
-    @Override
-	public String toString() {
-        return "ConnectionPoolDataSourceMCF[" + connectionPoolDataSource + "]";
     }
 
 }

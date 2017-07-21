@@ -16,6 +16,7 @@ package org.ops4j.pax.transx.jdbc;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
+import org.ops4j.pax.transx.jdbc.impl.AbstractJdbcManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.impl.ConnectionPoolDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.LocalDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
@@ -42,7 +43,9 @@ public class ManagedDataSourceBuilder {
     private String userName;
     private String password;
     private boolean commitBeforeAutocommit;
-    private AbstractManagedConnectionFactory managedConnectionFactory;
+    private int preparedStatementCacheSize = 0;
+    private int transactionIsolationLevel = -1;
+    private AbstractJdbcManagedConnectionFactory<?> managedConnectionFactory;
 
     private ManagedDataSourceBuilder() {
     }
@@ -69,6 +72,16 @@ public class ManagedDataSourceBuilder {
 
     public ManagedDataSourceBuilder commitBeforeAutocommit(boolean commitBeforeAutocommit) {
         this.commitBeforeAutocommit = commitBeforeAutocommit;
+        return this;
+    }
+
+    public ManagedDataSourceBuilder preparedStatementCacheSize(int preparedStatementCacheSize) {
+        this.preparedStatementCacheSize = preparedStatementCacheSize;
+        return this;
+    }
+
+    public ManagedDataSourceBuilder transactionIsolationLevel(int transactionIsolationLevel) {
+        this.transactionIsolationLevel = transactionIsolationLevel;
         return this;
     }
 
@@ -160,12 +173,14 @@ public class ManagedDataSourceBuilder {
         managedConnectionFactory.setUserName(userName);
         managedConnectionFactory.setPassword(password);
         managedConnectionFactory.setCommitBeforeAutocommit(commitBeforeAutocommit);
+        managedConnectionFactory.setPreparedStatementCacheSize(preparedStatementCacheSize);
+        managedConnectionFactory.setTransactionIsolationLevel(transactionIsolationLevel);
         builder.managedConnectionFactory(managedConnectionFactory);
         ConnectionManager cm = builder.build();
         return (DataSource) managedConnectionFactory.createConnectionFactory(cm);
     }
 
-    private static AbstractManagedConnectionFactory create(CommonDataSource dataSource) {
+    private static AbstractJdbcManagedConnectionFactory<?> create(CommonDataSource dataSource) {
         if (dataSource instanceof XADataSource) {
             return new XADataSourceMCF((XADataSource) dataSource);
         }

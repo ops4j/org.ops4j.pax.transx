@@ -16,8 +16,6 @@ package org.ops4j.pax.transx.jdbc.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
@@ -26,8 +24,6 @@ import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.DissociatableManagedConnection;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
-import javax.resource.spi.ResourceAdapterInternalException;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAException;
@@ -37,12 +33,11 @@ import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.function.Function;
 
-public abstract class AbstractManagedConnection<C, CI extends AbstractConnectionHandle<C, CI>>
+public abstract class AbstractManagedConnection<MCF extends AbstractManagedConnectionFactory, C, CI extends AbstractConnectionHandle<MCF, C, CI>>
         implements ManagedConnection, DissociatableManagedConnection {
 
-    protected final AbstractManagedConnectionFactory mcf;
+    protected final MCF mcf;
     protected CI handle;
     protected LinkedList<CI> handles;
     private ConnectionEventListener listener;
@@ -59,11 +54,11 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
     protected Subject subject;
     protected ConnectionRequestInfo cri;
 
-    public AbstractManagedConnection(AbstractManagedConnectionFactory mcf, C physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
+    public AbstractManagedConnection(MCF mcf, C physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         this(mcf, physicalConnection, null, credentialExtractor, exceptionSorter);
     }
 
-    public AbstractManagedConnection(AbstractManagedConnectionFactory mcf, C physicalConnection, XAResource xaResource, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
+    public AbstractManagedConnection(MCF mcf, C physicalConnection, XAResource xaResource, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         assert exceptionSorter != null;
         this.mcf = mcf;
         this.physicalConnection = physicalConnection;
@@ -111,7 +106,7 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
 
     public void associateConnection(Object o) {
         CI handle = (CI) o;
-        AbstractManagedConnection<C, CI> mc = handle.getAssociation();
+        AbstractManagedConnection<MCF, C, CI> mc = handle.getAssociation();
         // handle is associated to another managed connection - disassociate it
         if (mc != null) {
             mc.handles.remove(handle);
@@ -353,12 +348,12 @@ public abstract class AbstractManagedConnection<C, CI extends AbstractConnection
         }
     }
 
-    static class XAResourceProxy<C,
-                                 CI extends AbstractConnectionHandle<C, CI>> implements XAResource {
+    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory, C,
+                                 CI extends AbstractConnectionHandle<MCF, C, CI>> implements XAResource {
 
-        private final AbstractManagedConnection<C, CI> mc;
+        private final AbstractManagedConnection<MCF, C, CI> mc;
 
-        XAResourceProxy(AbstractManagedConnection<C, CI> mc) {
+        XAResourceProxy(AbstractManagedConnection<MCF, C, CI> mc) {
             this.mc = mc;
         }
 

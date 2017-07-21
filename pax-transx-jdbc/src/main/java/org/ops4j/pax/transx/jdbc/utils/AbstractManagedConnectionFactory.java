@@ -18,7 +18,6 @@ import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
 import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.impl.AutocommitSpecCompliant;
 import org.ops4j.pax.transx.jdbc.impl.TransxDataSource;
 
 import javax.resource.NotSupportedException;
@@ -36,12 +35,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory,
-        AutocommitSpecCompliant, ValidatingManagedConnectionFactory, TransactionSupport {
+                            ValidatingManagedConnectionFactory, TransactionSupport {
 
     protected ExceptionSorter exceptionSorter;
     protected String userName;
     protected String password;
-    protected boolean commitBeforeAutocommit = false;
 
     public AbstractManagedConnectionFactory() {
         this.exceptionSorter = NoExceptionsAreFatalSorter.INSTANCE;
@@ -89,28 +87,6 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
      */
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    /**
-     * Return whether the Driver requires a commit before enabling auto-commit.
-     *
-     * @return TRUE if the Driver requires a commit before enabling auto-commit.
-     */
-    public boolean isCommitBeforeAutocommit() {
-        return commitBeforeAutocommit;
-    }
-
-    /**
-     * Set whether the Driver requires a commit before enabling auto-commit.
-     * Although the JDBC specification requires any pending work to be committed
-     * when auto-commit is enabled, not all drivers respect this. Setting this property
-     * to true will cause the connector to explicitly commit the transaction before
-     * re-enabling auto-commit; for compliant drivers this may result in two commits.
-     *
-     * @param commitBeforeAutocommit set TRUE if a commit should be performed before enabling auto-commit
-     */
-    public void setCommitBeforeAutocommit(boolean commitBeforeAutocommit) {
-        this.commitBeforeAutocommit = commitBeforeAutocommit;
     }
 
     /**

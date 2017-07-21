@@ -20,14 +20,14 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LazyAssociatableConnectionManager;
 
-public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionHandle<C, CI>> {
+public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnectionFactory, C, CI extends AbstractConnectionHandle<MCF, C, CI>> {
 
     protected final LazyAssociatableConnectionManager cm;
     protected final UserPasswordManagedConnectionFactory mcf;
     protected final ConnectionRequestInfo cri;
 
     protected volatile boolean closed = false;
-    protected AbstractManagedConnection<C, CI> mc;
+    protected AbstractManagedConnection<MCF, C, CI> mc;
 
     protected AbstractConnectionHandle(LazyAssociatableConnectionManager cm,
                                        UserPasswordManagedConnectionFactory mcf,
@@ -37,11 +37,11 @@ public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionH
         this.cri = cri;
     }
 
-    public void setAssociation(AbstractManagedConnection<C, CI> mc) {
+    public void setAssociation(AbstractManagedConnection<MCF, C, CI> mc) {
         this.mc = mc;
     }
 
-    public AbstractManagedConnection<C, CI> getAssociation() {
+    public AbstractManagedConnection<MCF, C, CI> getAssociation() {
         return mc;
     }
 
@@ -75,7 +75,7 @@ public abstract class AbstractConnectionHandle<C, CI extends AbstractConnectionH
 
     protected abstract <E extends Exception> E wrapException(String msg, Exception e);
 
-    public <E extends Exception> AbstractManagedConnection<C, CI> getManagedConnection() throws E {
+    public <E extends Exception> AbstractManagedConnection<MCF, C, CI> getManagedConnection() throws E {
         if (isClosed()) {
             throw this.<E>wrapException("Connection has been closed", null);
         }

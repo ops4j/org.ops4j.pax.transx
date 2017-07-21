@@ -17,7 +17,6 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
@@ -33,14 +32,14 @@ import javax.transaction.xa.XAResource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ManagedPooledConnection extends AbstractManagedConnection<Connection, ConnectionHandle> {
+public class ManagedPooledConnection extends AbstractManagedConnection<ConnectionPoolDataSourceMCF, Connection, ConnectionHandle<ConnectionPoolDataSourceMCF>> {
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
     private final PooledConnection pooledConnection;
 
-    public ManagedPooledConnection(AbstractManagedConnectionFactory mcf, PooledConnection pooledConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
-        super(mcf, pooledConnection.getConnection(), credentialExtractor, exceptionSorter);
+    public ManagedPooledConnection(ConnectionPoolDataSourceMCF mcf, PooledConnection pooledConnection, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
+        super(mcf, connection, credentialExtractor, exceptionSorter);
         this.pooledConnection = pooledConnection;
         pooledConnection.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -83,7 +82,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
             // according to the JDBC spec, reenabling autoCommit commits any current transaction
             // we need to do both here, so we rely on this behaviour in the driver as otherwise
             // commit followed by setAutoCommit(true) may result in 2 commits in the database
-            if (getMCF().isCommitBeforeAutocommit()) {
+            if (mcf.isCommitBeforeAutocommit()) {
                 physicalConnection.commit();
             }
             physicalConnection.setAutoCommit(true);
