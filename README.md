@@ -21,9 +21,7 @@ Run Build:
 
 ## Releases
 
-Releases go to Maven Central.
-
-The is currently no releases yet.
+The latest release is 0.1.0 and can be found in [Maven Central](https://repo1.maven.org/maven2/org/ops4j/pax/transx).
 
 ## Transaction Manager API
 
@@ -34,12 +32,12 @@ In addition to the basic transaction management capabilities, the API provides a
  * Recovery
  * Last Resource Commit
  
-The [Transaction Manager](https://github.com/ops4j/org.ops4j.pax.transx/blob/master/transx-tm-api/src/main/java/org/ops4j/pax/transx/tm/TransactionManager.java) 
+The [Transaction Manager](https://github.com/ops4j/org.ops4j.pax.transx/blob/master/pax-transx-tm-api/src/main/java/org/ops4j/pax/transx/tm/TransactionManager.java) 
 is the main entry point of the API.
 
 ## Recovery
 
-Transactional resources must be wrapped into [ResourceFactories](https://github.com/ops4j/org.ops4j.pax.transx/blob/master/transx-tm-api/src/main/java/org/ops4j/pax/transx/tm/ResourceFactory.java) 
+Transactional resources must be wrapped into [ResourceFactories](https://github.com/ops4j/org.ops4j.pax.transx/blob/master/pax-transx-tm-api/src/main/java/org/ops4j/pax/transx/tm/ResourceFactory.java) 
 and registered in the Transaction Manager.  This will trigger the recovery mechanism.
 
 ## Last Resource Commit
@@ -61,8 +59,7 @@ and Geronimo and Narayana transaction managers support Last-Resource-Commit.
 A JDBC DataSource with pooling and XA support can be created in the following way:
 ```
 return ManagedConnectionFactoryFactory.builder()
-        .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
-        .transactionManager(transactionManager)
+        .transactionManager(tm)
         .name("h2invm")
         .dataSource(xaDataSource)
         .build();
@@ -73,12 +70,10 @@ return ManagedConnectionFactoryFactory.builder()
 A JMS ConnectionFactory with pooling an XA support can be created in the following way:
 ```
 return ManagedConnectionFactoryFactory.builder()
-        .transaction(ConnectionManagerFactory.TransactionSupportLevel.Xa)
         .transactionManager(tm)
         .name("vmbroker")
         .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
                            new ActiveMQXAConnectionFactory(brokerUrl))
-        .partition(ConnectionManagerFactory.Partition.ByConnectorProperties)
         .build();
 ```
 
