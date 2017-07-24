@@ -23,6 +23,14 @@ Run Build:
 
 The latest release is 0.1.0 and can be found in [Maven Central](https://repo1.maven.org/maven2/org/ops4j/pax/transx).
 
+## Karaf Deployment
+
+Pax-TransX provides features to easily integrate in Apache Karaf.
+```
+> repo-add mvn:org.ops4j.pax.transx/pax-transx-features/0.1.0/xml/features
+> feature:install pax-transx-tm-narayana
+```
+
 ## Transaction Manager API
 
 The TransX Transaction Manager API aims to provide a common facade for transaction 
@@ -58,7 +66,7 @@ and Geronimo and Narayana transaction managers support Last-Resource-Commit.
 
 A JDBC DataSource with pooling and XA support can be created in the following way:
 ```
-return ManagedConnectionFactoryFactory.builder()
+return ManagedDataSourceBuilder.builder()
         .transactionManager(tm)
         .name("h2invm")
         .dataSource(xaDataSource)
@@ -69,7 +77,7 @@ return ManagedConnectionFactoryFactory.builder()
 
 A JMS ConnectionFactory with pooling an XA support can be created in the following way:
 ```
-return ManagedConnectionFactoryFactory.builder()
+return ManagedConnectionFactoryBuilder.builder()
         .transactionManager(tm)
         .name("vmbroker")
         .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
