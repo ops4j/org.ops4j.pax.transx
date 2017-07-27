@@ -15,6 +15,7 @@
 package org.ops4j.pax.transx.jms.impl;
 
 
+import javax.jms.Connection;
 import javax.jms.ConnectionConsumer;
 import javax.jms.ConnectionMetaData;
 import javax.jms.Destination;
@@ -31,6 +32,7 @@ import javax.jms.TemporaryTopic;
 import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicSession;
+import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import java.util.HashSet;
 import java.util.Set;
@@ -98,7 +100,13 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
     }
 
     public ConnectionMetaData getMetaData() throws JMSException {
-        return null;
+        ConnectionRequestInfoImpl cri = new ConnectionRequestInfoImpl(false, Session.AUTO_ACKNOWLEDGE, userName, password, clientID);
+        try (SessionImpl session = (SessionImpl) cm.allocateConnection(mcf, cri)) {
+            session.setConnection(this);
+            return session.getManagedConnection().getConnectionMetaData();
+        } catch (ResourceException e) {
+            throw (JMSException) new JMSException("Unable to retrieve metadata").initCause(e);
+        }
     }
 
     public ExceptionListener getExceptionListener() throws JMSException {

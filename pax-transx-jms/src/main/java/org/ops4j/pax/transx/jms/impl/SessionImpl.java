@@ -75,6 +75,10 @@ public class SessionImpl implements TopicSession, QueueSession {
         mc = managedConnection;
     }
 
+    ManagedConnectionImpl getManagedConnection() {
+        return mc;
+    }
+
     public void start() throws JMSException {
         if (mc != null) {
             mc.start();
