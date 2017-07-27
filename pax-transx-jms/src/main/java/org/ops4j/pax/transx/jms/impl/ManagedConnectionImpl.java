@@ -17,6 +17,7 @@ package org.ops4j.pax.transx.jms.impl;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 import javax.jms.Connection;
+import javax.jms.ConnectionMetaData;
 import javax.jms.JMSException;
 import javax.jms.ResourceAllocationException;
 import javax.jms.Session;
@@ -93,6 +94,10 @@ public class ManagedConnectionImpl implements ManagedConnection {
         } catch (JMSException e) {
             throw new ResourceException(e.getMessage(), e);
         }
+    }
+
+    ConnectionMetaData getConnectionMetaData() throws JMSException {
+        return connection.getMetaData();
     }
 
     CredentialExtractor getCredentialExtractor() {
@@ -343,6 +348,17 @@ public class ManagedConnectionImpl implements ManagedConnection {
     @Override
     public ManagedConnectionMetaData getMetaData() throws ResourceException {
         return null;
+    }
+
+    boolean isValid() {
+        try {
+            session.createMessage();
+            xaSession.createMessage();
+            connection.getMetaData();
+            return true;
+        } catch (JMSException e) {
+            return false;
+        }
     }
 
     @Override

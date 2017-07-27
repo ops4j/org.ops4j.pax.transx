@@ -43,7 +43,6 @@ public class ManagedConnectionFactoryBuilder {
     private ManagedConnectionFactory managedConnectionFactory;
 
     private ManagedConnectionFactoryBuilder() {
-        builder.aliveBypassWindow(Long.MAX_VALUE);
     }
 
     public ManagedConnectionFactoryBuilder name(String name) {

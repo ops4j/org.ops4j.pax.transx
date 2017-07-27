@@ -24,11 +24,14 @@ import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.TransactionSupport;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Set;
 
-public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory, TransactionSupport {
+public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory,
+                            ValidatingManagedConnectionFactory, TransactionSupport {
 
     private final XAConnectionFactory xaConnectionFactory;
     private final ConnectionFactory connectionFactory;
@@ -138,6 +141,20 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
             }
         }
         return null;
+    }
+
+    @Override
+    public Set getInvalidConnections(Set set) throws ResourceException {
+        Set newSet = new HashSet();
+        for (Object o : set) {
+            if (o instanceof ManagedConnectionImpl) {
+                ManagedConnectionImpl mc = (ManagedConnectionImpl) o;
+                if (!mc.isValid()) {
+                    newSet.add(o);
+                }
+            }
+        }
+        return newSet;
     }
 
     @Override
