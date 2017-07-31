@@ -26,9 +26,7 @@ import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.security.auth.Subject;
-import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -53,6 +51,8 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     protected PrintWriter log;
     protected Subject subject;
     protected ConnectionRequestInfo cri;
+
+    protected boolean isInXaTransaction;
 
     public AbstractManagedConnection(MCF mcf, C physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         this(mcf, physicalConnection, null, credentialExtractor, exceptionSorter);
@@ -244,44 +244,15 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         }
     }
 
-    protected void xaTransactionStart(Xid xid, int flags) throws XAException {
-        try {
-            doGetXAResource().start(xid, flags);
-        } catch (Exception e) {
-            throw asXAException(e);
-        }
-    }
-
-    protected void xaTransactionCommit(Xid xid, boolean onePhase) throws XAException {
-        try {
-            doGetXAResource().commit(xid, onePhase);
-        } catch (Exception e) {
-            throw asXAException(e);
-        }
-    }
-
-    protected void xaTransactionRollback(Xid xid) throws XAException {
-        try {
-            doGetXAResource().rollback(xid);
-        } catch (Exception e) {
-            throw asXAException(e);
-        }
-    }
-
-    private static XAException asXAException(Exception e) throws XAException {
-        if (e instanceof XAException) {
-            return (XAException) e;
-        } else {
-            return (XAException) new XAException(e.getMessage()).initCause(e);
-        }
-    }
-
     @Override
-    public XAResource getXAResource() throws ResourceException {
-        if (getTransactionSupport() != TransactionSupportLevel.XATransaction) {
-            throw new ResourceException("No support for XA transactions");
-        }
-        return new XAResourceProxy<>(this);
+    public abstract XAResource getXAResource() throws ResourceException;
+
+    public void setInXaTransaction(boolean inXaTransaction) {
+        isInXaTransaction = inXaTransaction;
+    }
+
+    public boolean isInXaTransaction() {
+        return isInXaTransaction;
     }
 
     public C getPhysicalConnection() {
@@ -298,7 +269,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         }
     }
 
-    protected XAResource doGetXAResource() {
+    public XAResource doGetXAResource() {
         return xaResource;
     }
 
@@ -346,79 +317,6 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         public void rollback() throws ResourceException {
             localTransactionRollback(isSPI);
         }
-    }
-
-    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory, C,
-                                 CI extends AbstractConnectionHandle<MCF, C, CI>> implements XAResource {
-
-        private final AbstractManagedConnection<MCF, C, CI> mc;
-
-        XAResourceProxy(AbstractManagedConnection<MCF, C, CI> mc) {
-            this.mc = mc;
-        }
-
-        private XAResource getXAResource() throws XAException {
-            try {
-                return mc.doGetXAResource();
-            } catch (Exception e) {
-                throw asXAException(e);
-            }
-        }
-
-        @Override
-        public void start(Xid xid, int flags) throws XAException {
-            mc.xaTransactionStart(xid, flags);
-        }
-
-        @Override
-        public void commit(Xid xid, boolean onePhase) throws XAException {
-            mc.xaTransactionCommit(xid, onePhase);
-        }
-
-        @Override
-        public void rollback(Xid xid) throws XAException {
-            mc.xaTransactionRollback(xid);
-        }
-
-        @Override
-        public void end(Xid xid, int flags) throws XAException {
-            getXAResource().end(xid, flags);
-        }
-
-        @Override
-        public void forget(Xid xid) throws XAException {
-            getXAResource().forget(xid);
-        }
-
-        @Override
-        public int getTransactionTimeout() throws XAException {
-            return getXAResource().getTransactionTimeout();
-        }
-
-        @Override
-        public boolean isSameRM(XAResource xaResource) throws XAException {
-            XAResource xares = xaResource;
-            if (xaResource instanceof XAResourceProxy) {
-                xares = ((XAResourceProxy) xaResource).getXAResource();
-            }
-            return getXAResource().isSameRM(xares);
-        }
-
-        @Override
-        public int prepare(Xid xid) throws XAException {
-            return getXAResource().prepare(xid);
-        }
-
-        @Override
-        public Xid[] recover(int flags) throws XAException {
-            return getXAResource().recover(flags);
-        }
-
-        @Override
-        public boolean setTransactionTimeout(int timeout) throws XAException {
-            return getXAResource().setTransactionTimeout(timeout);
-        }
-
     }
 
     private static <S> Iterable<S> reverse(Deque<S> col) {

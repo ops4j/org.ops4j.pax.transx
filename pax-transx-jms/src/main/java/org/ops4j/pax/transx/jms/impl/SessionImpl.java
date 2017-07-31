@@ -55,6 +55,7 @@ public class SessionImpl implements TopicSession, QueueSession {
     private final ConnectionRequestInfoImpl cri;
     private ManagedConnectionImpl mc;
     private ConnectionImpl con;
+    private volatile boolean closed;
 
     private final Set<AutoCloseable> closeables = new HashSet<>();
 
@@ -86,18 +87,22 @@ public class SessionImpl implements TopicSession, QueueSession {
     }
 
     public void closeSession() {
-        if (mc != null) {
-            try {
-                mc.stop();
-            } catch (Throwable t) {
-                // TODO: Log
+        if (!closed) {
+            synchronized (this) {
+                if (!closed) {
+                    closed = true;
+                    try {
+                        mc.stop();
+                    } catch (Throwable t) {
+                        // TODO: Log
+                    }
+                    Utils.doClose(closeables);
+                    mc.removeHandle(this);
+                    ConnectionEvent ev = new ConnectionEvent(mc, ConnectionEvent.CONNECTION_CLOSED);
+                    ev.setConnectionHandle(this);
+                    mc.sendEvent(ev);
+                }
             }
-            Utils.doClose(closeables);
-            mc.removeHandle(this);
-            ConnectionEvent ev = new ConnectionEvent(mc, ConnectionEvent.CONNECTION_CLOSED);
-            ev.setConnectionHandle(this);
-            mc.sendEvent(ev);
-            mc = null;
         }
     }
 
@@ -370,7 +375,14 @@ public class SessionImpl implements TopicSession, QueueSession {
         closeSession();
     }
 
+    public void cleanup() {
+
+    }
+
     private <E extends Exception> void execute(Utils.RunnableWithException<E> cb) throws JMSException {
+        if (closed) {
+            throw new IllegalStateException("Session closed");
+        }
         mc.tryLock();
         try {
             cb.run();
@@ -383,6 +395,9 @@ public class SessionImpl implements TopicSession, QueueSession {
     }
 
     private <R> R call(Utils.ProviderWithException<JMSException, R> cb) throws JMSException {
+        if (closed) {
+            throw new IllegalStateException("Session closed");
+        }
         mc.tryLock();
         try {
             return cb.call();
@@ -412,7 +427,4 @@ public class SessionImpl implements TopicSession, QueueSession {
                 });
     }
 
-    void destroy() {
-        mc = null;
-    }
 }

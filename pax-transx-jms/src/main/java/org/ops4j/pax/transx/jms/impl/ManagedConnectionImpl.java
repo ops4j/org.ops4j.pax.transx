@@ -46,7 +46,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.ops4j.pax.transx.jms.impl.Utils.*;
+import static org.ops4j.pax.transx.jms.impl.Utils.doClose;
+import static org.ops4j.pax.transx.jms.impl.Utils.trace;
 
 public class ManagedConnectionImpl implements ManagedConnection {
 
@@ -58,11 +59,12 @@ public class ManagedConnectionImpl implements ManagedConnection {
     private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
     private ReentrantLock lock = new ReentrantLock();
 
-    private XAConnection xaConnection;
-    private XASession xaSession;
+    private final XAConnection xaConnection;
+    private final XASession xaSession;
+    private final Connection connection;
+    private final Session session;
+
     private XAResource xaResource;
-    private Connection connection;
-    private Session session;
     private boolean inManagedTx;
 
     public ManagedConnectionImpl(ManagedConnectionFactoryImpl mcf,
@@ -71,10 +73,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         this.mcf = mcf;
         this.cri = cri;
         this.credentialExtractor = new CredentialExtractor(subject, cri, mcf);
-        setup();
-    }
 
-    private void setup() throws ResourceException {
         try {
             boolean transacted = cri != null && cri.isTransacted();
             int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
@@ -108,16 +107,8 @@ public class ManagedConnectionImpl implements ManagedConnection {
         if (isDestroyed.get()) {
             return;
         }
-        try {
-            connection.setExceptionListener(null);
-        } catch (JMSException e) {
-            debug("Unable to unset exception listener", e);
-        }
-        try {
-            xaConnection.setExceptionListener(null);
-        } catch (JMSException e) {
-            debug("Unable to unset exception listener", e);
-        }
+        safe(() -> connection.setExceptionListener(null), "Unable to unset exception listener");
+        safe(() -> xaConnection.setExceptionListener(null), "Unable to unset exception listener");
         ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, exception);
         sendEvent(event);
     }
@@ -141,11 +132,11 @@ public class ManagedConnectionImpl implements ManagedConnection {
         }
     }
 
-    public void unlock() {
+    void unlock() {
         lock.unlock();
     }
 
-    public Session getSession() throws JMSException {
+    Session getSession() throws JMSException {
         if (xaResource != null && inManagedTx) {
             return xaSession.getSession();
         } else {
@@ -221,31 +212,18 @@ public class ManagedConnectionImpl implements ManagedConnection {
 
     @Override
     public void associateConnection(Object connection) throws ResourceException {
-        if (!isDestroyed.get() && connection instanceof SessionImpl) {
-            SessionImpl h = (SessionImpl) connection;
-            h.setManagedConnection(this);
-            handles.add(h);
-        } else {
+        if (isDestroyed.get() || !(connection instanceof SessionImpl)) {
             throw new IllegalStateException("ManagedConnection in an illegal state");
         }
+        SessionImpl h = (SessionImpl) connection;
+        h.setManagedConnection(this);
+        handles.add(h);
     }
 
-    private void destroyHandles() throws ResourceException {
-        try {
-            if (xaConnection != null) {
-                xaConnection.stop();
-            }
-        } catch (Throwable t) {
-            trace("Ignored error stopping xaConnection", t);
-        }
-        try {
-            if (connection != null) {
-                connection.stop();
-            }
-        } catch (Throwable t) {
-            trace("Ignored error stopping xaConnection", t);
-        }
-        doClose(handles, SessionImpl::destroy);
+    private void cleanupHandles() throws ResourceException {
+        safe(connection::stop, "Error stopping connection");
+        safe(xaConnection::stop, "Error stopping xaConnection");
+        doClose(handles, SessionImpl::cleanup);
     }
 
     /**
@@ -255,23 +233,16 @@ public class ManagedConnectionImpl implements ManagedConnection {
      */
     @Override
     public void destroy() throws ResourceException {
-        if (isDestroyed.get() || (connection == null && xaConnection == null)) {
+        if (!isDestroyed.compareAndSet(false, true)) {
             return;
         }
-        isDestroyed.set(true);
 
+        cleanupHandles();
         try {
-            connection.setExceptionListener(null);
-        } catch (JMSException e) {
-            trace("Error setting exception listener to null", e);
-        }
-        try {
-            xaConnection.setExceptionListener(null);
-        } catch (JMSException e) {
-            trace("Error setting exception listener to null", e);
-        }
-        destroyHandles();
-        try {
+            // The following calls should not be necessary
+            safe(session::close, "Error closing session");
+            safe(xaSession::close, "Error closing session");
+
             /*
              * (xa|nonXA)Session.close() may NOT be called BEFORE xaConnection.close()
              * <p>
@@ -280,37 +251,23 @@ public class ManagedConnectionImpl implements ManagedConnection {
              * <p>
              * xaConnection close will close the ClientSessionFactory which will close all sessions.
              */
-            if (connection != null) {
-                connection.close();
-            }
-            if (xaConnection != null) {
-                xaConnection.close();
-            }
+            connection.close();
+            xaConnection.close();
 
-            // The following calls should not be necessary, as the xaConnection should close the
-            // ClientSessionFactory, which will close the sessions.
-            try {
-                if (session != null) {
-                    session.close();
-                }
-                if (xaSession != null) {
-                    xaSession.close();
-                }
-            } catch (JMSException e) {
-                debug("Error closing session " + this, e);
-            }
         } catch (Throwable e) {
-            throw new ResourceException("Could not properly close the session and xaConnection", e);
+            throw new ResourceException("Could not properly close the connection", e);
         }
     }
+
+
 
     @Override
     public void cleanup() throws ResourceException {
         if (isDestroyed.get()) {
-            throw new IllegalStateException("ManagedConnection already destroyed");
+            return;
         }
 
-        destroyHandles();
+        cleanupHandles();
 
         inManagedTx = false;
 
@@ -402,79 +359,99 @@ public class ManagedConnectionImpl implements ManagedConnection {
     public XAResource getXAResource() throws ResourceException {
         if (xaResource == null) {
             XAResource xares = xaSession.getXAResource();
-            xaResource = new XAResource() {
-                @Override
-                public void start(Xid xid, int flags) throws XAException {
-                    lock();
-                    try {
-                        xares.start(xid, flags);
-                    } finally {
-                        setInManagedTx(true);
-                        unlock();
-                    }
-                }
-                @Override
-                public void end(Xid xid, int flags) throws XAException {
-                    lock();
-                    try {
-                        xares.end(xid, flags);
-                    } finally {
-                        setInManagedTx(false);
-                        unlock();
-                    }
-                }
-
-                @Override
-                public int prepare(Xid xid) throws XAException {
-                    return xares.prepare(xid);
-                }
-
-                @Override
-                public void commit(Xid xid, boolean onePhase) throws XAException {
-                    xares.commit(xid, onePhase);
-                }
-
-                @Override
-                public void rollback(Xid xid) throws XAException {
-                    xares.rollback(xid);
-                }
-
-                @Override
-                public void forget(Xid xid) throws XAException {
-                    lock();
-                    try {
-                        xares.forget(xid);
-                    } finally {
-                        setInManagedTx(false);
-                        unlock();
-                    }
-                }
-
-                @Override
-                public boolean isSameRM(XAResource xaResource) throws XAException {
-                    return xares.isSameRM(xaResource);
-                }
-
-                @Override
-                public Xid[] recover(int flag) throws XAException {
-                    return xares.recover(flag);
-                }
-
-                @Override
-                public int getTransactionTimeout() throws XAException {
-                    return xares.getTransactionTimeout();
-                }
-
-                @Override
-                public boolean setTransactionTimeout(int seconds) throws XAException {
-                    return xares.setTransactionTimeout(seconds);
-                }
-            };
+            xaResource = new XAResourceProxy(xares);
         }
         return xaResource;
     }
 
-    private void setInManagedTx(boolean inManagedTx) {
-        this.inManagedTx = inManagedTx;
+    private class XAResourceProxy implements XAResource {
+
+        private final XAResource xares;
+
+        public XAResourceProxy(XAResource xares) {
+            this.xares = xares;
+        }
+
+        @Override
+        public void start(Xid xid, int flags) throws XAException {
+            lock();
+            try {
+                xares.start(xid, flags);
+            } finally {
+                setInManagedTx(true);
+                unlock();
+            }
+        }
+
+        @Override
+        public void end(Xid xid, int flags) throws XAException {
+            lock();
+            try {
+                xares.end(xid, flags);
+            } finally {
+                setInManagedTx(false);
+                unlock();
+            }
+        }
+
+        @Override
+        public int prepare(Xid xid) throws XAException {
+            return xares.prepare(xid);
+        }
+
+        @Override
+        public void commit(Xid xid, boolean onePhase) throws XAException {
+            xares.commit(xid, onePhase);
+        }
+
+        @Override
+        public void rollback(Xid xid) throws XAException {
+            xares.rollback(xid);
+        }
+
+        @Override
+        public void forget(Xid xid) throws XAException {
+            lock();
+            try {
+                xares.forget(xid);
+            } finally {
+                setInManagedTx(false);
+                unlock();
+            }
+        }
+
+        @Override
+        public boolean isSameRM(XAResource xaResource) throws XAException {
+            return xares.isSameRM(xaResource);
+        }
+
+        @Override
+        public Xid[] recover(int flag) throws XAException {
+            return xares.recover(flag);
+        }
+
+        @Override
+        public int getTransactionTimeout() throws XAException {
+            return xares.getTransactionTimeout();
+        }
+
+        @Override
+        public boolean setTransactionTimeout(int seconds) throws XAException {
+            return xares.setTransactionTimeout(seconds);
+        }
+
+        private void setInManagedTx(boolean inManagedTx) {
+            ManagedConnectionImpl.this.inManagedTx = inManagedTx;
+        }
+
     }
+
+    static private void safe(Utils.RunnableWithException<JMSException> cb, String msg) {
+        try {
+            cb.run();
+        } catch (JMSException e) {
+            trace(msg, e);
+        }
+    }
+
 }

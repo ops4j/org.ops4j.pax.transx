@@ -18,14 +18,19 @@ package org.ops4j.pax.transx.jms;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQXAConnectionFactory;
+import org.apache.activemq.Closeable;
 import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.ops4j.pax.transx.tm.Transaction;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.config.SimpleJmsListenerEndpoint;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -34,11 +39,13 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.Session;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.*;
 
@@ -48,14 +55,25 @@ public class ActiveMQTest {
     public static final String QUEUE = "myqueue";
 
 
-    PlatformTransactionManager ptm;
+    AriesPlatformTransactionManager ptm;
     TransactionManager tm;
+    List<AutoCloseable> closeables = new ArrayList<>();
 
     @Before
     public void setUp() throws Exception {
-        AriesPlatformTransactionManager atm = new AriesPlatformTransactionManager();
-        tm = new TransactionManagerWrapper(atm);
-        ptm = atm;
+        ptm = new AriesPlatformTransactionManager();
+        tm = new TransactionManagerWrapper(ptm);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        closeables.forEach(c -> {
+            try {
+                c.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Test
@@ -189,11 +207,45 @@ public class ActiveMQTest {
     }
 
     @Test
+    public void testSpringReceiverXa() throws Exception {
+        ConnectionFactory cf = createCF(BROKER_URL);
+
+        DefaultJmsListenerContainerFactory jlcf = new DefaultJmsListenerContainerFactory();
+        jlcf.setTransactionManager(ptm);
+        jlcf.setSessionTransacted(true);
+        jlcf.setConnectionFactory(cf);
+
+        AtomicReference<Message> holder = new AtomicReference<>();
+
+        SimpleJmsListenerEndpoint jle = new SimpleJmsListenerEndpoint();
+        jle.setDestination(QUEUE);
+        jle.setMessageListener(message -> {
+            synchronized (holder) {
+                holder.set(message);
+                holder.notifyAll();
+            }
+        });
+        DefaultMessageListenerContainer mlc = jlcf.createListenerContainer(jle);
+        mlc.initialize();
+        mlc.start();
+
+        JmsTemplate jms = new JmsTemplate(cf);
+        jms.setDefaultDestinationName(QUEUE);
+
+        synchronized (holder) {
+            jms.convertAndSend("Hello");
+            holder.wait();
+        }
+        assertNotNull(holder.get());
+
+    }
+
+    @Test
     public void testSpringLocalTx() throws Exception {
         ConnectionFactory cf = createCF(BROKER_URL);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
-        jms.setReceiveTimeout(100);
+        jms.setReceiveTimeout(1000);
         PlatformTransactionManager tm = new JmsTransactionManager(cf);
         TransactionTemplate localTx = new TransactionTemplate(tm);
 
@@ -233,13 +285,18 @@ public class ActiveMQTest {
         }
     }
 
+    static int brokerId;
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
-        return ManagedConnectionFactoryBuilder.builder()
+        ConnectionFactory cf = ManagedConnectionFactoryBuilder.builder()
                 .transaction(TransactionSupportLevel.XATransaction)
                 .transactionManager(tm)
-                .name("vmbroker")
+                .name("vmbroker" + brokerId++ )
                 .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
                                    new ActiveMQXAConnectionFactory(brokerUrl))
                 .build();
+        if (cf instanceof AutoCloseable) {
+            closeables.add((AutoCloseable) cf);
+        }
+        return cf;
     }
 }

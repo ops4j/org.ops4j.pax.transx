@@ -16,7 +16,9 @@ package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
+import org.ops4j.pax.transx.jdbc.utils.AbstractConnectionHandle;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
@@ -27,7 +29,9 @@ import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
+import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -36,14 +40,13 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
     private final XAConnection xaConnection;
-    private final XAResource xaResource;
 
     public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
         this(mcf, xaConnection, xaConnection.getXAResource(), xaConnection.getConnection(), credentialExtractor, exceptionSorter);
     }
 
     public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, XAResource xaResource, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
-        super(mcf, connection, credentialExtractor, exceptionSorter);
+        super(mcf, connection, xaResource, credentialExtractor, exceptionSorter);
         this.xaConnection = xaConnection;
         xaConnection.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -55,9 +58,16 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
                 unfilteredConnectionError(e);
             }
         });
-        this.xaResource = xaResource;
         localTx = new LocalTransactionImpl(true);
         localClientTx = new LocalTransactionImpl(false);
+    }
+
+    @Override
+    public XAResource getXAResource() throws ResourceException {
+        if (getTransactionSupport() != TransactionSupportLevel.XATransaction) {
+            throw new ResourceException("No support for XA transactions");
+        }
+        return new XAResourceProxy<>(this);
     }
 
     @Override
@@ -118,10 +128,6 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
         }
     }
 
-    public XAResource getXAResource() throws ResourceException {
-        return xaResource;
-    }
-
     @Override
     protected boolean isValid() {
         try {
@@ -156,6 +162,80 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
 
     public ManagedConnectionMetaData getMetaData() throws ResourceException {
         return null;
+    }
+
+    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory, C,
+            CI extends AbstractConnectionHandle<MCF, C, CI>> implements XAResource {
+
+        private final AbstractManagedConnection<MCF, C, CI> mc;
+
+        XAResourceProxy(AbstractManagedConnection<MCF, C, CI> mc) {
+            this.mc = mc;
+        }
+
+        private XAResource getXAResource() {
+            return mc.doGetXAResource();
+        }
+
+        @Override
+        public void start(Xid xid, int flags) throws XAException {
+            getXAResource().start(xid, flags);
+            mc.setInXaTransaction(true);
+        }
+
+        @Override
+        public void commit(Xid xid, boolean onePhase) throws XAException {
+            getXAResource().commit(xid, onePhase);
+        }
+
+        @Override
+        public void rollback(Xid xid) throws XAException {
+            getXAResource().rollback(xid);
+        }
+
+        @Override
+        public void end(Xid xid, int flags) throws XAException {
+            try {
+                getXAResource().end(xid, flags);
+            } finally {
+                mc.setInXaTransaction(false);
+            }
+        }
+
+        @Override
+        public void forget(Xid xid) throws XAException {
+            getXAResource().forget(xid);
+        }
+
+        @Override
+        public int getTransactionTimeout() throws XAException {
+            return getXAResource().getTransactionTimeout();
+        }
+
+        @Override
+        public boolean isSameRM(XAResource xaResource) throws XAException {
+            XAResource xares = xaResource;
+            if (xaResource instanceof XAResourceProxy) {
+                xares = ((XAResourceProxy) xaResource).getXAResource();
+            }
+            return getXAResource().isSameRM(xares);
+        }
+
+        @Override
+        public int prepare(Xid xid) throws XAException {
+            return getXAResource().prepare(xid);
+        }
+
+        @Override
+        public Xid[] recover(int flags) throws XAException {
+            return getXAResource().recover(flags);
+        }
+
+        @Override
+        public boolean setTransactionTimeout(int timeout) throws XAException {
+            return getXAResource().setTransactionTimeout(timeout);
+        }
+
     }
 
 

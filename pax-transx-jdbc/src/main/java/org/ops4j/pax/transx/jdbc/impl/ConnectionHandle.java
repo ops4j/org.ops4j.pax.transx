@@ -63,6 +63,9 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory>
 
     public void commit() throws SQLException {
         AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        if (mc.isInXaTransaction()) {
+            throw new SQLException("Can not commit within an XA transaction");
+        }
         Connection c = mc.getPhysicalConnection();
         if (c.getAutoCommit()) {
             return;
@@ -83,6 +86,9 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory>
 
     public void rollback() throws SQLException {
         AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        if (mc.isInXaTransaction()) {
+            throw new SQLException("Can not rollback within an XA transaction");
+        }
         Connection c = mc.getPhysicalConnection();
         if (c.getAutoCommit()) {
             return;
@@ -103,6 +109,9 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory>
 
     public void setAutoCommit(boolean autoCommit) throws SQLException {
         AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        if (mc.isInXaTransaction()) {
+            throw new SQLException("Can not set autoCommit within an XA transaction");
+        }
         Connection c = mc.getPhysicalConnection();
         if (autoCommit == c.getAutoCommit()) {
             // nothing to do
