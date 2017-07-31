@@ -25,7 +25,7 @@ import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
 
-public class ConnectionFactoryImpl implements TopicConnectionFactory, QueueConnectionFactory {
+public class ConnectionFactoryImpl implements TopicConnectionFactory, QueueConnectionFactory, AutoCloseable {
 
     private final ManagedConnectionFactoryImpl mcf;
     private final ConnectionManager cm;
@@ -33,6 +33,12 @@ public class ConnectionFactoryImpl implements TopicConnectionFactory, QueueConne
     public ConnectionFactoryImpl(ManagedConnectionFactoryImpl mcf, ConnectionManager cm) {
         this.mcf = mcf;
         this.cm = cm != null ? cm : this::allocateConnection;
+    }
+
+    public void close() throws Exception {
+        if (cm instanceof AutoCloseable) {
+            ((AutoCloseable) cm).close();
+        }
     }
 
     private Object allocateConnection(ManagedConnectionFactory mcf, ConnectionRequestInfo cri) throws ResourceException {
