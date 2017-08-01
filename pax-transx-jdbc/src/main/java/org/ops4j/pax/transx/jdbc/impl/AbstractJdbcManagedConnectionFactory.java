@@ -15,9 +15,11 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapterInternalException;
@@ -40,8 +42,12 @@ public abstract class AbstractJdbcManagedConnectionFactory<MCF extends AbstractM
     }
 
     @Override
-    public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri) {
-        return new ConnectionHandle<>(this, cri);
+    public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc) {
+        return new ConnectionHandle<>(this, cri, mc);
+    }
+
+    public Object createConnectionFactory(ConnectionManager connectionManager) throws ResourceException {
+        return new TransxDataSource(this, connectionManager);
     }
 
     /**

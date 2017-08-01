@@ -22,22 +22,16 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
 
     protected final UserPasswordManagedConnectionFactory mcf;
     protected final ConnectionRequestInfo cri;
+    protected final AbstractManagedConnection<MCF, C, CI> mc;
 
     protected volatile boolean closed = false;
-    protected AbstractManagedConnection<MCF, C, CI> mc;
 
     protected AbstractConnectionHandle(UserPasswordManagedConnectionFactory mcf,
-                                       ConnectionRequestInfo cri) {
+                                       ConnectionRequestInfo cri,
+                                       AbstractManagedConnection<MCF, C, CI> mc) {
         this.mcf = mcf;
         this.cri = cri;
-    }
-
-    public void setAssociation(AbstractManagedConnection<MCF, C, CI> mc) {
         this.mc = mc;
-    }
-
-    public AbstractManagedConnection<MCF, C, CI> getAssociation() {
-        return mc;
     }
 
     public boolean isClosed() {
@@ -57,15 +51,11 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
 
     @SuppressWarnings("unchecked")
     protected void doClose() {
-        if (mc != null) {
-            mc.connectionClosed((CI) this);
-        }
+        mc.connectionClosed((CI) this);
     }
 
     public void connectionError(Exception e) {
-        if (mc != null) {
-            mc.connectionError(e);
-        }
+        mc.connectionError(e);
     }
 
     protected abstract <E extends Exception> E wrapException(String msg, Exception e);
@@ -74,7 +64,6 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
         if (isClosed()) {
             throw this.<E>wrapException("Connection has been closed", null);
         }
-        assert mc != null;
         return mc;
     }
 

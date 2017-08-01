@@ -212,12 +212,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
 
     @Override
     public void associateConnection(Object connection) throws ResourceException {
-        if (isDestroyed.get() || !(connection instanceof SessionImpl)) {
-            throw new IllegalStateException("ManagedConnection in an illegal state");
-        }
-        SessionImpl h = (SessionImpl) connection;
-        h.setManagedConnection(this);
-        handles.add(h);
+        throw new UnsupportedOperationException();
     }
 
     private void cleanupHandles() throws ResourceException {

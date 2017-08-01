@@ -21,7 +21,6 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
 import javax.resource.spi.ConnectionEventListener;
 import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.DissociatableManagedConnection;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
@@ -33,7 +32,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 public abstract class AbstractManagedConnection<MCF extends AbstractManagedConnectionFactory<CI>, C, CI extends AbstractConnectionHandle<MCF, C, CI>>
-        implements ManagedConnection, DissociatableManagedConnection {
+        implements ManagedConnection {
 
     protected final MCF mcf;
     protected CI handle;
@@ -94,41 +93,19 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
      * @throws ResourceException
      */
     public void cleanup() throws ResourceException {
-        dissociateConnections();
+        handle = null;
+        handles = null;
     }
 
     public void destroy() throws ResourceException {
-        dissociateConnections();
+        cleanup();
         listener = null;
         listeners = null;
         closePhysicalConnection();
     }
 
     public void associateConnection(Object o) {
-        CI handle = (CI) o;
-        AbstractManagedConnection<MCF, C, CI> mc = handle.getAssociation();
-        // handle is associated to another managed connection - disassociate it
-        if (mc != null) {
-            mc.handles.remove(handle);
-        }
-        doAssociate(handle);
-    }
-
-    public void dissociateConnections() throws ResourceException {
-        if (handle != null) {
-            dissociateConnection(handle);
-            handle = null;
-        }
-        if (handles != null) {
-            while (!handles.isEmpty()) {
-                CI handle = handles.removeFirst();
-                dissociateConnection(handle);
-            }
-        }
-    }
-
-    protected void dissociateConnection(CI handle) {
-        handle.setAssociation(null);
+        throw new UnsupportedOperationException();
     }
 
     public void connectionClosed(CI handle) {
@@ -278,16 +255,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     }
 
     public Object getConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
-        CI handle = mcf.createConnectionHandle(connectionRequestInfo);
-        doAssociate(handle);
-
-        this.subject = subject;
-        this.cri = connectionRequestInfo;
-        return handle;
-    }
-
-    private void doAssociate(CI handle) {
-        handle.setAssociation(this);
+        CI handle = mcf.createConnectionHandle(connectionRequestInfo, this);
         if (this.handle == null) {
             this.handle = handle;
         } else {
@@ -296,6 +264,10 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
             }
             handles.add(handle);
         }
+
+        this.subject = subject;
+        this.cri = connectionRequestInfo;
+        return handle;
     }
 
     protected class LocalTransactionImpl implements LocalTransaction {

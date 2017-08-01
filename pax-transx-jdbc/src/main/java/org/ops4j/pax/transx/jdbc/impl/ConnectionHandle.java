@@ -44,8 +44,8 @@ import java.util.concurrent.Executor;
 public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>>
         extends AbstractConnectionHandle<MCF, Connection, ConnectionHandle<MCF>> implements Connection {
 
-    public ConnectionHandle(UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri) {
-        super(mcf, cri);
+    public ConnectionHandle(UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri, AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc) {
+        super(mcf, cri, mc);
     }
 
     @Override

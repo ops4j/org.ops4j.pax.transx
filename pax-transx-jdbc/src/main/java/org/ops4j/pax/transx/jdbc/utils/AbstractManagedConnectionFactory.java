@@ -18,11 +18,9 @@ import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
 import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.impl.TransxDataSource;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ManagedConnection;
@@ -130,10 +128,6 @@ public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswo
         throw new NotSupportedException("ConnectionManager is required");
     }
 
-    public Object createConnectionFactory(ConnectionManager connectionManager) throws ResourceException {
-        return new TransxDataSource(this, connectionManager);
-    }
-
     public ManagedConnection matchManagedConnections(Set set, Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         for (Object o : set) {
             if (o instanceof AbstractManagedConnection) {
@@ -146,11 +140,11 @@ public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswo
         return null;
     }
 
-    public abstract CI createConnectionHandle(ConnectionRequestInfo cri);
+    public abstract CI createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc);
 
     @Override
     public Set getInvalidConnections(Set set) throws ResourceException {
-        Set newSet = new HashSet();
+        Set<Object> newSet = new HashSet<>();
         for (Object o : set) {
             if (o instanceof AbstractManagedConnection) {
                 AbstractManagedConnection mc = (AbstractManagedConnection) o;

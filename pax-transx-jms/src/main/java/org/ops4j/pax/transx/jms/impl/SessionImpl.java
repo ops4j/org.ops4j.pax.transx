@@ -53,7 +53,7 @@ import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 public class SessionImpl implements TopicSession, QueueSession {
 
     private final ConnectionRequestInfoImpl cri;
-    private ManagedConnectionImpl mc;
+    private final ManagedConnectionImpl mc;
     private ConnectionImpl con;
     private volatile boolean closed;
 
@@ -67,13 +67,6 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     public void setConnection(ConnectionImpl con) {
         this.con = con;
-    }
-
-    void setManagedConnection(ManagedConnectionImpl managedConnection) {
-        if (mc != null) {
-            mc.removeHandle(this);
-        }
-        mc = managedConnection;
     }
 
     ManagedConnectionImpl getManagedConnection() {
