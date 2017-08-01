@@ -32,7 +32,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public abstract class AbstractManagedConnection<MCF extends AbstractManagedConnectionFactory, C, CI extends AbstractConnectionHandle<MCF, C, CI>>
+public abstract class AbstractManagedConnection<MCF extends AbstractManagedConnectionFactory<CI>, C, CI extends AbstractConnectionHandle<MCF, C, CI>>
         implements ManagedConnection, DissociatableManagedConnection {
 
     protected final MCF mcf;
@@ -278,8 +278,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     }
 
     public Object getConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
-        UserPasswordHandleFactoryRequestInfo<CI> cri = (UserPasswordHandleFactoryRequestInfo<CI>) connectionRequestInfo;
-        CI handle = cri.createConnectionHandle(connectionRequestInfo);
+        CI handle = mcf.createConnectionHandle(connectionRequestInfo);
         doAssociate(handle);
 
         this.subject = subject;

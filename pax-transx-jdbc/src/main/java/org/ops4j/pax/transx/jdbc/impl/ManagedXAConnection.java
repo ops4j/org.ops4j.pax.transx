@@ -164,7 +164,7 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
         return null;
     }
 
-    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory, C,
+    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory<CI>, C,
             CI extends AbstractConnectionHandle<MCF, C, CI>> implements XAResource {
 
         private final AbstractManagedConnection<MCF, C, CI> mc;

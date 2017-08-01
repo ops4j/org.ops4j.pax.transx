@@ -18,6 +18,7 @@ import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapterInternalException;
 import javax.sql.CommonDataSource;
@@ -25,7 +26,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public abstract class AbstractJdbcManagedConnectionFactory<T extends CommonDataSource> extends AbstractManagedConnectionFactory
+public abstract class AbstractJdbcManagedConnectionFactory<MCF extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>, T extends CommonDataSource> extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>
             implements AutocommitSpecCompliant{
 
     protected final T dataSource;
@@ -36,6 +37,11 @@ public abstract class AbstractJdbcManagedConnectionFactory<T extends CommonDataS
     protected AbstractJdbcManagedConnectionFactory(T dataSource, ExceptionSorter exceptionSorter) {
         this.dataSource = dataSource;
         this.exceptionSorter = exceptionSorter;
+    }
+
+    @Override
+    public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri) {
+        return new ConnectionHandle<>(this, cri);
     }
 
     /**

@@ -16,24 +16,23 @@ package org.ops4j.pax.transx.jdbc.utils;
 
 import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 
-import javax.resource.spi.ConnectionRequestInfo;
 import java.util.Objects;
 
-public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractConnectionHandle<?, ?, CI>>
+public class UserPasswordConnectionRequestInfoImpl
         implements UserPasswordConnectionRequestInfo {
+
+    public static final UserPasswordConnectionRequestInfo NULL_CRI = new UserPasswordConnectionRequestInfoImpl(null, null);
 
     private final String userName;
     private final String password;
     private final transient int hashcode;
 
-    public UserPasswordHandleFactoryRequestInfo(String userName,
-                                                String password) {
+    public UserPasswordConnectionRequestInfoImpl(String userName,
+                                                 String password) {
         this.userName = userName;
         this.password = password;
         this.hashcode = Objects.hash(userName, password);
     }
-
-    public abstract CI createConnectionHandle(ConnectionRequestInfo cri);
 
     public String getUserName() {
         return userName;
@@ -46,8 +45,8 @@ public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractCo
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UserPasswordHandleFactoryRequestInfo)) return false;
-        UserPasswordHandleFactoryRequestInfo<?> that = (UserPasswordHandleFactoryRequestInfo<?>) o;
+        if (!(o instanceof UserPasswordConnectionRequestInfoImpl)) return false;
+        UserPasswordConnectionRequestInfoImpl that = (UserPasswordConnectionRequestInfoImpl) o;
         return hashcode == that.hashcode
                 && Objects.equals(userName, that.userName)
                 && Objects.equals(password, that.password);
@@ -60,6 +59,6 @@ public abstract class UserPasswordHandleFactoryRequestInfo<CI extends AbstractCo
 
     @Override
     public String toString() {
-        return "UserPasswordHandleFactoryRequestInfo[" + userName + "]";
+        return "UserPasswordConnectionRequestInfoImpl[" + userName + "]";
     }
 }

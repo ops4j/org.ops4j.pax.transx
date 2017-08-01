@@ -21,7 +21,6 @@ import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.LazyAssociatableConnectionManager;
 import javax.resource.spi.LocalTransaction;
 import java.sql.Array;
 import java.sql.Blob;
@@ -42,11 +41,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory>
+public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>>
         extends AbstractConnectionHandle<MCF, Connection, ConnectionHandle<MCF>> implements Connection {
 
-    public ConnectionHandle(LazyAssociatableConnectionManager cm, UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri) {
-        super(cm, mcf, cri);
+    public ConnectionHandle(UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri) {
+        super(mcf, cri);
     }
 
     @Override

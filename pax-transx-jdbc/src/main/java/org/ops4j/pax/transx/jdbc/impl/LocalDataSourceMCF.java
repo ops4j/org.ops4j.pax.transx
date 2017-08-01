@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class LocalDataSourceMCF extends AbstractJdbcManagedConnectionFactory<DataSource> {
+public class LocalDataSourceMCF extends AbstractJdbcManagedConnectionFactory<LocalDataSourceMCF, DataSource> {
 
     public LocalDataSourceMCF(DataSource datasource) {
         this(datasource, new KnownSQLStateExceptionSorter(), true);

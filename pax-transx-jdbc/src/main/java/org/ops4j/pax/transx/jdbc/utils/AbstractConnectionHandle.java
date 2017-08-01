@@ -16,23 +16,18 @@ package org.ops4j.pax.transx.jdbc.utils;
 
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
-import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.LazyAssociatableConnectionManager;
 
-public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnectionFactory, C, CI extends AbstractConnectionHandle<MCF, C, CI>> {
+public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnectionFactory<CI>, C, CI extends AbstractConnectionHandle<MCF, C, CI>> {
 
-    protected final LazyAssociatableConnectionManager cm;
     protected final UserPasswordManagedConnectionFactory mcf;
     protected final ConnectionRequestInfo cri;
 
     protected volatile boolean closed = false;
     protected AbstractManagedConnection<MCF, C, CI> mc;
 
-    protected AbstractConnectionHandle(LazyAssociatableConnectionManager cm,
-                                       UserPasswordManagedConnectionFactory mcf,
+    protected AbstractConnectionHandle(UserPasswordManagedConnectionFactory mcf,
                                        ConnectionRequestInfo cri) {
-        this.cm = cm;
         this.mcf = mcf;
         this.cri = cri;
     }
@@ -78,16 +73,6 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
     public <E extends Exception> AbstractManagedConnection<MCF, C, CI> getManagedConnection() throws E {
         if (isClosed()) {
             throw this.<E>wrapException("Connection has been closed", null);
-        }
-        if (mc == null && cm != null) {
-            try {
-                cm.associateConnection(this, mcf, cri);
-            } catch (ResourceException e) {
-                throw this.<E>wrapException("Failed lazy association with ManagedConnection", e);
-            }
-            if (mc == null) {
-                throw this.<E>wrapException("Failed lazy association with ManagedConnection", null);
-            }
         }
         assert mc != null;
         return mc;

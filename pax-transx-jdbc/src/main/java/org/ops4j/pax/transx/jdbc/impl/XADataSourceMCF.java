@@ -29,7 +29,7 @@ import javax.transaction.xa.XAResource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class XADataSourceMCF extends AbstractJdbcManagedConnectionFactory<XADataSource> {
+public class XADataSourceMCF extends AbstractJdbcManagedConnectionFactory<XADataSourceMCF, XADataSource> {
 
     public XADataSourceMCF(XADataSource xaDataSource) {
         this(xaDataSource, new NoExceptionsAreFatalSorter());

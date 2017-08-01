@@ -15,14 +15,12 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.utils.UserPasswordHandleFactoryRequestInfo;
+import org.ops4j.pax.transx.jdbc.utils.UserPasswordConnectionRequestInfoImpl;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.LazyAssociatableConnectionManager;
 import javax.sql.CommonDataSource;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
@@ -54,15 +52,14 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
     }
 
     public Connection getConnection() throws SQLException {
-        return getConnection(NULL_CRI);
+        return getConnection(UserPasswordConnectionRequestInfoImpl.NULL_CRI);
     }
 
     public Connection getConnection(String user, String password) throws SQLException {
-        TransxUserPasswordHandleFactoryRequestInfo cri = new TransxUserPasswordHandleFactoryRequestInfo(user, password);
-        return getConnection(cri);
+        return getConnection(new UserPasswordConnectionRequestInfoImpl(user, password));
     }
 
-    private Connection getConnection(TransxUserPasswordHandleFactoryRequestInfo cri) throws SQLException {
+    private Connection getConnection(UserPasswordConnectionRequestInfo cri) throws SQLException {
         try {
             return (Connection) cm.allocateConnection(mcf, cri);
         } catch (ResourceException e) {
@@ -74,23 +71,6 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
                 throw new SQLException(e);
             }
         }
-    }
-
-    private final TransxUserPasswordHandleFactoryRequestInfo<?> NULL_CRI = new TransxUserPasswordHandleFactoryRequestInfo<>(null, null);
-
-    private class TransxUserPasswordHandleFactoryRequestInfo<MCF extends AbstractManagedConnectionFactory> extends UserPasswordHandleFactoryRequestInfo<ConnectionHandle<MCF>> {
-        TransxUserPasswordHandleFactoryRequestInfo(String userName, String password) {
-            super(userName, password);
-        }
-
-        @Override
-        public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri) {
-            return new ConnectionHandle<>(asLazyAssociatableConnectionManager(cm), mcf, cri);
-        }
-    }
-
-    protected LazyAssociatableConnectionManager asLazyAssociatableConnectionManager(ConnectionManager cm) {
-        return cm instanceof LazyAssociatableConnectionManager ? (LazyAssociatableConnectionManager) cm : null;
     }
 
     public int getLoginTimeout() throws SQLException {

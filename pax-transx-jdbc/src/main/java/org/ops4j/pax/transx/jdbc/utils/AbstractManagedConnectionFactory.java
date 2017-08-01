@@ -34,7 +34,7 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractManagedConnectionFactory implements UserPasswordManagedConnectionFactory,
+public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswordManagedConnectionFactory,
                             ValidatingManagedConnectionFactory, TransactionSupport {
 
     protected ExceptionSorter exceptionSorter;
@@ -145,6 +145,8 @@ public abstract class AbstractManagedConnectionFactory implements UserPasswordMa
         }
         return null;
     }
+
+    public abstract CI createConnectionHandle(ConnectionRequestInfo cri);
 
     @Override
     public Set getInvalidConnections(Set set) throws ResourceException {
