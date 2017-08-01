@@ -14,6 +14,8 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
+
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.QueueConnectionFactory;
@@ -32,18 +34,13 @@ public class ConnectionFactoryImpl implements TopicConnectionFactory, QueueConne
 
     public ConnectionFactoryImpl(ManagedConnectionFactoryImpl mcf, ConnectionManager cm) {
         this.mcf = mcf;
-        this.cm = cm != null ? cm : this::allocateConnection;
+        this.cm = cm != null ? cm : new SimpleConnectionManager();
     }
 
     public void close() throws Exception {
         if (cm instanceof AutoCloseable) {
             ((AutoCloseable) cm).close();
         }
-    }
-
-    private Object allocateConnection(ManagedConnectionFactory mcf, ConnectionRequestInfo cri) throws ResourceException {
-        ManagedConnection mc = mcf.createManagedConnection(null, cri);
-        return mc.getConnection(null, cri);
     }
 
     @Override

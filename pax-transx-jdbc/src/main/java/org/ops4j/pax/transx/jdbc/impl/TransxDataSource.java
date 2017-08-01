@@ -14,6 +14,7 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
+import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 import org.ops4j.pax.transx.jdbc.utils.UserPasswordHandleFactoryRequestInfo;
@@ -41,7 +42,7 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
 
     public TransxDataSource(UserPasswordManagedConnectionFactory mcf, ConnectionManager cm) {
         this.mcf = mcf;
-        this.cm = cm;
+        this.cm = cm != null ? cm : new SimpleConnectionManager();
     }
 
     public void close() throws Exception {
