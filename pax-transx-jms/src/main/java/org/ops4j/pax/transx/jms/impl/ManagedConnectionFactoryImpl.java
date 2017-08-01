@@ -145,7 +145,7 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
 
     @Override
     public Set getInvalidConnections(Set set) throws ResourceException {
-        Set newSet = new HashSet();
+        Set<Object> newSet = new HashSet<>();
         for (Object o : set) {
             if (o instanceof ManagedConnectionImpl) {
                 ManagedConnectionImpl mc = (ManagedConnectionImpl) o;
