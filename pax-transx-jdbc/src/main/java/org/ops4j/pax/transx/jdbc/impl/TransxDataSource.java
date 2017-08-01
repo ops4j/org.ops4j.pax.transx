@@ -23,6 +23,8 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LazyAssociatableConnectionManager;
+import javax.sql.CommonDataSource;
+import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -117,6 +119,19 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
      * @see java.sql.Wrapper#isWrapperFor(java.lang.Class)
      */
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        if (iface.isInstance(this)) {
+            return true;
+        }
+        CommonDataSource cds = getUnwrappedDataSource();
+        if (iface.isInstance(cds)) {
+            return true;
+        }
+        if (cds instanceof DataSource) {
+            DataSource ds = (DataSource) cds;
+            if (ds.isWrapperFor(iface)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -124,11 +139,29 @@ public class TransxDataSource implements javax.sql.DataSource, AutoCloseable {
      * @see java.sql.Wrapper#unwrap(java.lang.Class)
      */
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        return null;
+        if (iface.isInstance(this)) {
+            return iface.cast(this);
+        }
+        CommonDataSource cds = getUnwrappedDataSource();
+        if (iface.isInstance(cds)) {
+            return iface.cast(cds);
+        }
+        if (cds instanceof DataSource) {
+            DataSource ds = (DataSource) cds;
+            if (ds.isWrapperFor(iface)) {
+                return ds.unwrap(iface);
+            }
+        }
+        throw new SQLException("Not a wrapper for " + iface.getName());
     }
 
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         return Logger.getLogger("org.ops4j.pax.transx");
+    }
+
+    private CommonDataSource getUnwrappedDataSource() {
+        assert mcf instanceof AbstractJdbcManagedConnectionFactory;
+        return ((AbstractJdbcManagedConnectionFactory) mcf).dataSource;
     }
 }
