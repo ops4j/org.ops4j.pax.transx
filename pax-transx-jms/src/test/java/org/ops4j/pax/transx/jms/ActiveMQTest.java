@@ -18,7 +18,6 @@ package org.ops4j.pax.transx.jms;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQXAConnectionFactory;
-import org.apache.activemq.Closeable;
 import org.apache.aries.transaction.internal.AriesPlatformTransactionManager;
 import org.junit.After;
 import org.junit.Before;

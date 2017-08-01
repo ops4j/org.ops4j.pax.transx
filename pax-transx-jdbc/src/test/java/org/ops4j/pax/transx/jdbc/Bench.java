@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.junit.Test;
 import org.ops4j.pax.transx.jdbc.stubs.StubDataSource;
 
+import javax.resource.spi.TransactionSupport;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -28,6 +29,7 @@ public class Bench {
     protected void doBenchTransx() throws Exception {
         DataSource ds = ManagedDataSourceBuilder.builder()
                 .dataSource(new StubDataSource())
+                .transaction(TransactionSupport.TransactionSupportLevel.NoTransaction)
                 .userName("brettw")
                 .password("")
                 .minIdle(0)

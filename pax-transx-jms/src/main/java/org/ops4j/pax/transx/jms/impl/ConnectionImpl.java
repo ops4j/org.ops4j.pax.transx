@@ -15,7 +15,6 @@
 package org.ops4j.pax.transx.jms.impl;
 
 
-import javax.jms.Connection;
 import javax.jms.ConnectionConsumer;
 import javax.jms.ConnectionMetaData;
 import javax.jms.Destination;
@@ -35,9 +34,9 @@ import javax.jms.TopicSession;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
-import static org.ops4j.pax.transx.jms.impl.Utils.forEach;
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 
 
@@ -49,9 +48,9 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
     private final String password;
     private final String clientID;
 
-    private final Set<SessionImpl> sessions = new HashSet<>();
     private final Set<TemporaryQueue> tempQueues = new HashSet<>();
     private final Set<TemporaryTopic> tempTopics = new HashSet<>();
+    private SessionImpl session;
 
     private boolean closed;
     private boolean started;
@@ -64,26 +63,29 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         this.clientID = clientID;
     }
 
-    public void close() {
-        if (closed) {
-            return;
+    public synchronized void close() {
+        if (!closed) {
+            closed = true;
+            doClose();
         }
-        closed = true;
-        Utils.doClose(sessions, SessionImpl::closeSession);
+    }
+
+    private void doClose() {
+        Optional.ofNullable(session).ifPresent(SessionImpl::close);
         Utils.doClose(tempQueues, TemporaryQueue::delete);
         Utils.doClose(tempTopics, TemporaryTopic::delete);
     }
 
-    public void start() throws JMSException {
+    public synchronized void start() throws JMSException {
         if (closed) {
             throw new IllegalStateException("The connection is closed");
         }
-        synchronized (sessions) {
-            if (started) {
-                return;
+        if (!started) {
+            SessionImpl s = session;
+            if (s != null) {
+                s.start();
             }
             started = true;
-            forEach(sessions, SessionImpl::start);
         }
     }
 
@@ -103,7 +105,7 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         ConnectionRequestInfoImpl cri = new ConnectionRequestInfoImpl(false, Session.AUTO_ACKNOWLEDGE, userName, password, clientID);
         try (SessionImpl session = (SessionImpl) cm.allocateConnection(mcf, cri)) {
             session.setConnection(this);
-            return session.getManagedConnection().getConnectionMetaData();
+            return session.mc().getConnectionMetaData();
         } catch (ResourceException e) {
             throw (JMSException) new JMSException("Unable to retrieve metadata").initCause(e);
         }
@@ -161,34 +163,32 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         return createSession(transacted, sessionMode);
     }
 
-    public SessionImpl createSession(boolean transacted, int sessionMode) throws JMSException {
+    public synchronized SessionImpl createSession(boolean transacted, int sessionMode) throws JMSException {
         if (closed) {
             throw new IllegalStateException("The connection is closed");
         }
-        synchronized (sessions) {
-            if (!sessions.isEmpty()) {
-                throw new IllegalStateException("Only one session per connection is allowed");
-            }
+        if (session != null) {
+            throw new IllegalStateException("Only one session per connection is allowed");
+        }
+        try {
+            ConnectionRequestInfoImpl cri = new ConnectionRequestInfoImpl(transacted, sessionMode, userName, password, clientID);
+            SessionImpl session = (SessionImpl) cm.allocateConnection(mcf, cri);
             try {
-                ConnectionRequestInfoImpl cri = new ConnectionRequestInfoImpl(transacted, sessionMode, userName, password, clientID);
-                SessionImpl session = (SessionImpl) cm.allocateConnection(mcf, cri);
-                try {
-                    session.setConnection(this);
-                    if (started) {
-                        session.start();
-                    }
-                    sessions.add(session);
-                    return session;
-                } catch (Throwable t) {
-                    try {
-                        session.close();
-                    } catch (Throwable ignored) {
-                    }
-                    throw t;
+                session.setConnection(this);
+                if (started) {
+                    session.start();
                 }
-            } catch (Exception e) {
-                throw Utils.newJMSException(e);
+                this.session = session;
+                return session;
+            } catch (Throwable t) {
+                try {
+                    session.close();
+                } catch (Throwable ignored) {
+                }
+                throw t;
             }
+        } catch (Exception e) {
+            throw Utils.newJMSException(e);
         }
     }
 
@@ -202,9 +202,8 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         return topic;
     }
 
-    void closeSession(SessionImpl session) {
-        synchronized (sessions) {
-            sessions.remove(session);
-        }
+    synchronized void closeSession(SessionImpl session) {
+        assert this.session == session;
+        this.session = null;
     }
 }

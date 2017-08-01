@@ -15,17 +15,13 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.jdbc.utils.AbstractConnectionHandle;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.LocalTransactionException;
-import javax.resource.spi.ManagedConnectionMetaData;
 import javax.resource.spi.ResourceAdapterInternalException;
-import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
@@ -39,15 +35,15 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
+    private final Connection connection;
     private final XAConnection xaConnection;
-
-    public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
-        this(mcf, xaConnection, xaConnection.getXAResource(), xaConnection.getConnection(), credentialExtractor, exceptionSorter);
-    }
+    private final XAResource xaResource;
 
     public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, XAResource xaResource, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
-        super(mcf, connection, xaResource, credentialExtractor, exceptionSorter);
+        super(mcf, credentialExtractor, exceptionSorter);
+        this.connection = connection;
         this.xaConnection = xaConnection;
+        this.xaResource = xaResource;
         xaConnection.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
                 //we should be handling this independently
@@ -64,15 +60,12 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
 
     @Override
     public XAResource getXAResource() throws ResourceException {
-        if (getTransactionSupport() != TransactionSupportLevel.XATransaction) {
-            throw new ResourceException("No support for XA transactions");
-        }
-        return new XAResourceProxy<>(this);
+        return new XAResourceProxy();
     }
 
     @Override
-    public TransactionSupportLevel getTransactionSupport() {
-        return TransactionSupportLevel.XATransaction;
+    public Connection getPhysicalConnection() {
+        return connection;
     }
 
     public LocalTransaction getClientLocalTransaction() {
@@ -85,7 +78,7 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
 
     protected void localTransactionStart(boolean isSPI) throws ResourceException {
         try {
-            physicalConnection.setAutoCommit(false);
+            connection.setAutoCommit(false);
         } catch (SQLException e) {
             throw new LocalTransactionException("Unable to disable autoCommit", e);
         }
@@ -98,12 +91,12 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
             // we need to do both here, so we rely on this behaviour in the driver as otherwise
             // commit followed by setAutoCommit(true) may result in 2 commits in the database
             if (mcf.isCommitBeforeAutocommit()) {
-                physicalConnection.commit();
+                connection.commit();
             }
-            physicalConnection.setAutoCommit(true);
+            connection.setAutoCommit(true);
         } catch (SQLException e) {
             try {
-                physicalConnection.rollback();
+                connection.rollback();
             } catch (SQLException e1) {
                 if (log != null) {
                     e.printStackTrace(log);
@@ -116,13 +109,13 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
 
     protected void localTransactionRollback(boolean isSPI) throws ResourceException {
         try {
-            physicalConnection.rollback();
+            connection.rollback();
         } catch (SQLException e) {
             throw new LocalTransactionException("Unable to rollback", e);
         }
         super.localTransactionRollback(isSPI);
         try {
-            physicalConnection.setAutoCommit(true);
+            connection.setAutoCommit(true);
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Unable to enable autoCommit after rollback", e);
         }
@@ -131,7 +124,7 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
     @Override
     protected boolean isValid() {
         try {
-            if (getPhysicalConnection().isValid(0)) {
+            if (connection.isValid(0)) {
                 return true;
             }
         } catch (SQLException e) {
@@ -144,8 +137,8 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
         super.cleanup();
         try {
             //TODO reset tx isolation level
-            if (!physicalConnection.getAutoCommit()) {
-                physicalConnection.setAutoCommit(true);
+            if (!connection.getAutoCommit()) {
+                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new ResourceException("Could not reset autocommit when returning to pool", e);
@@ -160,27 +153,16 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
         }
     }
 
-    public ManagedConnectionMetaData getMetaData() throws ResourceException {
-        return null;
-    }
-
-    static class XAResourceProxy<MCF extends AbstractManagedConnectionFactory<CI>, C,
-            CI extends AbstractConnectionHandle<MCF, C, CI>> implements XAResource {
-
-        private final AbstractManagedConnection<MCF, C, CI> mc;
-
-        XAResourceProxy(AbstractManagedConnection<MCF, C, CI> mc) {
-            this.mc = mc;
-        }
+    class XAResourceProxy implements XAResource {
 
         private XAResource getXAResource() {
-            return mc.doGetXAResource();
+            return xaResource;
         }
 
         @Override
         public void start(Xid xid, int flags) throws XAException {
             getXAResource().start(xid, flags);
-            mc.setInXaTransaction(true);
+            setInXaTransaction(true);
         }
 
         @Override
@@ -198,7 +180,7 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
             try {
                 getXAResource().end(xid, flags);
             } finally {
-                mc.setInXaTransaction(false);
+                setInXaTransaction(false);
             }
         }
 

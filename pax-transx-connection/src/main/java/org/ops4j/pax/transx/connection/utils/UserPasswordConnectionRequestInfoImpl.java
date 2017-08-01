@@ -12,9 +12,7 @@
  * limitations under the License.
  *
  */
-package org.ops4j.pax.transx.jdbc.utils;
-
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
+package org.ops4j.pax.transx.connection.utils;
 
 import java.util.Objects;
 

@@ -21,18 +21,14 @@ import javax.jms.JMSException;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TopicConnectionFactory;
-import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
 
-public class ConnectionFactoryImpl implements TopicConnectionFactory, QueueConnectionFactory, AutoCloseable {
+public class TransxConnectionFactory implements TopicConnectionFactory, QueueConnectionFactory, AutoCloseable {
 
     private final ManagedConnectionFactoryImpl mcf;
     private final ConnectionManager cm;
 
-    public ConnectionFactoryImpl(ManagedConnectionFactoryImpl mcf, ConnectionManager cm) {
+    public TransxConnectionFactory(ManagedConnectionFactoryImpl mcf, ConnectionManager cm) {
         this.mcf = mcf;
         this.cm = cm != null ? cm : new SimpleConnectionManager();
     }

@@ -16,8 +16,8 @@ package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
 import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfoImpl;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.utils.UserPasswordConnectionRequestInfoImpl;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;

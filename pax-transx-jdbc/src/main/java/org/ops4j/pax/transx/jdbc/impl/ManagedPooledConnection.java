@@ -15,16 +15,14 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
 
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.LocalTransactionException;
-import javax.resource.spi.ManagedConnectionMetaData;
 import javax.resource.spi.ResourceAdapterInternalException;
-import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.PooledConnection;
@@ -36,10 +34,12 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
+    private final Connection connection;
     private final PooledConnection pooledConnection;
 
     public ManagedPooledConnection(ConnectionPoolDataSourceMCF mcf, PooledConnection pooledConnection, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
-        super(mcf, connection, credentialExtractor, exceptionSorter);
+        super(mcf, credentialExtractor, exceptionSorter);
+        this.connection =  connection;
         this.pooledConnection = pooledConnection;
         pooledConnection.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -56,8 +56,8 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
     }
 
     @Override
-    public TransactionSupportLevel getTransactionSupport() {
-        return TransactionSupportLevel.LocalTransaction;
+    public Connection getPhysicalConnection() {
+        return connection;
     }
 
     public LocalTransaction getClientLocalTransaction() {
@@ -70,7 +70,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
 
 	protected void localTransactionStart(boolean isSPI) throws ResourceException {
         try {
-            physicalConnection.setAutoCommit(false);
+            connection.setAutoCommit(false);
         } catch (SQLException e) {
             throw new LocalTransactionException("Unable to disable autoCommit", e);
         }
@@ -83,12 +83,12 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
             // we need to do both here, so we rely on this behaviour in the driver as otherwise
             // commit followed by setAutoCommit(true) may result in 2 commits in the database
             if (mcf.isCommitBeforeAutocommit()) {
-                physicalConnection.commit();
+                connection.commit();
             }
-            physicalConnection.setAutoCommit(true);
+            connection.setAutoCommit(true);
         } catch (SQLException e) {
             try {
-                physicalConnection.rollback();
+                connection.rollback();
             } catch (SQLException e1) {
                 if (log != null) {
                     e.printStackTrace(log);
@@ -101,13 +101,13 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
 
 	protected void localTransactionRollback(boolean isSPI) throws ResourceException {
         try {
-            physicalConnection.rollback();
+            connection.rollback();
         } catch (SQLException e) {
             throw new LocalTransactionException("Unable to rollback", e);
         }
         super.localTransactionRollback(isSPI);
         try {
-            physicalConnection.setAutoCommit(true);
+            connection.setAutoCommit(true);
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Unable to enable autoCommit after rollback", e);
         }
@@ -133,8 +133,8 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         super.cleanup();
         try {
             //TODO reset tx isolation level
-            if (!physicalConnection.getAutoCommit()) {
-                physicalConnection.setAutoCommit(true);
+            if (!connection.getAutoCommit()) {
+                connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
             throw new ResourceException("Could not reset autocommit when returning to pool", e);
@@ -147,10 +147,6 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Error attempting to destroy managed connection", e);
         }
-    }
-
-    public ManagedConnectionMetaData getMetaData() throws ResourceException {
-        return null;
     }
 
 }

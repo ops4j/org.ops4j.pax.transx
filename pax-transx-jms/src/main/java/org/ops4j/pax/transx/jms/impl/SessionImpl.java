@@ -14,6 +14,9 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
 import javax.jms.IllegalStateException;
@@ -39,9 +42,7 @@ import javax.jms.Topic;
 import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
 import javax.jms.TopicSubscriber;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEvent;
-import javax.transaction.xa.XAResource;
+import javax.resource.spi.ConnectionRequestInfo;
 import java.io.Serializable;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
@@ -50,252 +51,223 @@ import java.util.Set;
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 
 
-public class SessionImpl implements TopicSession, QueueSession {
+public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFactoryImpl, Session, SessionImpl> implements TopicSession, QueueSession {
 
-    private final ConnectionRequestInfoImpl cri;
-    private final ManagedConnectionImpl mc;
     private ConnectionImpl con;
-    private volatile boolean closed;
 
     private final Set<AutoCloseable> closeables = new HashSet<>();
 
-    public SessionImpl(ManagedConnectionImpl mc, ConnectionRequestInfoImpl cri) {
-        this.mc = mc;
-        this.cri = cri;
+    public SessionImpl(ManagedConnectionFactoryImpl mcf, ConnectionRequestInfo cri, AbstractManagedConnection mc) {
+        super(mcf, cri, mc);
         this.con = null;
+    }
+
+    ManagedConnectionImpl mc() {
+        return (ManagedConnectionImpl) mc;
+    }
+
+    ConnectionRequestInfoImpl cri() {
+        return (ConnectionRequestInfoImpl) cri;
     }
 
     public void setConnection(ConnectionImpl con) {
         this.con = con;
     }
 
-    ManagedConnectionImpl getManagedConnection() {
-        return mc;
-    }
-
     public void start() throws JMSException {
         if (mc != null) {
-            mc.start();
+            mc().start();
         }
     }
 
     public void closeSession() {
-        if (!closed) {
-            synchronized (this) {
-                if (!closed) {
-                    closed = true;
-                    try {
-                        mc.stop();
-                    } catch (Throwable t) {
-                        // TODO: Log
-                    }
-                    Utils.doClose(closeables);
-                    mc.removeHandle(this);
-                    ConnectionEvent ev = new ConnectionEvent(mc, ConnectionEvent.CONNECTION_CLOSED);
-                    ev.setConnectionHandle(this);
-                    mc.sendEvent(ev);
-                }
-            }
+        try {
+            mc().stop();
+        } catch (Throwable t) {
+            // TODO: Log
         }
+        Utils.doClose(closeables);
+//        mc.removeHandle(this);
+        mc.connectionClosed(this);
     }
 
-    private QueueSession getQueueSessionInternal() throws JMSException {
-        Session s = getSessionInternal();
+    private QueueSession getQueueSessionInternal(Session s) throws JMSException {
         if (!(s instanceof QueueSession)) {
             throw new InvalidDestinationException("Attempting to use QueueSession methods on: " + this);
         }
         return (QueueSession) s;
     }
 
-    private TopicSession getTopicSessionInternal() throws JMSException {
-        Session s = getSessionInternal();
+    private TopicSession getTopicSessionInternal(Session s) throws JMSException {
         if (!(s instanceof TopicSession)) {
             throw new InvalidDestinationException("Attempting to use TopicSession methods on: " + this);
         }
         return (TopicSession) s;
     }
 
-    private Session getSessionInternal() throws JMSException {
-        if (mc == null) {
-            throw new IllegalStateException("The session is closed");
-        }
-        return mc.getSession();
-    }
-
-    private XAResource getXAResourceInternal() throws JMSException {
-        if (mc == null) {
-            throw new IllegalStateException("The session is closed");
-        }
-        try {
-            return mc.getXAResource();
-        } catch (ResourceException e) {
-            throw (JMSException) new JMSException("Unable to get XAResource").initCause(e);
-        }
-    }
-
     @Override
     public QueueReceiver createReceiver(Queue queue) throws JMSException {
-        return call(() -> wrap(QueueReceiver.class, getQueueSessionInternal().createReceiver(queue)));
+        return call(session -> wrap(QueueReceiver.class, getQueueSessionInternal(session).createReceiver(queue)));
     }
 
     @Override
     public QueueReceiver createReceiver(Queue queue, String messageSelector) throws JMSException {
-        return call(() -> wrap(QueueReceiver.class, getQueueSessionInternal().createReceiver(queue, messageSelector)));
+        return call(session -> wrap(QueueReceiver.class, getQueueSessionInternal(session).createReceiver(queue, messageSelector)));
     }
 
     @Override
     public QueueSender createSender(Queue queue) throws JMSException {
-        return call(() -> wrap(QueueSender.class, getQueueSessionInternal().createSender(queue)));
+        return call(session -> wrap(QueueSender.class, getQueueSessionInternal(session).createSender(queue)));
     }
 
     @Override
     public TopicSubscriber createSubscriber(Topic topic) throws JMSException {
-        return call(() -> wrap(TopicSubscriber.class, getTopicSessionInternal().createSubscriber(topic)));
+        return call(session -> wrap(TopicSubscriber.class, getTopicSessionInternal(session).createSubscriber(topic)));
     }
 
     @Override
     public TopicSubscriber createSubscriber(Topic topic, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrap(TopicSubscriber.class, getTopicSessionInternal().createSubscriber(topic, messageSelector, noLocal)));
+        return call(session -> wrap(TopicSubscriber.class, getTopicSessionInternal(session).createSubscriber(topic, messageSelector, noLocal)));
     }
 
     @Override
     public TopicPublisher createPublisher(Topic topic) throws JMSException {
-        return call(() -> wrap(TopicPublisher.class, getTopicSessionInternal().createPublisher(topic)));
+        return call(session -> wrap(TopicPublisher.class, getTopicSessionInternal(session).createPublisher(topic)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination)));
+        return call(session -> wrap(MessageConsumer.class, session.createConsumer(destination)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination, String messageSelector) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination, messageSelector)));
+        return call(session -> wrap(MessageConsumer.class, session.createConsumer(destination, messageSelector)));
     }
 
     @Override
     public MessageConsumer createConsumer(Destination destination, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createConsumer(destination, messageSelector, noLocal)));
+        return call(session -> wrap(MessageConsumer.class, session.createConsumer(destination, messageSelector, noLocal)));
     }
 
     @Override
     public MessageProducer createProducer(Destination destination) throws JMSException {
-        return call(() -> wrap(MessageProducer.class, getSessionInternal().createProducer(destination)));
+        return call(session -> wrap(MessageProducer.class, session.createProducer(destination)));
     }
 
     @Override
     public TopicSubscriber createDurableSubscriber(Topic topic, String name) throws JMSException {
-        return call(() -> wrap(TopicSubscriber.class, getSessionInternal().createDurableSubscriber(topic, name)));
+        return call(session -> wrap(TopicSubscriber.class, session.createDurableSubscriber(topic, name)));
     }
 
     @Override
     public TopicSubscriber createDurableSubscriber(Topic topic, String name, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrap(TopicSubscriber.class, getSessionInternal().createDurableSubscriber(topic, name, messageSelector, noLocal)));
+        return call(session -> wrap(TopicSubscriber.class, session.createDurableSubscriber(topic, name, messageSelector, noLocal)));
     }
 
     @Override
     public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName)));
+        return call(session -> wrap(MessageConsumer.class, session.createSharedConsumer(topic, sharedSubscriptionName)));
     }
 
     @Override
     public MessageConsumer createSharedConsumer(Topic topic, String sharedSubscriptionName, String messageSelector) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedConsumer(topic, sharedSubscriptionName, messageSelector)));
+        return call(session -> wrap(MessageConsumer.class, session.createSharedConsumer(topic, sharedSubscriptionName, messageSelector)));
     }
 
     @Override
     public MessageConsumer createDurableConsumer(Topic topic, String name) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createDurableConsumer(topic, name)));
+        return call(session -> wrap(MessageConsumer.class, session.createDurableConsumer(topic, name)));
     }
 
     @Override
     public MessageConsumer createDurableConsumer(Topic topic, String name, String messageSelector, boolean noLocal) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createDurableConsumer(topic, name, messageSelector, noLocal)));
+        return call(session -> wrap(MessageConsumer.class, session.createDurableConsumer(topic, name, messageSelector, noLocal)));
     }
 
     @Override
     public MessageConsumer createSharedDurableConsumer(Topic topic, String name) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedDurableConsumer(topic, name)));
+        return call(session -> wrap(MessageConsumer.class, session.createSharedDurableConsumer(topic, name)));
     }
 
     @Override
     public MessageConsumer createSharedDurableConsumer(Topic topic, String name, String messageSelector) throws JMSException {
-        return call(() -> wrap(MessageConsumer.class, getSessionInternal().createSharedDurableConsumer(topic, name, messageSelector)));
+        return call(session -> wrap(MessageConsumer.class, session.createSharedDurableConsumer(topic, name, messageSelector)));
     }
 
     @Override
     public TemporaryQueue createTemporaryQueue() throws JMSException {
-        return call(() -> con.wrapTemporaryQueue(getSessionInternal().createTemporaryQueue()));
+        return call(session -> con.wrapTemporaryQueue(session.createTemporaryQueue()));
     }
 
     @Override
     public TemporaryTopic createTemporaryTopic() throws JMSException {
-        return call(() -> con.wrapTemporaryTopic(getSessionInternal().createTemporaryTopic()));
+        return call(session -> con.wrapTemporaryTopic(session.createTemporaryTopic()));
     }
 
     @Override
     public BytesMessage createBytesMessage() throws JMSException {
-        return call(() -> getSessionInternal().createBytesMessage());
+        return call(Session::createBytesMessage);
     }
 
     @Override
     public MapMessage createMapMessage() throws JMSException {
-        return call(() -> getSessionInternal().createMapMessage());
+        return call(Session::createMapMessage);
     }
 
     @Override
     public Message createMessage() throws JMSException {
-        return call(() -> getSessionInternal().createMessage());
+        return call(Session::createMessage);
     }
 
     @Override
     public ObjectMessage createObjectMessage() throws JMSException {
-        return call(() -> getSessionInternal().createObjectMessage());
+        return call(Session::createObjectMessage);
     }
 
     @Override
     public ObjectMessage createObjectMessage(Serializable object) throws JMSException {
-        return call(() -> getSessionInternal().createObjectMessage(object));
+        return call(session -> session.createObjectMessage(object));
     }
 
     @Override
     public StreamMessage createStreamMessage() throws JMSException {
-        return call(() -> getSessionInternal().createStreamMessage());
+        return call(Session::createStreamMessage);
     }
 
     @Override
     public TextMessage createTextMessage() throws JMSException {
-        return call(() -> getSessionInternal().createTextMessage());
+        return call(Session::createTextMessage);
     }
 
     @Override
     public TextMessage createTextMessage(String text) throws JMSException {
-        return call(() -> getSessionInternal().createTextMessage(text));
+        return call(session -> session.createTextMessage(text));
     }
 
     @Override
     public Queue createQueue(String queueName) throws JMSException {
-        return call(() -> getSessionInternal().createQueue(queueName));
+        return call(session -> session.createQueue(queueName));
     }
 
     @Override
     public Topic createTopic(String topicName) throws JMSException {
-        return call(() -> getSessionInternal().createTopic(topicName));
+        return call(session -> session.createTopic(topicName));
     }
 
     @Override
     public QueueBrowser createBrowser(Queue queue) throws JMSException {
-        return call(() -> getSessionInternal().createBrowser(queue));
+        return call(session -> session.createBrowser(queue));
     }
 
     @Override
     public QueueBrowser createBrowser(Queue queue, String messageSelector) throws JMSException {
-        return call(() -> getSessionInternal().createBrowser(queue, messageSelector));
+        return call(session -> session.createBrowser(queue, messageSelector));
     }
 
     @Override
     public void unsubscribe(String name) throws JMSException {
-        execute(() -> getSessionInternal().unsubscribe(name));
+        execute(session -> session.unsubscribe(name));
     }
 
     @Override
@@ -315,9 +287,8 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     @Override
     public void recover() throws JMSException {
-        execute(() -> {
-            Session session = getSessionInternal();
-            if (cri.isTransacted()) {
+        execute(session -> {
+            if (cri().isTransacted()) {
                 throw new IllegalStateException("Session is transacted");
             }
             session.recover();
@@ -326,25 +297,18 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     @Override
     public int getAcknowledgeMode() throws JMSException {
-        return call(() -> {
-            getSessionInternal();
-            return cri.getAcknowledgeMode();
-        });
+        return call(session -> cri().getAcknowledgeMode());
     }
 
     @Override
     public boolean getTransacted() throws JMSException {
-        return call(() -> {
-            getSessionInternal();
-            return cri.isTransacted();
-        });
+        return call(session -> cri().isTransacted());
     }
 
     @Override
     public void commit() throws JMSException {
-        execute(() -> {
-            Session session = getSessionInternal();
-            if (!cri.isTransacted()) {
+        execute(session -> {
+            if (!cri().isTransacted()) {
                 throw new IllegalStateException("Session is not transacted");
             }
             session.commit();
@@ -353,9 +317,8 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     @Override
     public void rollback() throws JMSException {
-        execute(() -> {
-            Session session = getSessionInternal();
-            if (!cri.isTransacted()) {
+        execute(session -> {
+            if (!cri().isTransacted()) {
                 throw new IllegalStateException("Session is not transacted");
             }
             session.rollback();
@@ -363,7 +326,7 @@ public class SessionImpl implements TopicSession, QueueSession {
     }
 
     @Override
-    public void close() throws JMSException {
+    protected void doClose() {
         con.closeSession(this);
         closeSession();
     }
@@ -372,44 +335,21 @@ public class SessionImpl implements TopicSession, QueueSession {
 
     }
 
-    private <E extends Exception> void execute(Utils.RunnableWithException<E> cb) throws JMSException {
-        if (closed) {
-            throw new IllegalStateException("Session closed");
-        }
-        mc.tryLock();
-        try {
-            cb.run();
-        } catch (Exception e) {
-            connectionError(e);
-            throw Utils.newJMSException(e);
-        } finally {
-            mc.unlock();
-        }
-    }
-
-    private <R> R call(Utils.ProviderWithException<JMSException, R> cb) throws JMSException {
-        if (closed) {
-            throw new IllegalStateException("Session closed");
-        }
-        mc.tryLock();
-        try {
-            return cb.call();
-        } catch (Exception e) {
-            connectionError(e);
-            throw Utils.newJMSException(e);
-        } finally {
-            mc.unlock();
-        }
-    }
-
-    private void connectionError(Exception e) {
-        // TODO: ?
-    }
-
     @SuppressWarnings("unchecked")
+    @Override
+    protected <E extends Exception> E wrapException(String msg, Exception e) {
+        if (msg == null && e instanceof JMSException) {
+            return (E) e;
+        }
+        if (msg == null && e != null && e.getCause() instanceof JMSException) {
+            return (E) e.getCause();
+        }
+        return (E) new JMSException(msg).initCause(e);
+    }
+
     private <T extends AutoCloseable> T wrap(Class<T> clazz, T closeable) {
         closeables.add(closeable);
-        return (T) Proxy.newProxyInstance(closeable.getClass().getClassLoader(), new Class[]{ clazz },
+        return clazz.cast(Proxy.newProxyInstance(closeable.getClass().getClassLoader(), new Class[]{ clazz },
                 (proxy, method, args) -> {
                     if ("close".equals(method.getName())
                             && method.getParameterCount() == 0
@@ -417,7 +357,7 @@ public class SessionImpl implements TopicSession, QueueSession {
                         closeables.remove(closeable);
                     }
                     return method.invoke(closeable, args);
-                });
+                }));
     }
 
 }

@@ -14,10 +14,10 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
+import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-import org.ops4j.pax.transx.jdbc.utils.AbstractConnectionHandle;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;

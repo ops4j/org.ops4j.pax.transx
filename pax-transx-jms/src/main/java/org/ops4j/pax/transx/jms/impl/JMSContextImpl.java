@@ -79,6 +79,7 @@ public class JMSContextImpl implements JMSContext {
     @Override
     public void start() {
         try {
+            closed = true;
             connection.start();
         } catch (JMSException jmse) {
             throw Utils.convertToRuntimeException(jmse);
@@ -265,7 +266,7 @@ public class JMSContextImpl implements JMSContext {
     }
 
     //----- JMSContext factory methods --------------------------------------//
-    
+
     @Override
     public JMSContext createContext(int sessionMode) {
         return unsupported("createContext");

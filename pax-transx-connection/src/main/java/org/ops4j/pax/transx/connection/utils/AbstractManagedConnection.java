@@ -12,10 +12,9 @@
  * limitations under the License.
  *
  */
-package org.ops4j.pax.transx.jdbc.utils;
+package org.ops4j.pax.transx.connection.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
@@ -23,9 +22,9 @@ import javax.resource.spi.ConnectionEventListener;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
+import javax.resource.spi.ManagedConnectionMetaData;
+import javax.resource.spi.SecurityException;
 import javax.security.auth.Subject;
-import javax.transaction.xa.XAResource;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -41,8 +40,6 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     protected ArrayDeque<ConnectionEventListener> listeners;
     protected final CredentialExtractor credentialExtractor;
     protected final ExceptionSorter exceptionSorter;
-    protected final C physicalConnection;
-    protected final XAResource xaResource;
 
     protected final LocalTransactionImpl localTx;
     protected final LocalTransactionImpl localClientTx;
@@ -53,15 +50,9 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
 
     protected boolean isInXaTransaction;
 
-    public AbstractManagedConnection(MCF mcf, C physicalConnection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
-        this(mcf, physicalConnection, null, credentialExtractor, exceptionSorter);
-    }
-
-    public AbstractManagedConnection(MCF mcf, C physicalConnection, XAResource xaResource, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
+    public AbstractManagedConnection(MCF mcf, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         assert exceptionSorter != null;
         this.mcf = mcf;
-        this.physicalConnection = physicalConnection;
-        this.xaResource = xaResource;
         this.credentialExtractor = credentialExtractor;
         this.exceptionSorter = exceptionSorter;
         this.localTx = new LocalTransactionImpl(true);
@@ -93,8 +84,14 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
      * @throws ResourceException
      */
     public void cleanup() throws ResourceException {
-        handle = null;
-        handles = null;
+        if (handle != null) {
+            handle.cleanup();
+            handle = null;
+        }
+        if (handles != null) {
+            handles.forEach(AbstractConnectionHandle::cleanup);
+            handles = null;
+        }
     }
 
     public void destroy() throws ResourceException {
@@ -221,9 +218,6 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         }
     }
 
-    @Override
-    public abstract XAResource getXAResource() throws ResourceException;
-
     public void setInXaTransaction(boolean inXaTransaction) {
         isInXaTransaction = inXaTransaction;
     }
@@ -232,29 +226,22 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         return isInXaTransaction;
     }
 
-    public C getPhysicalConnection() {
-        return physicalConnection;
-    }
+    public abstract C getPhysicalConnection();
 
-    protected void closePhysicalConnection() throws ResourceException {
-        if (physicalConnection instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) physicalConnection).close();
-            } catch (Exception e) {
-                throw new ResourceException(e.getMessage(), e);
-            }
-        }
-    }
-
-    public XAResource doGetXAResource() {
-        return xaResource;
-    }
-
-    public TransactionSupportLevel getTransactionSupport() {
-        return xaResource != null ? TransactionSupportLevel.XATransaction : TransactionSupportLevel.LocalTransaction;
-    }
+    protected abstract void closePhysicalConnection() throws ResourceException;
 
     public Object getConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
+        // Check user first
+        String userName = credentialExtractor.getUserName();
+        CredentialExtractor credential = new CredentialExtractor(subject, connectionRequestInfo, mcf);
+        // Null users are allowed!
+        if (userName != null && !userName.equals(credential.getUserName())) {
+            throw new SecurityException("Password credentials not the same, reauthentication not allowed");
+        }
+        if (userName == null && credential.getUserName() != null) {
+            throw new SecurityException("Password credentials not the same, reauthentication not allowed");
+        }
+
         CI handle = mcf.createConnectionHandle(connectionRequestInfo, this);
         if (this.handle == null) {
             this.handle = handle;
@@ -268,6 +255,30 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         this.subject = subject;
         this.cri = connectionRequestInfo;
         return handle;
+    }
+
+    public ManagedConnectionMetaData getMetaData() throws ResourceException {
+        return new ManagedConnectionMetaData() {
+            @Override
+            public String getEISProductName() throws ResourceException {
+                return null;
+            }
+
+            @Override
+            public String getEISProductVersion() throws ResourceException {
+                return null;
+            }
+
+            @Override
+            public int getMaxConnections() throws ResourceException {
+                return -1;
+            }
+
+            @Override
+            public String getUserName() throws ResourceException {
+                return credentialExtractor.getUserName();
+            }
+        };
     }
 
     protected class LocalTransactionImpl implements LocalTransaction {
@@ -291,7 +302,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     }
 
     private static <S> Iterable<S> reverse(Deque<S> col) {
-        if (col.size() == 1) {
+        if (col.size() <= 1) {
             return col;
         }
         return col::descendingIterator;

@@ -12,9 +12,7 @@
  * limitations under the License.
  *
  */
-package org.ops4j.pax.transx.jdbc.utils;
-
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
+package org.ops4j.pax.transx.connection.utils;
 
 import javax.resource.spi.ConnectionRequestInfo;
 
@@ -36,6 +34,9 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
 
     public boolean isClosed() {
         return closed;
+    }
+
+    public void cleanup() {
     }
 
     public void close() {

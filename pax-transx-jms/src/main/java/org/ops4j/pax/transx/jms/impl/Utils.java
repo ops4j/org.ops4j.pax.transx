@@ -121,7 +121,7 @@ final class Utils {
     }
 
     public static <T> T unsupported(String method) {
-        throw new JMSRuntimeException("Illegal call to " + method + " on a managed Connection");
+        throw new JMSRuntimeException("Illegal call to " + method + " on a managed connection");
     }
 
     static void debug(String msg) {

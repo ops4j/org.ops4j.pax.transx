@@ -15,7 +15,8 @@
 package org.ops4j.pax.transx.jms.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
@@ -23,24 +24,20 @@ import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.TransactionSupport;
-import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
 
-public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnectionFactory,
-                            ValidatingManagedConnectionFactory, TransactionSupport {
+public class ManagedConnectionFactoryImpl
+        extends AbstractManagedConnectionFactory<SessionImpl> {
 
     private final XAConnectionFactory xaConnectionFactory;
     private final ConnectionFactory connectionFactory;
-    private ExceptionSorter exceptionSorter;
-    private String userName;
-    private String password;
     private String clientID;
 
     public ManagedConnectionFactoryImpl(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory, ExceptionSorter exceptionSorter) {
+        assert connectionFactory != null;
+        assert xaConnectionFactory != null;
+        assert exceptionSorter != null;
         this.connectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
         this.exceptionSorter = exceptionSorter;
@@ -48,7 +45,7 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
 
     @Override
     public TransactionSupportLevel getTransactionSupport() {
-        return xaConnectionFactory != null ? TransactionSupportLevel.XATransaction : TransactionSupportLevel.LocalTransaction;
+        return TransactionSupportLevel.XATransaction;
     }
 
     public ConnectionFactory getConnectionFactory() {
@@ -59,44 +56,9 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
         return xaConnectionFactory;
     }
 
-    /**
-     * Return the userName name used to establish the connection.
-     *
-     * @return the userName name used to establish the connection
-     */
-    public String getUserName() {
-        return userName;
-    }
-
-    /**
-     * Set the userName name used establish the connection.
-     * This value is used if no connection information is supplied by the application
-     * when attempting to create a connection.
-     *
-     * @param user the userName name used to establish the connection; may be null
-     */
-    public void setUserName(String user) {
-        this.userName = user;
-    }
-
-    /**
-     * Return the password credential used to establish the connection.
-     *
-     * @return the password credential used to establish the connection
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * Set the userName password credential establish the connection.
-     * This value is used if no connection information is supplied by the application
-     * when attempting to create a connection.
-     *
-     * @param password the password credential used to establish the connection; may be null
-     */
-    public void setPassword(String password) {
-        this.password = password;
+    @Override
+    public SessionImpl createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc) {
+        return new SessionImpl(this, cri, mc);
     }
 
     public String getClientID() {
@@ -107,54 +69,14 @@ public class ManagedConnectionFactoryImpl implements UserPasswordManagedConnecti
         this.clientID = clientID;
     }
 
-    public ExceptionSorter getExceptionSorter() {
-        return exceptionSorter;
-    }
-
-    public void setExceptionSorter(ExceptionSorter exceptionSorter) {
-        this.exceptionSorter = exceptionSorter;
-    }
-
-    @Override
-    public Object createConnectionFactory() throws ResourceException {
-        return createConnectionFactory(null);
-    }
-
     @Override
     public Object createConnectionFactory(ConnectionManager cm) throws ResourceException {
-        return new ConnectionFactoryImpl(this, cm);
+        return new TransxConnectionFactory(this, cm);
     }
 
     @Override
     public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
-        return new ManagedConnectionImpl(this, subject, (ConnectionRequestInfoImpl) connectionRequestInfo);
-    }
-
-    @Override
-    public ManagedConnection matchManagedConnections(Set set, Subject subject, ConnectionRequestInfo cri) throws ResourceException {
-        for (Object o : set) {
-            if (o instanceof ManagedConnectionImpl) {
-                ManagedConnectionImpl mc = (ManagedConnectionImpl) o;
-                if (mc.getCredentialExtractor().matches(subject, (ConnectionRequestInfoImpl) cri, this)) {
-                    return mc;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Set getInvalidConnections(Set set) throws ResourceException {
-        Set<Object> newSet = new HashSet<>();
-        for (Object o : set) {
-            if (o instanceof ManagedConnectionImpl) {
-                ManagedConnectionImpl mc = (ManagedConnectionImpl) o;
-                if (!mc.isValid()) {
-                    newSet.add(o);
-                }
-            }
-        }
-        return newSet;
+        return new ManagedConnectionImpl(this, subject, exceptionSorter, (ConnectionRequestInfoImpl) connectionRequestInfo);
     }
 
     @Override

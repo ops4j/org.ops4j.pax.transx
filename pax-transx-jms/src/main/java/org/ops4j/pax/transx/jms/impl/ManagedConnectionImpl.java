@@ -14,6 +14,8 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 import javax.jms.Connection;
@@ -24,43 +26,27 @@ import javax.jms.Session;
 import javax.jms.XAConnection;
 import javax.jms.XASession;
 import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ConnectionEventListener;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.IllegalStateException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionMetaData;
-import javax.resource.spi.SecurityException;
+import javax.resource.spi.TransactionSupport;
 import javax.security.auth.Subject;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.ops4j.pax.transx.jms.impl.Utils.doClose;
 import static org.ops4j.pax.transx.jms.impl.Utils.trace;
 
-public class ManagedConnectionImpl implements ManagedConnection {
+public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConnectionFactoryImpl, Session, SessionImpl> implements ManagedConnection {
 
-    private final ManagedConnectionFactoryImpl mcf;
-    private final ConnectionRequestInfoImpl cri;
-    private final CredentialExtractor credentialExtractor;
-    private final Set<SessionImpl> handles = Collections.synchronizedSet(new HashSet<>());
-    private final List<ConnectionEventListener> eventListeners = new CopyOnWriteArrayList<>();
     private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
     private ReentrantLock lock = new ReentrantLock();
 
     private final XAConnection xaConnection;
     private final XASession xaSession;
+    private final Session xaSessionSession;
     private final Connection connection;
     private final Session session;
 
@@ -69,10 +55,10 @@ public class ManagedConnectionImpl implements ManagedConnection {
 
     public ManagedConnectionImpl(ManagedConnectionFactoryImpl mcf,
                                  Subject subject,
+                                 ExceptionSorter exceptionSorter,
                                  ConnectionRequestInfoImpl cri) throws ResourceException {
-        this.mcf = mcf;
+        super(mcf, new CredentialExtractor(subject, cri, mcf), exceptionSorter);
         this.cri = cri;
-        this.credentialExtractor = new CredentialExtractor(subject, cri, mcf);
 
         try {
             boolean transacted = cri != null && cri.isTransacted();
@@ -89,18 +75,24 @@ public class ManagedConnectionImpl implements ManagedConnection {
             connection.setExceptionListener(this::onException);
             xaConnection.setExceptionListener(this::onException);
             xaSession = xaConnection.createXASession();
+            xaSessionSession = xaSession.getSession();
             session = connection.createSession(transacted, acknowledgeMode);
         } catch (JMSException e) {
             throw new ResourceException(e.getMessage(), e);
         }
     }
 
-    ConnectionMetaData getConnectionMetaData() throws JMSException {
-        return connection.getMetaData();
+    @Override
+    public Session getPhysicalConnection() {
+        return inManagedTx ? xaSessionSession : session;
     }
 
-    CredentialExtractor getCredentialExtractor() {
-        return credentialExtractor;
+    public TransactionSupport.TransactionSupportLevel getTransactionSupport() {
+        return TransactionSupport.TransactionSupportLevel.XATransaction;
+    }
+
+    ConnectionMetaData getConnectionMetaData() throws JMSException {
+        return connection.getMetaData();
     }
 
     private void onException(final JMSException exception) {
@@ -109,8 +101,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         }
         safe(() -> connection.setExceptionListener(null), "Unable to unset exception listener");
         safe(() -> xaConnection.setExceptionListener(null), "Unable to unset exception listener");
-        ConnectionEvent event = new ConnectionEvent(this, ConnectionEvent.CONNECTION_ERROR_OCCURRED, exception);
-        sendEvent(event);
+        unfilteredConnectionError(exception);
     }
 
     void lock() {
@@ -148,50 +139,6 @@ public class ManagedConnectionImpl implements ManagedConnection {
         handles.remove(handle);
     }
 
-    void sendEvent(ConnectionEvent event) {
-        int type = event.getId();
-        for (ConnectionEventListener l : eventListeners) {
-            switch (type) {
-                case ConnectionEvent.CONNECTION_CLOSED:
-                    l.connectionClosed(event);
-                    break;
-                case ConnectionEvent.LOCAL_TRANSACTION_STARTED:
-                    l.localTransactionStarted(event);
-                    break;
-                case ConnectionEvent.LOCAL_TRANSACTION_COMMITTED:
-                    l.localTransactionCommitted(event);
-                    break;
-                case ConnectionEvent.LOCAL_TRANSACTION_ROLLEDBACK:
-                    l.localTransactionRolledback(event);
-                    break;
-                case ConnectionEvent.CONNECTION_ERROR_OCCURRED:
-                    l.connectionErrorOccurred(event);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Illegal eventType: " + type);
-            }
-        }
-   }
-
-    @Override
-    public void addConnectionEventListener(final ConnectionEventListener l) {
-        eventListeners.add(l);
-    }
-
-    @Override
-    public void removeConnectionEventListener(final ConnectionEventListener l) {
-        eventListeners.remove(l);
-    }
-
-    @Override
-    public void setLogWriter(PrintWriter out) throws ResourceException {
-    }
-
-    @Override
-    public PrintWriter getLogWriter() throws ResourceException {
-        return null;
-    }
-
     void start() throws JMSException {
         if (xaConnection != null) {
             xaConnection.start();
@@ -210,15 +157,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         }
     }
 
-    @Override
-    public void associateConnection(Object connection) throws ResourceException {
-        throw new UnsupportedOperationException();
-    }
-
     private void cleanupHandles() throws ResourceException {
-        safe(connection::stop, "Error stopping connection");
-        safe(xaConnection::stop, "Error stopping xaConnection");
-        doClose(handles, SessionImpl::cleanup);
     }
 
     /**
@@ -231,38 +170,28 @@ public class ManagedConnectionImpl implements ManagedConnection {
         if (!isDestroyed.compareAndSet(false, true)) {
             return;
         }
+        super.destroy();
+    }
 
-        cleanupHandles();
+    @Override
+    protected void closePhysicalConnection() throws ResourceException {
         try {
-            // The following calls should not be necessary
-            safe(session::close, "Error closing session");
-            safe(xaSession::close, "Error closing session");
-
-            /*
-             * (xa|nonXA)Session.close() may NOT be called BEFORE xaConnection.close()
-             * <p>
-             * If the ClientSessionFactory is trying to fail-over or reconnect with -1 attempts, and
-             * one calls session.close() it may effectively dead-lock.
-             * <p>
-             * xaConnection close will close the ClientSessionFactory which will close all sessions.
-             */
-            connection.close();
-            xaConnection.close();
-
-        } catch (Throwable e) {
+            try {
+                connection.close();
+            } finally {
+                xaConnection.close();
+            }
+        } catch (JMSException e) {
             throw new ResourceException("Could not properly close the connection", e);
         }
     }
 
-
-
     @Override
     public void cleanup() throws ResourceException {
-        if (isDestroyed.get()) {
-            return;
-        }
+        super.cleanup();
 
-        cleanupHandles();
+        safe(connection::stop, "Error stopping connection");
+        safe(xaConnection::stop, "Error stopping xaConnection");
 
         inManagedTx = false;
 
@@ -273,36 +202,7 @@ public class ManagedConnectionImpl implements ManagedConnection {
         lock = new ReentrantLock();
     }
 
-    @Override
-    public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        // Check user first
-        String userName = credentialExtractor.getUserName();
-        CredentialExtractor credential = new CredentialExtractor(subject, cxRequestInfo, mcf);
-
-        // Null users are allowed!
-        if (userName != null && !userName.equals(credential.getUserName())) {
-            throw new SecurityException("Password credentials not the same, reauthentication not allowed");
-        }
-
-        if (userName == null && credential.getUserName() != null) {
-            throw new SecurityException("Password credentials not the same, reauthentication not allowed");
-        }
-
-        if (isDestroyed.get()) {
-            throw new IllegalStateException("The managed xaConnection is already destroyed");
-        }
-
-        SessionImpl session = new SessionImpl(this, (ConnectionRequestInfoImpl) cxRequestInfo);
-        handles.add(session);
-        return session;
-    }
-
-    @Override
-    public ManagedConnectionMetaData getMetaData() throws ResourceException {
-        return null;
-    }
-
-    boolean isValid() {
+    protected boolean isValid() {
         try {
             session.createMessage();
             xaSession.createMessage();

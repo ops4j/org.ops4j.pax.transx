@@ -12,14 +12,11 @@
  * limitations under the License.
  *
  */
-package org.ops4j.pax.transx.jdbc.utils;
+package org.ops4j.pax.transx.connection.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
-import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
@@ -120,12 +117,16 @@ public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswo
         }
     }
 
+    public ExceptionSorter getExceptionSorter() {
+        return exceptionSorter;
+    }
+
     public void setExceptionSorter(ExceptionSorter exceptionSorter) {
         this.exceptionSorter = exceptionSorter;
     }
 
     public Object createConnectionFactory() throws ResourceException {
-        throw new NotSupportedException("ConnectionManager is required");
+        return createConnectionFactory(null);
     }
 
     public ManagedConnection matchManagedConnections(Set set, Subject subject, ConnectionRequestInfo connectionRequestInfo) throws ResourceException {

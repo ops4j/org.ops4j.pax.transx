@@ -15,8 +15,8 @@
 package org.ops4j.pax.transx.jdbc.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.jdbc.utils.AbstractManagedConnectionFactory;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
@@ -43,7 +43,7 @@ public abstract class AbstractJdbcManagedConnectionFactory<MCF extends AbstractM
 
     @Override
     public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc) {
-        return new ConnectionHandle<>(this, cri, mc);
+        return new ConnectionHandle<MCF>(this, cri, mc);
     }
 
     public Object createConnectionFactory(ConnectionManager connectionManager) throws ResourceException {
