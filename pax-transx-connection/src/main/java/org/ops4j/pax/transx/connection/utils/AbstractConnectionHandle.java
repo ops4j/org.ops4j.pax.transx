@@ -16,17 +16,21 @@ package org.ops4j.pax.transx.connection.utils;
 
 import javax.resource.spi.ConnectionRequestInfo;
 
-public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnectionFactory<CI>, C, CI extends AbstractConnectionHandle<MCF, C, CI>> {
+public abstract class AbstractConnectionHandle<
+        MCF extends AbstractManagedConnectionFactory<MCF, MC, C, CI>,
+        MC extends AbstractManagedConnection<MCF, MC, C, CI>,
+        C,
+        CI extends AbstractConnectionHandle<MCF, MC, C, CI>> {
 
-    protected final UserPasswordManagedConnectionFactory mcf;
+    protected final MCF mcf;
     protected final ConnectionRequestInfo cri;
-    protected final AbstractManagedConnection<MCF, C, CI> mc;
+    protected final MC mc;
 
     protected volatile boolean closed = false;
 
-    protected AbstractConnectionHandle(UserPasswordManagedConnectionFactory mcf,
+    protected AbstractConnectionHandle(MCF mcf,
                                        ConnectionRequestInfo cri,
-                                       AbstractManagedConnection<MCF, C, CI> mc) {
+                                       MC mc) {
         this.mcf = mcf;
         this.cri = cri;
         this.mc = mc;
@@ -61,7 +65,7 @@ public abstract class AbstractConnectionHandle<MCF extends AbstractManagedConnec
 
     protected abstract <E extends Exception> E wrapException(String msg, Exception e);
 
-    public <E extends Exception> AbstractManagedConnection<MCF, C, CI> getManagedConnection() throws E {
+    public <E extends Exception> MC getManagedConnection() throws E {
         if (isClosed()) {
             throw this.<E>wrapException("Connection has been closed", null);
         }

@@ -28,7 +28,7 @@ import java.sql.SQLException;
 /**
  * Implementation of ManagedConnection that manages a physical JDBC connection.
  */
-public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSourceMCF, Connection, ConnectionHandle<LocalDataSourceMCF>> {
+public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSourceMCF, ManagedJDBCConnection, Connection, ConnectionHandle<LocalDataSourceMCF, ManagedJDBCConnection>> {
 
     private final Connection physicalConnection;
     private final LocalTransactionImpl localTx;

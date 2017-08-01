@@ -110,7 +110,7 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         ConnectionRequestInfoImpl cri = new ConnectionRequestInfoImpl(false, Session.AUTO_ACKNOWLEDGE, userName, password, clientID);
         try (SessionImpl session = (SessionImpl) cm.allocateConnection(mcf, cri)) {
             session.setConnection(this);
-            return session.mc().getConnectionMetaData();
+            return session.getManagedConnection().getConnectionMetaData();
         } catch (ResourceException e) {
             throw (JMSException) new JMSException("Unable to retrieve metadata").initCause(e);
         }

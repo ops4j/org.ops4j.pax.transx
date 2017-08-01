@@ -28,7 +28,7 @@ import javax.sql.PooledConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ConnectionPoolDataSourceMCF extends AbstractJdbcManagedConnectionFactory<ConnectionPoolDataSourceMCF, ConnectionPoolDataSource> {
+public class ConnectionPoolDataSourceMCF extends AbstractJdbcManagedConnectionFactory<ConnectionPoolDataSourceMCF, ManagedPooledConnection, ConnectionPoolDataSource> {
 
     public ConnectionPoolDataSourceMCF(ConnectionPoolDataSource connectionPoolDataSource) {
         this(connectionPoolDataSource, new NoExceptionsAreFatalSorter());

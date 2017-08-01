@@ -15,10 +15,10 @@
 package org.ops4j.pax.transx.jms.impl;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Session;
 import javax.jms.XAConnectionFactory;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
@@ -28,7 +28,7 @@ import javax.security.auth.Subject;
 import java.io.PrintWriter;
 
 public class ManagedConnectionFactoryImpl
-        extends AbstractManagedConnectionFactory<SessionImpl> {
+        extends AbstractManagedConnectionFactory<ManagedConnectionFactoryImpl, ManagedConnectionImpl, Session, SessionImpl> {
 
     private final XAConnectionFactory xaConnectionFactory;
     private final ConnectionFactory connectionFactory;
@@ -57,7 +57,7 @@ public class ManagedConnectionFactoryImpl
     }
 
     @Override
-    public SessionImpl createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc) {
+    public SessionImpl createConnectionHandle(ConnectionRequestInfo cri, ManagedConnectionImpl mc) {
         return new SessionImpl(this, cri, mc);
     }
 

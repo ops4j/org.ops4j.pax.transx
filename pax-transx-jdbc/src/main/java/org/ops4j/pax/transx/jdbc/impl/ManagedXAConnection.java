@@ -29,7 +29,7 @@ import javax.transaction.xa.XAResource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceMCF, Connection, ConnectionHandle<XADataSourceMCF>> {
+public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceMCF, ManagedXAConnection, Connection, ConnectionHandle<XADataSourceMCF, ManagedXAConnection>> {
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;

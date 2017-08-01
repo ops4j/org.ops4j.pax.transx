@@ -17,7 +17,6 @@ package org.ops4j.pax.transx.jdbc.impl;
 import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
 import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
@@ -41,10 +40,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>>
-        extends AbstractConnectionHandle<MCF, Connection, ConnectionHandle<MCF>> implements Connection {
+public class ConnectionHandle<
+            MCF extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,
+            MC extends AbstractManagedConnection<MCF, MC, Connection, ConnectionHandle<MCF, MC>>>
+        extends AbstractConnectionHandle<MCF, MC, Connection, ConnectionHandle<MCF, MC>> implements Connection {
 
-    public ConnectionHandle(UserPasswordManagedConnectionFactory mcf, ConnectionRequestInfo cri, AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc) {
+    public ConnectionHandle(MCF mcf, ConnectionRequestInfo cri, MC mc) {
         super(mcf, cri, mc);
     }
 
@@ -61,7 +62,7 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<Conne
     }
 
     public void commit() throws SQLException {
-        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        MC mc = getManagedConnection();
         if (mc.isInXaTransaction()) {
             throw new SQLException("Can not commit within an XA transaction");
         }
@@ -84,7 +85,7 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<Conne
     }
 
     public void rollback() throws SQLException {
-        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        MC mc = getManagedConnection();
         if (mc.isInXaTransaction()) {
             throw new SQLException("Can not rollback within an XA transaction");
         }
@@ -107,7 +108,7 @@ public class ConnectionHandle<MCF extends AbstractManagedConnectionFactory<Conne
     }
 
     public void setAutoCommit(boolean autoCommit) throws SQLException {
-        AbstractManagedConnection<MCF, Connection, ConnectionHandle<MCF>> mc = getManagedConnection();
+        MC mc = getManagedConnection();
         if (mc.isInXaTransaction()) {
             throw new SQLException("Can not set autoCommit within an XA transaction");
         }

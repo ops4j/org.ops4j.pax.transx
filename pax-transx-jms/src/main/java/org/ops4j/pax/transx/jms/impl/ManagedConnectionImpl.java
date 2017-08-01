@@ -31,7 +31,7 @@ import javax.security.auth.Subject;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.trace;
 
-public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConnectionFactoryImpl, Session, SessionImpl> implements ManagedConnection {
+public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConnectionFactoryImpl, ManagedConnectionImpl, Session, SessionImpl> implements ManagedConnection {
 
     private final XAConnection xaConnection;
     private final XASession xaSession;

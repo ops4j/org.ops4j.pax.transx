@@ -29,8 +29,12 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswordManagedConnectionFactory,
-                            ValidatingManagedConnectionFactory, TransactionSupport {
+public abstract class AbstractManagedConnectionFactory<
+        MCF extends AbstractManagedConnectionFactory<MCF, MC, C, CI>,
+        MC extends AbstractManagedConnection<MCF, MC, C, CI>,
+        C,
+        CI extends AbstractConnectionHandle<MCF, MC, C, CI>>
+            implements UserPasswordManagedConnectionFactory, ValidatingManagedConnectionFactory, TransactionSupport {
 
     protected ExceptionSorter exceptionSorter;
     protected String userName;
@@ -141,7 +145,7 @@ public abstract class AbstractManagedConnectionFactory<CI> implements UserPasswo
         return null;
     }
 
-    public abstract CI createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc);
+    public abstract CI createConnectionHandle(ConnectionRequestInfo cri, MC mc);
 
     @Override
     public Set getInvalidConnections(Set set) throws ResourceException {

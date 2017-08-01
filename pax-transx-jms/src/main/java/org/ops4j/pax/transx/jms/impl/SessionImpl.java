@@ -15,7 +15,6 @@
 package org.ops4j.pax.transx.jms.impl;
 
 import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
@@ -51,19 +50,15 @@ import java.util.Set;
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 
 
-public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFactoryImpl, Session, SessionImpl> implements TopicSession, QueueSession {
+public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFactoryImpl, ManagedConnectionImpl, Session, SessionImpl> implements TopicSession, QueueSession {
 
     private ConnectionImpl con;
 
     private final Set<AutoCloseable> closeables = new HashSet<>();
 
-    public SessionImpl(ManagedConnectionFactoryImpl mcf, ConnectionRequestInfo cri, AbstractManagedConnection mc) {
+    public SessionImpl(ManagedConnectionFactoryImpl mcf, ConnectionRequestInfo cri, ManagedConnectionImpl mc) {
         super(mcf, cri, mc);
         this.con = null;
-    }
-
-    ManagedConnectionImpl mc() {
-        return (ManagedConnectionImpl) mc;
     }
 
     ConnectionRequestInfoImpl cri() {
@@ -78,7 +73,7 @@ public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFacto
     protected void doClose() {
         con.closeSession(this);
         try {
-            mc().stop();
+            mc.stop();
         } catch (Throwable t) {
             // TODO: Log
         }
@@ -91,7 +86,7 @@ public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFacto
 
     void start() throws JMSException {
         if (mc != null) {
-            mc().start();
+            mc.start();
         }
     }
 

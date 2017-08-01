@@ -34,8 +34,12 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public abstract class AbstractManagedConnection<MCF extends AbstractManagedConnectionFactory<CI>, C, CI extends AbstractConnectionHandle<MCF, C, CI>>
-        implements ManagedConnection {
+public abstract class AbstractManagedConnection<
+        MCF extends AbstractManagedConnectionFactory<MCF, MC, C, CI>,
+        MC extends AbstractManagedConnection<MCF, MC, C, CI>,
+        C,
+        CI extends AbstractConnectionHandle<MCF, MC, C, CI>>
+            implements ManagedConnection {
 
     protected final MCF mcf;
     protected CI handle;
@@ -64,7 +68,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         this.localClientTx = new LocalTransactionImpl(false);
     }
 
-    public AbstractManagedConnectionFactory getMCF() {
+    public MCF getMCF() {
         return mcf;
     }
 
@@ -255,7 +259,7 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
             throw new SecurityException("Password credentials not the same, reauthentication not allowed");
         }
 
-        CI handle = mcf.createConnectionHandle(connectionRequestInfo, this);
+        CI handle = mcf.createConnectionHandle(connectionRequestInfo, (MC) this);
         if (this.handle == null) {
             this.handle = handle;
         } else {
@@ -358,8 +362,8 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         @Override
         public boolean isSameRM(XAResource xaResource) throws XAException {
             XAResource xares = xaResource;
-            if (xaResource instanceof AbstractManagedConnection<?, ?, ?>.XAResourceProxy) {
-                xares = ((AbstractManagedConnection<?, ?, ?>.XAResourceProxy) xaResource).getXAResource();
+            if (xaResource instanceof AbstractManagedConnection<?, ?, ?, ?>.XAResourceProxy) {
+                xares = ((AbstractManagedConnection<?, ?, ?, ?>.XAResourceProxy) xaResource).getXAResource();
             }
             return getXAResource().isSameRM(xares);
         }

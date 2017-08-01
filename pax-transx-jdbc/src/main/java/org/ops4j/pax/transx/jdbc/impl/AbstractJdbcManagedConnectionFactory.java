@@ -28,7 +28,11 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public abstract class AbstractJdbcManagedConnectionFactory<MCF extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>, T extends CommonDataSource> extends AbstractManagedConnectionFactory<ConnectionHandle<MCF>>
+public abstract class AbstractJdbcManagedConnectionFactory<
+        MCF extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,
+        MC extends AbstractManagedConnection<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,
+        T extends CommonDataSource>
+            extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>
             implements AutocommitSpecCompliant{
 
     protected final T dataSource;
@@ -42,8 +46,8 @@ public abstract class AbstractJdbcManagedConnectionFactory<MCF extends AbstractM
     }
 
     @Override
-    public ConnectionHandle<MCF> createConnectionHandle(ConnectionRequestInfo cri, AbstractManagedConnection mc) {
-        return new ConnectionHandle<MCF>(this, cri, mc);
+    public ConnectionHandle<MCF, MC> createConnectionHandle(ConnectionRequestInfo cri, MC mc) {
+        return new ConnectionHandle<>((MCF) this, cri, mc);
     }
 
     public Object createConnectionFactory(ConnectionManager connectionManager) throws ResourceException {

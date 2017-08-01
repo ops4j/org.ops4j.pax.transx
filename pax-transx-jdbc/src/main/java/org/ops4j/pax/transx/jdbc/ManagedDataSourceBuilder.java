@@ -44,7 +44,7 @@ public class ManagedDataSourceBuilder {
     private boolean commitBeforeAutocommit;
     private int preparedStatementCacheSize = 0;
     private int transactionIsolationLevel = -1;
-    private AbstractJdbcManagedConnectionFactory<?, ?> managedConnectionFactory;
+    private AbstractJdbcManagedConnectionFactory<?, ?, ?> managedConnectionFactory;
 
     private ManagedDataSourceBuilder() {
     }
@@ -179,7 +179,7 @@ public class ManagedDataSourceBuilder {
         return (DataSource) managedConnectionFactory.createConnectionFactory(cm);
     }
 
-    private static AbstractJdbcManagedConnectionFactory<?, ?> create(CommonDataSource dataSource) {
+    private static AbstractJdbcManagedConnectionFactory<?, ?, ?> create(CommonDataSource dataSource) {
         if (dataSource instanceof XADataSource) {
             return new XADataSourceMCF((XADataSource) dataSource);
         }

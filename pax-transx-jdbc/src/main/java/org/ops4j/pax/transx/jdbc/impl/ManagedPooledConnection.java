@@ -28,7 +28,7 @@ import javax.sql.PooledConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class ManagedPooledConnection extends AbstractManagedConnection<ConnectionPoolDataSourceMCF, Connection, ConnectionHandle<ConnectionPoolDataSourceMCF>> {
+public class ManagedPooledConnection extends AbstractManagedConnection<ConnectionPoolDataSourceMCF, ManagedPooledConnection, Connection, ConnectionHandle<ConnectionPoolDataSourceMCF, ManagedPooledConnection>> {
 
     private final LocalTransactionImpl localTx;
     private final LocalTransactionImpl localClientTx;
