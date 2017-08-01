@@ -16,6 +16,7 @@ package org.ops4j.pax.transx.connection.utils;
 
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 
+import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
 import javax.resource.spi.ConnectionEventListener;
@@ -25,6 +26,9 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionMetaData;
 import javax.resource.spi.SecurityException;
 import javax.security.auth.Subject;
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -48,7 +52,8 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
     protected Subject subject;
     protected ConnectionRequestInfo cri;
 
-    protected boolean isInXaTransaction;
+    protected XAResource xaResource;
+    protected boolean inXaTransaction;
 
     public AbstractManagedConnection(MCF mcf, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         assert exceptionSorter != null;
@@ -69,6 +74,14 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
 
     public LocalTransaction getLocalTransaction() throws ResourceException {
         return localTx;
+    }
+
+    @Override
+    public XAResource getXAResource() throws ResourceException {
+        if (xaResource == null) {
+            throw new NotSupportedException("XAResource not available");
+        }
+        return new XAResourceProxy();
     }
 
     protected CredentialExtractor getCredentialExtractor() {
@@ -218,12 +231,12 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         }
     }
 
-    public void setInXaTransaction(boolean inXaTransaction) {
-        isInXaTransaction = inXaTransaction;
+    protected void setInXaTransaction(boolean inXaTransaction) {
+        this.inXaTransaction = inXaTransaction;
     }
 
     public boolean isInXaTransaction() {
-        return isInXaTransaction;
+        return inXaTransaction;
     }
 
     public abstract C getPhysicalConnection();
@@ -299,6 +312,73 @@ public abstract class AbstractManagedConnection<MCF extends AbstractManagedConne
         public void rollback() throws ResourceException {
             localTransactionRollback(isSPI);
         }
+    }
+
+    class XAResourceProxy implements XAResource {
+
+        private XAResource getXAResource() {
+            return xaResource;
+        }
+
+        @Override
+        public void start(Xid xid, int flags) throws XAException {
+            getXAResource().start(xid, flags);
+            setInXaTransaction(true);
+        }
+
+        @Override
+        public void commit(Xid xid, boolean onePhase) throws XAException {
+            getXAResource().commit(xid, onePhase);
+        }
+
+        @Override
+        public void rollback(Xid xid) throws XAException {
+            getXAResource().rollback(xid);
+        }
+
+        @Override
+        public void end(Xid xid, int flags) throws XAException {
+            try {
+                getXAResource().end(xid, flags);
+            } finally {
+                setInXaTransaction(false);
+            }
+        }
+
+        @Override
+        public void forget(Xid xid) throws XAException {
+            getXAResource().forget(xid);
+        }
+
+        @Override
+        public int getTransactionTimeout() throws XAException {
+            return getXAResource().getTransactionTimeout();
+        }
+
+        @Override
+        public boolean isSameRM(XAResource xaResource) throws XAException {
+            XAResource xares = xaResource;
+            if (xaResource instanceof AbstractManagedConnection<?, ?, ?>.XAResourceProxy) {
+                xares = ((AbstractManagedConnection<?, ?, ?>.XAResourceProxy) xaResource).getXAResource();
+            }
+            return getXAResource().isSameRM(xares);
+        }
+
+        @Override
+        public int prepare(Xid xid) throws XAException {
+            return getXAResource().prepare(xid);
+        }
+
+        @Override
+        public Xid[] recover(int flags) throws XAException {
+            return getXAResource().recover(flags);
+        }
+
+        @Override
+        public boolean setTransactionTimeout(int timeout) throws XAException {
+            return getXAResource().setTransactionTimeout(timeout);
+        }
+
     }
 
     private static <S> Iterable<S> reverse(Deque<S> col) {

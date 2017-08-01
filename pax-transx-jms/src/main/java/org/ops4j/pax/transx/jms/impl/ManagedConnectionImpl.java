@@ -21,37 +21,23 @@ import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 import javax.jms.Connection;
 import javax.jms.ConnectionMetaData;
 import javax.jms.JMSException;
-import javax.jms.ResourceAllocationException;
 import javax.jms.Session;
 import javax.jms.XAConnection;
 import javax.jms.XASession;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.TransactionSupport;
 import javax.security.auth.Subject;
-import javax.transaction.xa.XAException;
-import javax.transaction.xa.XAResource;
-import javax.transaction.xa.Xid;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.trace;
 
 public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConnectionFactoryImpl, Session, SessionImpl> implements ManagedConnection {
-
-    private final AtomicBoolean isDestroyed = new AtomicBoolean(false);
-    private ReentrantLock lock = new ReentrantLock();
 
     private final XAConnection xaConnection;
     private final XASession xaSession;
     private final Session xaSessionSession;
     private final Connection connection;
     private final Session session;
-
-    private XAResource xaResource;
-    private boolean inManagedTx;
 
     public ManagedConnectionImpl(ManagedConnectionFactoryImpl mcf,
                                  Subject subject,
@@ -74,9 +60,10 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
             }
             connection.setExceptionListener(this::onException);
             xaConnection.setExceptionListener(this::onException);
+            session = connection.createSession(transacted, acknowledgeMode);
             xaSession = xaConnection.createXASession();
             xaSessionSession = xaSession.getSession();
-            session = connection.createSession(transacted, acknowledgeMode);
+            xaResource = xaSession.getXAResource();
         } catch (JMSException e) {
             throw new ResourceException(e.getMessage(), e);
         }
@@ -84,11 +71,11 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
 
     @Override
     public Session getPhysicalConnection() {
-        return inManagedTx ? xaSessionSession : session;
+        return getSession();
     }
 
-    public TransactionSupport.TransactionSupportLevel getTransactionSupport() {
-        return TransactionSupport.TransactionSupportLevel.XATransaction;
+    private Session getSession() {
+        return inXaTransaction ? xaSessionSession : session;
     }
 
     ConnectionMetaData getConnectionMetaData() throws JMSException {
@@ -96,47 +83,9 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
     }
 
     private void onException(final JMSException exception) {
-        if (isDestroyed.get()) {
-            return;
-        }
         safe(() -> connection.setExceptionListener(null), "Unable to unset exception listener");
         safe(() -> xaConnection.setExceptionListener(null), "Unable to unset exception listener");
         unfilteredConnectionError(exception);
-    }
-
-    void lock() {
-        lock.lock();
-    }
-
-    void tryLock() throws ResourceAllocationException {
-        Integer tryLock = mcf.getUseTryLock();
-        if (tryLock == null || tryLock <= 0) {
-            lock();
-            return;
-        }
-        try {
-            if (!lock.tryLock(tryLock, TimeUnit.SECONDS)) {
-                throw new ResourceAllocationException("Unable to obtain lock in " + tryLock + " seconds: " + this);
-            }
-        } catch (InterruptedException e) {
-            throw new ResourceAllocationException("Interrupted attempting lock: " + this);
-        }
-    }
-
-    void unlock() {
-        lock.unlock();
-    }
-
-    Session getSession() throws JMSException {
-        if (xaResource != null && inManagedTx) {
-            return xaSession.getSession();
-        } else {
-            return session;
-        }
-    }
-
-    void removeHandle(SessionImpl handle) {
-        handles.remove(handle);
     }
 
     void start() throws JMSException {
@@ -155,22 +104,6 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
         if (connection != null) {
             connection.stop();
         }
-    }
-
-    private void cleanupHandles() throws ResourceException {
-    }
-
-    /**
-     * Destroy the physical xaConnection.
-     *
-     * @throws ResourceException Could not property close the session and xaConnection.
-     */
-    @Override
-    public void destroy() throws ResourceException {
-        if (!isDestroyed.compareAndSet(false, true)) {
-            return;
-        }
-        super.destroy();
     }
 
     @Override
@@ -193,13 +126,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
         safe(connection::stop, "Error stopping connection");
         safe(xaConnection::stop, "Error stopping xaConnection");
 
-        inManagedTx = false;
-
-        // I'm recreating the lock object when we return to the pool
-        // because it looks too nasty to expect the xaConnection handle
-        // to unlock properly in certain race conditions
-        // where the dissociation of the managed xaConnection is "random".
-        lock = new ReentrantLock();
+        inXaTransaction = false;
     }
 
     protected boolean isValid() {
@@ -222,123 +149,26 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
 
             @Override
             public void commit() throws ResourceException {
-                lock();
                 try {
                     if (getSession().getTransacted()) {
                         getSession().commit();
                     }
                 } catch (JMSException e) {
                     throw new ResourceException("Could not commit LocalTransaction", e);
-                } finally {
-                    unlock();
                 }
             }
 
             @Override
             public void rollback() throws ResourceException {
-                lock();
                 try {
                     if (getSession().getTransacted()) {
                         getSession().rollback();
                     }
                 } catch (JMSException ex) {
                     throw new ResourceException("Could not rollback LocalTransaction", ex);
-                } finally {
-                    unlock();
                 }
             }
         };
-    }
-
-    @Override
-    public XAResource getXAResource() throws ResourceException {
-        if (xaResource == null) {
-            XAResource xares = xaSession.getXAResource();
-            xaResource = new XAResourceProxy(xares);
-        }
-        return xaResource;
-    }
-
-    private class XAResourceProxy implements XAResource {
-
-        private final XAResource xares;
-
-        public XAResourceProxy(XAResource xares) {
-            this.xares = xares;
-        }
-
-        @Override
-        public void start(Xid xid, int flags) throws XAException {
-            lock();
-            try {
-                xares.start(xid, flags);
-            } finally {
-                setInManagedTx(true);
-                unlock();
-            }
-        }
-
-        @Override
-        public void end(Xid xid, int flags) throws XAException {
-            lock();
-            try {
-                xares.end(xid, flags);
-            } finally {
-                setInManagedTx(false);
-                unlock();
-            }
-        }
-
-        @Override
-        public int prepare(Xid xid) throws XAException {
-            return xares.prepare(xid);
-        }
-
-        @Override
-        public void commit(Xid xid, boolean onePhase) throws XAException {
-            xares.commit(xid, onePhase);
-        }
-
-        @Override
-        public void rollback(Xid xid) throws XAException {
-            xares.rollback(xid);
-        }
-
-        @Override
-        public void forget(Xid xid) throws XAException {
-            lock();
-            try {
-                xares.forget(xid);
-            } finally {
-                setInManagedTx(false);
-                unlock();
-            }
-        }
-
-        @Override
-        public boolean isSameRM(XAResource xaResource) throws XAException {
-            return xares.isSameRM(xaResource);
-        }
-
-        @Override
-        public Xid[] recover(int flag) throws XAException {
-            return xares.recover(flag);
-        }
-
-        @Override
-        public int getTransactionTimeout() throws XAException {
-            return xares.getTransactionTimeout();
-        }
-
-        @Override
-        public boolean setTransactionTimeout(int seconds) throws XAException {
-            return xares.setTransactionTimeout(seconds);
-        }
-
-        private void setInManagedTx(boolean inManagedTx) {
-            ManagedConnectionImpl.this.inManagedTx = inManagedTx;
-        }
-
     }
 
     static private void safe(Utils.RunnableWithException<JMSException> cb, String msg) {

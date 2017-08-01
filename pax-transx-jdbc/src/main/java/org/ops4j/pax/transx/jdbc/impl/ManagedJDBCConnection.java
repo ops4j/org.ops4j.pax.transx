@@ -18,12 +18,10 @@ import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
 import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
-import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.LocalTransactionException;
 import javax.resource.spi.ResourceAdapterInternalException;
-import javax.transaction.xa.XAResource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -116,10 +114,6 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
         } catch (SQLException e) {
             throw new ResourceAdapterInternalException("Unable to enable autoCommit after rollback", e);
         }
-    }
-
-    public XAResource getXAResource() throws ResourceException {
-        throw new NotSupportedException("XAResource not available from a LocalTransaction connection");
     }
 
 	public void cleanup() throws ResourceException {

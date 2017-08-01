@@ -76,6 +76,11 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         Utils.doClose(tempTopics, TemporaryTopic::delete);
     }
 
+    synchronized void closeSession(SessionImpl session) {
+        assert this.session == session;
+        this.session = null;
+    }
+
     public synchronized void start() throws JMSException {
         if (closed) {
             throw new IllegalStateException("The connection is closed");
@@ -202,8 +207,4 @@ public class ConnectionImpl implements TopicConnection, QueueConnection {
         return topic;
     }
 
-    synchronized void closeSession(SessionImpl session) {
-        assert this.session == session;
-        this.session = null;
-    }
 }

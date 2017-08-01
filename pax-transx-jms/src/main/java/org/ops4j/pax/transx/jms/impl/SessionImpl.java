@@ -74,21 +74,25 @@ public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFacto
         this.con = con;
     }
 
-    public void start() throws JMSException {
-        if (mc != null) {
-            mc().start();
-        }
-    }
-
-    public void closeSession() {
+    @Override
+    protected void doClose() {
+        con.closeSession(this);
         try {
             mc().stop();
         } catch (Throwable t) {
             // TODO: Log
         }
         Utils.doClose(closeables);
-//        mc.removeHandle(this);
         mc.connectionClosed(this);
+    }
+
+    public void cleanup() {
+    }
+
+    void start() throws JMSException {
+        if (mc != null) {
+            mc().start();
+        }
     }
 
     private QueueSession getQueueSessionInternal(Session s) throws JMSException {
@@ -323,16 +327,6 @@ public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFacto
             }
             session.rollback();
         });
-    }
-
-    @Override
-    protected void doClose() {
-        con.closeSession(this);
-        closeSession();
-    }
-
-    public void cleanup() {
-
     }
 
     @SuppressWarnings("unchecked")

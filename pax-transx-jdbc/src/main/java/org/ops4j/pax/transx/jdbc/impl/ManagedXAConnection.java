@@ -25,9 +25,7 @@ import javax.resource.spi.ResourceAdapterInternalException;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
-import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-import javax.transaction.xa.Xid;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -37,7 +35,6 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
     private final LocalTransactionImpl localClientTx;
     private final Connection connection;
     private final XAConnection xaConnection;
-    private final XAResource xaResource;
 
     public ManagedXAConnection(XADataSourceMCF mcf, XAConnection xaConnection, XAResource xaResource, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         super(mcf, credentialExtractor, exceptionSorter);
@@ -56,11 +53,6 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
         });
         localTx = new LocalTransactionImpl(true);
         localClientTx = new LocalTransactionImpl(false);
-    }
-
-    @Override
-    public XAResource getXAResource() throws ResourceException {
-        return new XAResourceProxy();
     }
 
     @Override
@@ -152,73 +144,5 @@ public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceM
             throw new ResourceAdapterInternalException("Error attempting to destroy managed connection", e);
         }
     }
-
-    class XAResourceProxy implements XAResource {
-
-        private XAResource getXAResource() {
-            return xaResource;
-        }
-
-        @Override
-        public void start(Xid xid, int flags) throws XAException {
-            getXAResource().start(xid, flags);
-            setInXaTransaction(true);
-        }
-
-        @Override
-        public void commit(Xid xid, boolean onePhase) throws XAException {
-            getXAResource().commit(xid, onePhase);
-        }
-
-        @Override
-        public void rollback(Xid xid) throws XAException {
-            getXAResource().rollback(xid);
-        }
-
-        @Override
-        public void end(Xid xid, int flags) throws XAException {
-            try {
-                getXAResource().end(xid, flags);
-            } finally {
-                setInXaTransaction(false);
-            }
-        }
-
-        @Override
-        public void forget(Xid xid) throws XAException {
-            getXAResource().forget(xid);
-        }
-
-        @Override
-        public int getTransactionTimeout() throws XAException {
-            return getXAResource().getTransactionTimeout();
-        }
-
-        @Override
-        public boolean isSameRM(XAResource xaResource) throws XAException {
-            XAResource xares = xaResource;
-            if (xaResource instanceof XAResourceProxy) {
-                xares = ((XAResourceProxy) xaResource).getXAResource();
-            }
-            return getXAResource().isSameRM(xares);
-        }
-
-        @Override
-        public int prepare(Xid xid) throws XAException {
-            return getXAResource().prepare(xid);
-        }
-
-        @Override
-        public Xid[] recover(int flags) throws XAException {
-            return getXAResource().recover(flags);
-        }
-
-        @Override
-        public boolean setTransactionTimeout(int timeout) throws XAException {
-            return getXAResource().setTransactionTimeout(timeout);
-        }
-
-    }
-
 
 }
