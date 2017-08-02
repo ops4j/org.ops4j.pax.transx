@@ -79,7 +79,6 @@ public class JMSContextImpl implements JMSContext {
     @Override
     public void start() {
         try {
-            closed = true;
             connection.start();
         } catch (JMSException jmse) {
             throw Utils.convertToRuntimeException(jmse);
@@ -98,6 +97,7 @@ public class JMSContextImpl implements JMSContext {
     @Override
     public synchronized void close() {
         try {
+            closed = true;
             connection.close();
         } catch (JMSException jmse) {
             throw Utils.convertToRuntimeException(jmse);
