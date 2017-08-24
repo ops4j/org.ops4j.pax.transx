@@ -102,7 +102,7 @@
                             org.ops4j.pax.transx.connection
                         </Export-Package>
                         <Import-Package>
-                            org.ops4j.pax.transx.connection;version="[0.2,0.3)",
+                            org.ops4j.pax.transx.connection;version="[0.3,0.4)",
                             *
                         </Import-Package>
                         <Private-Package>
