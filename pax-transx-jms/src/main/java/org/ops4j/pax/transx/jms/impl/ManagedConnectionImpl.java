@@ -38,6 +38,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
     private final Session xaSessionSession;
     private final Connection connection;
     private final Session session;
+    private final boolean xaSupport;
 
     public ManagedConnectionImpl(ManagedConnectionFactoryImpl mcf,
                                  Subject subject,
@@ -45,7 +46,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
                                  ConnectionRequestInfoImpl cri) throws ResourceException {
         super(mcf, new CredentialExtractor(subject, cri, mcf), exceptionSorter);
         this.cri = cri;
-
+        this.xaSupport = mcf.getXaConnectionFactory() != null;
         try {
             boolean transacted = cri != null && cri.isTransacted();
             int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
@@ -53,17 +54,23 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
             String password = credentialExtractor.getPassword();
             if (userName != null && password != null) {
                 connection = mcf.getConnectionFactory().createConnection(userName, password);
-                xaConnection = mcf.getXaConnectionFactory().createXAConnection(userName, password);
+                xaConnection = xaSupport ? mcf.getXaConnectionFactory().createXAConnection(userName, password): null;
             } else {
                 connection = mcf.getConnectionFactory().createConnection();
-                xaConnection = mcf.getXaConnectionFactory().createXAConnection();
+                xaConnection = xaSupport ? mcf.getXaConnectionFactory().createXAConnection() : null;
             }
             connection.setExceptionListener(this::onException);
-            xaConnection.setExceptionListener(this::onException);
             session = connection.createSession(transacted, acknowledgeMode);
-            xaSession = xaConnection.createXASession();
-            xaSessionSession = xaSession.getSession();
-            xaResource = xaSession.getXAResource();
+            if (xaSupport) {
+                xaConnection.setExceptionListener(this::onException);
+                xaSession = xaConnection.createXASession();
+                xaSessionSession = xaSession.getSession();
+                xaResource = xaSession.getXAResource();
+            } else {
+                xaSession = null;
+                xaSessionSession = null;
+                xaResource = null;
+            }
         } catch (JMSException e) {
             throw new ResourceException(e.getMessage(), e);
         }
@@ -84,7 +91,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
 
     private void onException(final JMSException exception) {
         safe(() -> connection.setExceptionListener(null), "Unable to unset exception listener");
-        safe(() -> xaConnection.setExceptionListener(null), "Unable to unset exception listener");
+        safe(() -> { if (xaSupport) xaConnection.setExceptionListener(null);}, "Unable to unset exception listener");
         unfilteredConnectionError(exception);
     }
 
@@ -112,7 +119,9 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
             try {
                 connection.close();
             } finally {
-                xaConnection.close();
+                if (xaConnection != null) {
+                    xaConnection.close();
+                }
             }
         } catch (JMSException e) {
             throw new ResourceException("Could not properly close the connection", e);
@@ -124,7 +133,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
         super.cleanup();
 
         safe(connection::stop, "Error stopping connection");
-        safe(xaConnection::stop, "Error stopping xaConnection");
+        safe( () -> { if (xaSupport) xaConnection.stop();}, "Error stopping xaConnection");
 
         inXaTransaction = false;
     }
@@ -132,8 +141,10 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
     protected boolean isValid() {
         try {
             session.createMessage();
-            xaSession.createMessage();
             connection.getMetaData();
+            if (xaSupport) {
+                xaSession.createMessage();
+            }
             return true;
         } catch (JMSException e) {
             return false;

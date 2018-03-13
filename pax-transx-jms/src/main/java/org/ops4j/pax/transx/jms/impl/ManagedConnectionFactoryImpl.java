@@ -36,7 +36,6 @@ public class ManagedConnectionFactoryImpl
 
     public ManagedConnectionFactoryImpl(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory, ExceptionSorter exceptionSorter) {
         assert connectionFactory != null;
-        assert xaConnectionFactory != null;
         assert exceptionSorter != null;
         this.connectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
@@ -45,7 +44,7 @@ public class ManagedConnectionFactoryImpl
 
     @Override
     public TransactionSupportLevel getTransactionSupport() {
-        return TransactionSupportLevel.XATransaction;
+        return xaConnectionFactory != null ? TransactionSupportLevel.XATransaction : TransactionSupportLevel.LocalTransaction;
     }
 
     public ConnectionFactory getConnectionFactory() {
