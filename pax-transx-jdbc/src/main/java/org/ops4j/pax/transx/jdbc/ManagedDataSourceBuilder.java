@@ -36,10 +36,6 @@ import java.util.concurrent.TimeUnit;
 
 public class ManagedDataSourceBuilder {
 
-    public static ManagedDataSourceBuilder builder() {
-        return new ManagedDataSourceBuilder();
-    }
-
     private ConnectionManagerBuilder builder = ConnectionManagerBuilder.builder();
     private CommonDataSource dataSource;
     private ExceptionSorter exceptionSorter;
@@ -51,6 +47,10 @@ public class ManagedDataSourceBuilder {
     private AbstractJdbcManagedConnectionFactory<?, ?, ?> managedConnectionFactory;
 
     private ManagedDataSourceBuilder() {
+    }
+
+    public static ManagedDataSourceBuilder builder() {
+        return new ManagedDataSourceBuilder();
     }
 
     public ManagedDataSourceBuilder name(String name) {

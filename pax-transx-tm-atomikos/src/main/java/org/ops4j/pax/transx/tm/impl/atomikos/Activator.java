@@ -29,7 +29,7 @@ public class Activator extends AbstractActivator {
 
     public static final String PID = "org.ops4j.pax.transx.tm.atomikos";
 
-    private static final Logger log = Logger.getLogger(PID);
+    private static final Logger LOG = Logger.getLogger(PID);
 
     private TransactionManagerService manager;
 
@@ -50,7 +50,7 @@ public class Activator extends AbstractActivator {
             try {
                 manager.destroy();
             } catch (Exception e) {
-                log.log(Level.SEVERE, "An exception occurred stopping the transaction manager.", e);
+                LOG.log(Level.SEVERE, "An exception occurred stopping the transaction manager.", e);
             } finally {
                 manager = null;
             }

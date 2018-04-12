@@ -132,7 +132,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
         NamedResource original;
         NamedResource wrapped;
 
-        public NarayanaTransactionWrapper(javax.transaction.Transaction transaction) {
+        NarayanaTransactionWrapper(javax.transaction.Transaction transaction) {
             super(transaction);
         }
 

@@ -51,7 +51,10 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.zaxxer.hikari.util.ClockSource.*;
+import static com.zaxxer.hikari.util.ClockSource.currentTime;
+import static com.zaxxer.hikari.util.ClockSource.elapsedDisplayString;
+import static com.zaxxer.hikari.util.ClockSource.elapsedMillis;
+import static com.zaxxer.hikari.util.ClockSource.plusMillis;
 import static com.zaxxer.hikari.util.ConcurrentBag.IConcurrentBagEntry.STATE_IN_USE;
 import static com.zaxxer.hikari.util.ConcurrentBag.IConcurrentBagEntry.STATE_NOT_IN_USE;
 import static com.zaxxer.hikari.util.UtilityElf.createThreadPoolExecutor;
@@ -63,7 +66,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
     private static final Logger LOG = Logger.getLogger(GenericConnectionManager.class.getName());
 
-    private static final AtomicIntegerFieldUpdater<ManagedConnectionInfo> stateUpdater
+    private static final AtomicIntegerFieldUpdater<ManagedConnectionInfo> STATE_UPDATER
             = AtomicIntegerFieldUpdater.newUpdater(ManagedConnectionInfo.class, "state");
 
     private static final Comparator<ManagedConnectionInfo> LASTACCESS_REVERSE_COMPARABLE =
@@ -291,8 +294,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
         closeConnectionExecutor.awaitTermination(5L, SECONDS);
     }
 
-    private void quietlyCloseConnection(final ManagedConnectionInfo connection, final String closureReason)
-    {
+    private void quietlyCloseConnection(final ManagedConnectionInfo connection, final String closureReason) {
         LOG.fine(() -> poolName + " - Closing connection " + connection + ": " + closureReason);
         try {
             connection.managedConnection.destroy();
@@ -486,6 +488,8 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
                 case XATransaction:
                     xares = new WrapperNamedXAResource(mc.getXAResource(), name);
                     break;
+                default:
+                    break;
             }
             return new ManagedConnectionInfo(this, mc, xares);
         }
@@ -512,7 +516,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
         Transaction transaction;
 
-        public ManagedConnectionInfo(Pool pool, ManagedConnection mc, NamedResource xares) {
+        ManagedConnectionInfo(Pool pool, ManagedConnection mc, NamedResource xares) {
             this.pool = pool;
             this.managedConnection = mc;
             this.xares = xares;
@@ -521,17 +525,17 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
         @Override
         public int getState() {
-            return stateUpdater.get(this);
+            return STATE_UPDATER.get(this);
         }
 
         @Override
         public boolean compareAndSet(int expect, int update) {
-            return stateUpdater.compareAndSet(this, expect, update);
+            return STATE_UPDATER.compareAndSet(this, expect, update);
         }
 
         @Override
         public void setState(int update) {
-            stateUpdater.set(this, update);
+            STATE_UPDATER.set(this, update);
         }
 
         boolean isMarkedEvicted() {
@@ -564,7 +568,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
             }
         }
 
-        void enlist(Transaction transaction) throws ResourceException{
+        void enlist(Transaction transaction) throws ResourceException {
             assert this.transaction == null;
             try {
                 transaction.enlistResource(xares);
@@ -613,8 +617,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
             return "ManagedConnectionInfo[" + Integer.toHexString(hashCode()) + ", mc: " + managedConnection + ", state: " + stateToString() + "]";
         }
 
-        private String stateToString()
-        {
+        private String stateToString() {
             switch (state) {
                 case STATE_IN_USE:
                     return "IN_USE";

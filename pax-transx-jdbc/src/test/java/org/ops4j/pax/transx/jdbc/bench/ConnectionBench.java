@@ -30,17 +30,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations=3)
-@Measurement(iterations=8)
+@Warmup(iterations = 3)
+@Measurement(iterations = 8)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class ConnectionBench extends BenchBase
-{
+public class ConnectionBench extends BenchBase {
+
     @Benchmark
     @CompilerControl(CompilerControl.Mode.INLINE)
-    public static Connection cycleConnection() throws SQLException
-    {
-        Connection connection = DS.getConnection();
+    public static Connection cycleConnection() throws SQLException {
+        Connection connection = dataSource.getConnection();
         connection.close();
         return connection;
     }

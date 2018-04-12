@@ -41,7 +41,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
 
     public ManagedPooledConnection(ConnectionPoolDataSourceMCF mcf, PooledConnection pooledConnection, Connection connection, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) throws SQLException {
         super(mcf, credentialExtractor, exceptionSorter);
-        this.connection =  connection;
+        this.connection = connection;
         this.pooledConnection = pooledConnection;
         pooledConnection.addConnectionEventListener(new ConnectionEventListener() {
             public void connectionClosed(ConnectionEvent event) {
@@ -70,7 +70,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         return localTx;
     }
 
-	protected void localTransactionStart(boolean isSPI) throws ResourceException {
+    protected void localTransactionStart(boolean isSPI) throws ResourceException {
         try {
             connection.setAutoCommit(false);
         } catch (SQLException e) {
@@ -79,7 +79,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         super.localTransactionStart(isSPI);
     }
 
-	protected void localTransactionCommit(boolean isSPI) throws ResourceException {
+    protected void localTransactionCommit(boolean isSPI) throws ResourceException {
         try {
             // according to the JDBC spec, reenabling autoCommit commits any current transaction
             // we need to do both here, so we rely on this behaviour in the driver as otherwise
@@ -101,7 +101,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         super.localTransactionCommit(isSPI);
     }
 
-	protected void localTransactionRollback(boolean isSPI) throws ResourceException {
+    protected void localTransactionRollback(boolean isSPI) throws ResourceException {
         try {
             connection.rollback();
         } catch (SQLException e) {
@@ -139,7 +139,7 @@ public class ManagedPooledConnection extends AbstractManagedConnection<Connectio
         }
     }
 
-	protected void closePhysicalConnection() throws ResourceException {
+    protected void closePhysicalConnection() throws ResourceException {
         try {
             pooledConnection.close();
         } catch (SQLException e) {

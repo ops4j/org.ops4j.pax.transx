@@ -43,6 +43,8 @@ import java.util.Set;
 
 final class Utils {
 
+    private Utils() { }
+
     public static JMSException newJMSException(Throwable t) {
         if (t instanceof JMSException) {
             return (JMSException) t;
@@ -144,5 +146,4 @@ final class Utils {
         // TODO
     }
 
-    private Utils() { }
 }

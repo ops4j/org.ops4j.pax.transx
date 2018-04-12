@@ -103,7 +103,7 @@
       <property name="max" value="200" />
     </module>
     <module name="ParameterNumber">
-      <property name="max" value="10" />
+      <property name="max" value="14" />
     </module>
 
 
@@ -170,7 +170,7 @@
     <module name="DeclarationOrder" />
     <!--module name="MultipleStringLiterals"/ -->
     <module name="OneStatementPerLine" />
-    <module name="ExplicitInitialization" />
+    <!--<module name="ExplicitInitialization" />-->
     <module name="ModifierOrder" />
     <module name="RedundantModifier" />
 
@@ -187,7 +187,9 @@
       <property name="max" value="3" />
     </module>
 
-    <module name="NestedTryDepth" />
+    <module name="NestedTryDepth">
+      <property name="max" value="3" />
+    </module>
     <module name="SuperClone" />
     <module name="SuperFinalize" />
 

@@ -30,9 +30,15 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 
-import static org.ops4j.pax.exam.CoreOptions.*;
+import static org.ops4j.pax.exam.CoreOptions.composite;
+import static org.ops4j.pax.exam.CoreOptions.junitBundles;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.CoreOptions.systemProperty;
 
 public class TestConfiguration {
+
+    private TestConfiguration() {
+    }
 
     public static Option regressionDefaults() {
         Properties props = new Properties();
@@ -45,7 +51,7 @@ public class TestConfiguration {
         for (Enumeration<?> e = props.propertyNames(); e.hasMoreElements();) {
             String k = (String) e.nextElement();
             options.add(CoreOptions.frameworkProperty(k).value(props.getProperty(k)));
-            options.add(CoreOptions.systemProperty(k).value(props.getProperty(k)));
+            options.add(systemProperty(k).value(props.getProperty(k)));
         }
         return composite(
                 // Framework

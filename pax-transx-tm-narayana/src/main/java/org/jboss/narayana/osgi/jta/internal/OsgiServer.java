@@ -48,14 +48,14 @@ import java.util.Properties;
 
 public class OsgiServer implements ServiceTrackerCustomizer<XAResourceRecovery, XAResourceRecovery> {
 
-    private final BundleContext bundleContext;
-    private final Dictionary<String, ?> configuration;
-
     List<ServiceRegistration> registrations;
     ServiceTracker<XAResourceRecovery, XAResourceRecovery> resourceRecoveryTracker;
     TransactionManagerService transactionManagerService;
     RecoveryManagerService recoveryManagerService;
     ObjStoreBrowserService objStoreBrowserService;
+
+    private final BundleContext bundleContext;
+    private final Dictionary<String, ?> configuration;
 
     public OsgiServer(BundleContext bundleContext, Dictionary<String, ?> configuration) {
         this.bundleContext = bundleContext;

@@ -48,7 +48,6 @@ public abstract class AbstractManagedConnection<
     protected final MCF mcf;
     protected CI handle;
     protected LinkedList<CI> handles;
-    private ConnectionEventListener listener;
     protected ArrayDeque<ConnectionEventListener> listeners;
     protected final CredentialExtractor credentialExtractor;
     protected final ExceptionSorter exceptionSorter;
@@ -62,6 +61,8 @@ public abstract class AbstractManagedConnection<
 
     protected XAResource xaResource;
     protected boolean inXaTransaction;
+
+    private ConnectionEventListener listener;
 
     public AbstractManagedConnection(MCF mcf, CredentialExtractor credentialExtractor, ExceptionSorter exceptionSorter) {
         assert exceptionSorter != null;

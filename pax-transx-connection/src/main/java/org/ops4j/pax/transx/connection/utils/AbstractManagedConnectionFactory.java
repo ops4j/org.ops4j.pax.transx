@@ -121,7 +121,7 @@ public abstract class AbstractManagedConnectionFactory<
         } catch (IllegalAccessException | InstantiationException e) {
             throw new InvalidPropertyException("Unable to instantiate class: " + className, e);
         } catch (ClassCastException e) {
-            throw new InvalidPropertyException("Class is not a "+ ExceptionSorter.class.getName() + ": " + className, e);
+            throw new InvalidPropertyException("Class is not a " + ExceptionSorter.class.getName() + ": " + className, e);
         }
     }
 

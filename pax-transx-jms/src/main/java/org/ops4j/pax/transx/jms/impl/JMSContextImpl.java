@@ -66,8 +66,9 @@ public class JMSContextImpl implements JMSContext {
     protected Session getSession() {
         if (session == null) {
             synchronized (this) {
-                if (closed)
+                if (closed) {
                     throw new IllegalStateRuntimeException("Context is closed");
+                }
                 if (session == null) {
                     try {
                         session = connection.createSession(sessionMode);

@@ -53,15 +53,15 @@ import java.util.logging.Logger;
  */
 public class ConnectionWrapper implements Connection {
 
-	private static final Logger LOG = Logger.getLogger(ConnectionWrapper.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConnectionWrapper.class.getName());
 
-	private final Connection connection;
-	private HashMap<PreparedStatementKey, PreparedStatementWrapper> pStmtCache;
-	private int     maxCacheSize = 0;
-	private boolean caching = false;
-	private int     cacheSize = 0;
-    private int     isolationLevel = 0;
-	private boolean isolationCachingEnabled = false;
+    private final Connection connection;
+    private HashMap<PreparedStatementKey, PreparedStatementWrapper> pStmtCache;
+    private int maxCacheSize = 0;
+    private boolean caching = false;
+    private int cacheSize = 0;
+    private int isolationLevel = 0;
+    private boolean isolationCachingEnabled = false;
 
     /**
      * Constructs a new ConnectionWrapper object.  This constructor creates a connection wrapper
@@ -70,8 +70,8 @@ public class ConnectionWrapper implements Connection {
      * @param connection
      */
     public ConnectionWrapper(Connection connection) {
-		this(connection, 0);
-	}
+        this(connection, 0);
+    }
 
     /**
      * Creates a connection wrapper that adds the ability to cache prepared statements.
@@ -80,13 +80,13 @@ public class ConnectionWrapper implements Connection {
      * @param cacheSize
      */
     public ConnectionWrapper(Connection connection, int cacheSize) {
-		this.connection = connection;
-		caching = false;
-		maxCacheSize = cacheSize <= 0 ? 0 : cacheSize;
-		if (maxCacheSize > 0) {
-			caching = true;
-			pStmtCache = new HashMap<>(maxCacheSize * 2);
-		}
+        this.connection = connection;
+        caching = false;
+        maxCacheSize = cacheSize <= 0 ? 0 : cacheSize;
+        if (maxCacheSize > 0) {
+            caching = true;
+            pStmtCache = new HashMap<>(maxCacheSize * 2);
+        }
         try {
             isolationLevel = connection.getTransactionIsolation();
             isolationCachingEnabled = true;
@@ -95,118 +95,123 @@ public class ConnectionWrapper implements Connection {
     }
 
     public PreparedStatement prepareStatement(String sql) throws SQLException {
-		if (!caching)
-			return connection.prepareStatement(sql);
+        if (!caching) {
+            return connection.prepareStatement(sql);
+        }
 
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql);
-		PreparedStatementWrapper psw = pStmtCache.get(psk);
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql);
+        PreparedStatementWrapper psw = pStmtCache.get(psk);
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
     public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-		if (!caching)
-			return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
+        if (!caching) {
+            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency);
+        }
 
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql, resultSetType, resultSetConcurrency);
-		PreparedStatementWrapper psw = pStmtCache.get(psk);
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql, resultSetType,
-					resultSetConcurrency);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql, resultSetType, resultSetConcurrency);
+        PreparedStatementWrapper psw = pStmtCache.get(psk);
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql, resultSetType,
+                    resultSetConcurrency);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
     public PreparedStatement prepareStatement(String sql, int resultSetType,
-			int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-		if (!caching)
-			return connection.prepareStatement(sql, resultSetType, resultSetConcurrency,
-					resultSetHoldability);
+                                              int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        if (!caching) {
+            return connection.prepareStatement(sql, resultSetType, resultSetConcurrency,
+                    resultSetHoldability);
+        }
 
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql, resultSetType,	resultSetConcurrency, resultSetHoldability);
-		PreparedStatementWrapper psw = pStmtCache
-				.get(psk);
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql, resultSetType,
-					resultSetConcurrency, resultSetHoldability);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+        PreparedStatementWrapper psw = pStmtCache
+                .get(psk);
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql, resultSetType,
+                    resultSetConcurrency, resultSetHoldability);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
-	public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql, autoGeneratedKeys);
-		PreparedStatementWrapper psw = pStmtCache
-				.get(psk);
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql, autoGeneratedKeys);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql, autoGeneratedKeys);
+        PreparedStatementWrapper psw = pStmtCache
+                .get(psk);
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql, autoGeneratedKeys);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
     public PreparedStatement prepareStatement(String sql, int columnIndexes[])
-			throws SQLException {
-		if (!caching)
-			return connection.prepareStatement(sql, columnIndexes);
+            throws SQLException {
+        if (!caching) {
+            return connection.prepareStatement(sql, columnIndexes);
+        }
 
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql, columnIndexes);
-		PreparedStatementWrapper psw = pStmtCache.get(psk);
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql, columnIndexes);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql, columnIndexes);
+        PreparedStatementWrapper psw = pStmtCache.get(psk);
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql, columnIndexes);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
-	public PreparedStatement prepareStatement(String sql, String columnNames[])
-			throws SQLException {
-		if (!caching)
-			return connection.prepareStatement(sql, columnNames);
+    public PreparedStatement prepareStatement(String sql, String columnNames[])
+            throws SQLException {
+        if (!caching) {
+            return connection.prepareStatement(sql, columnNames);
+        }
 
-		PreparedStatementKey psk = new PreparedStatementKey(this, sql, columnNames);
-		PreparedStatementWrapper psw = pStmtCache.get(psk);
+        PreparedStatementKey psk = new PreparedStatementKey(this, sql, columnNames);
+        PreparedStatementWrapper psw = pStmtCache.get(psk);
 
-		if (psw == null) {
-			long startTime = System.currentTimeMillis();
-			PreparedStatement ps = connection.prepareStatement(sql, columnNames);
-			long endTime = System.currentTimeMillis();
-			psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
-			psk.setPreparedStatementWrapper(psw);
-			addStatementToCache(psk, psw);
-		}
-		psw.checkOutStatement();
-		return psw;
-	}
+        if (psw == null) {
+            long startTime = System.currentTimeMillis();
+            PreparedStatement ps = connection.prepareStatement(sql, columnNames);
+            long endTime = System.currentTimeMillis();
+            psw = new PreparedStatementWrapper(this, sql, ps, endTime - startTime);
+            psk.setPreparedStatementWrapper(psw);
+            addStatementToCache(psk, psw);
+        }
+        psw.checkOutStatement();
+        return psw;
+    }
 
     @Override
     public Clob createClob() throws SQLException {
@@ -264,68 +269,74 @@ public class ConnectionWrapper implements Connection {
     }
 
     private void addStatementToCache(PreparedStatementKey psk, PreparedStatementWrapper psw) {
-		if (!caching)
-			return;
+        if (!caching) {
+            return;
+        }
 
-		if (cacheSize >= maxCacheSize) evictStatement();
-		pStmtCache.put(psk, psw);
-		cacheSize++;
-	}
+        if (cacheSize >= maxCacheSize) {
+            evictStatement();
+        }
+        pStmtCache.put(psk, psw);
+        cacheSize++;
+    }
 
     /**
      * evictStatement looks for the statement that is the least used and oldest.  It removes this statement from the
      * cache.
      */
     private void evictStatement() {
-		Iterator<PreparedStatementKey> keyList = pStmtCache.keySet().iterator();
+        Iterator<PreparedStatementKey> keyList = pStmtCache.keySet().iterator();
 
-        PreparedStatementKey oldestPsk 	= null;
-		PreparedStatementKey currentPsk = null;
-		PreparedStatementWrapper oldestPsw 	= null;
-		PreparedStatementWrapper currentPsw = null;
+        PreparedStatementKey oldestPsk = null;
+        PreparedStatementKey currentPsk = null;
+        PreparedStatementWrapper oldestPsw = null;
+        PreparedStatementWrapper currentPsw = null;
 
         do {
-			if (keyList.hasNext()) {
+            if (keyList.hasNext()) {
                 currentPsk = keyList.next();
             } else {
                 if (oldestPsk != null) {
-					pStmtCache.remove(oldestPsk);
-					oldestPsk.getPreparedStatementWrapper().closeStatement();
-					LOG.info("Statement --> "+oldestPsk.getSql()+" <-- is removed from PreparedStatement Cache" );
-					break;
-				}
-			}
+                    pStmtCache.remove(oldestPsk);
+                    oldestPsk.getPreparedStatementWrapper().closeStatement();
+                    LOG.info("Statement --> " + oldestPsk.getSql() + " <-- is removed from PreparedStatement Cache");
+                    break;
+                }
+            }
 
-			if (oldestPsk == null) {
-				oldestPsk = currentPsk;
-			} else {
-				oldestPsw  = oldestPsk.getPreparedStatementWrapper();
-				currentPsw = currentPsk.getPreparedStatementWrapper();
+            if (oldestPsk == null) {
+                oldestPsk = currentPsk;
+            } else {
+                oldestPsw = oldestPsk.getPreparedStatementWrapper();
+                currentPsw = currentPsk.getPreparedStatementWrapper();
 
-				// Let's keep the statement that's been used the most.
-				if (oldestPsw.getTimesUsed() > currentPsw.getTimesUsed()) {
-					oldestPsk = currentPsk;
-				} else {
-					// If they've been used an equal number of times keep the one
-					// most recently used.
-					if (oldestPsw.getTimesUsed() == currentPsw.getTimesUsed() &&
-                            oldestPsw.getLastTimeUsed() > currentPsw.getLastTimeUsed())
-						oldestPsk = currentPsk;
-				}
-			}
-		} while (true);
-		
-	}
+                // Let's keep the statement that's been used the most.
+                if (oldestPsw.getTimesUsed() > currentPsw.getTimesUsed()) {
+                    oldestPsk = currentPsk;
+                } else {
+                    // If they've been used an equal number of times keep the one
+                    // most recently used.
+                    if (oldestPsw.getTimesUsed() == currentPsw.getTimesUsed() &&
+                            oldestPsw.getLastTimeUsed() > currentPsw.getLastTimeUsed()) {
+                        oldestPsk = currentPsk;
+                    }
+                }
+            }
+        } while (true);
 
-	void returnStatementToCache(PreparedStatementWrapper psw) {
-		if ( psw.decrementUseCount() < 0)
-			LOG.severe("Counting error in PreparedStatementCaching System.\n" + psw.toString());
-	}
+    }
 
+    void returnStatementToCache(PreparedStatementWrapper psw) {
+        if (psw.decrementUseCount() < 0) {
+            LOG.severe("Counting error in PreparedStatementCaching System.\n" + psw.toString());
+        }
+    }
 
     public void setTransactionIsolation(int isolationLevel) throws SQLException {
-        if (isolationCachingEnabled && this.isolationLevel == isolationLevel) return;
-        
+        if (isolationCachingEnabled && this.isolationLevel == isolationLevel) {
+            return;
+        }
+
         connection.setTransactionIsolation(isolationLevel);
         this.isolationLevel = isolationLevel;
     }
@@ -334,136 +345,133 @@ public class ConnectionWrapper implements Connection {
         return isolationCachingEnabled ? isolationLevel : connection.getTransactionIsolation();
     }
 
-
     /**
      * Retrieve prepared statement cache size
      * @return An integer that indicates the maximum number of statements that will be cached.
      */
     public int getMaxCacheSize() {
-		return maxCacheSize;
-	}
-
-
+        return maxCacheSize;
+    }
 
     /**
      *  All statements after this comment are delegated to the actual connection object.
      */
 
     public Statement createStatement() throws SQLException {
-		return connection.createStatement();
-	}
+        return connection.createStatement();
+    }
 
-	public CallableStatement prepareCall(String arg0) throws SQLException {
-		return connection.prepareCall(arg0);
-	}
+    public CallableStatement prepareCall(String arg0) throws SQLException {
+        return connection.prepareCall(arg0);
+    }
 
-	public String nativeSQL(String arg0) throws SQLException {
-		return connection.nativeSQL(arg0);
-	}
+    public String nativeSQL(String arg0) throws SQLException {
+        return connection.nativeSQL(arg0);
+    }
 
-	public void setAutoCommit(boolean arg0) throws SQLException {
-		connection.setAutoCommit(arg0);
-	}
+    public void setAutoCommit(boolean arg0) throws SQLException {
+        connection.setAutoCommit(arg0);
+    }
 
-	public boolean getAutoCommit() throws SQLException {
-		return connection.getAutoCommit();
-	}
+    public boolean getAutoCommit() throws SQLException {
+        return connection.getAutoCommit();
+    }
 
-	public void commit() throws SQLException {
-		connection.commit();
-	}
+    public void commit() throws SQLException {
+        connection.commit();
+    }
 
-	public void rollback() throws SQLException {
-		connection.rollback();
-	}
+    public void rollback() throws SQLException {
+        connection.rollback();
+    }
 
-	public void close() throws SQLException {
-		connection.close();
-	}
+    public void close() throws SQLException {
+        connection.close();
+    }
 
-	public boolean isClosed() throws SQLException {
-		return connection.isClosed();
-	}
+    public boolean isClosed() throws SQLException {
+        return connection.isClosed();
+    }
 
-	public DatabaseMetaData getMetaData() throws SQLException {
-		return connection.getMetaData();
-	}
+    public DatabaseMetaData getMetaData() throws SQLException {
+        return connection.getMetaData();
+    }
 
-	public void setReadOnly(boolean arg0) throws SQLException {
-		connection.setReadOnly(arg0);
-	}
+    public void setReadOnly(boolean arg0) throws SQLException {
+        connection.setReadOnly(arg0);
+    }
 
-	public boolean isReadOnly() throws SQLException {
-		return connection.isReadOnly();
-	}
+    public boolean isReadOnly() throws SQLException {
+        return connection.isReadOnly();
+    }
 
-	public void setCatalog(String arg0) throws SQLException {
-		connection.setCatalog(arg0);
-	}
+    public void setCatalog(String arg0) throws SQLException {
+        connection.setCatalog(arg0);
+    }
 
-	public String getCatalog() throws SQLException {
-		return connection.getCatalog();
-	}
+    public String getCatalog() throws SQLException {
+        return connection.getCatalog();
+    }
 
-	public SQLWarning getWarnings() throws SQLException {
-		return connection.getWarnings();
-	}
+    public SQLWarning getWarnings() throws SQLException {
+        return connection.getWarnings();
+    }
 
-	public void clearWarnings() throws SQLException {
-		connection.clearWarnings();
-	}
+    public void clearWarnings() throws SQLException {
+        connection.clearWarnings();
+    }
 
-	public Statement createStatement(int arg0, int arg1) throws SQLException {
-		return connection.createStatement(arg0, arg1);
-	}
+    public Statement createStatement(int arg0, int arg1) throws SQLException {
+        return connection.createStatement(arg0, arg1);
+    }
 
-	public CallableStatement prepareCall(String arg0, int arg1, int arg2)
-			throws SQLException {
-		return connection.prepareCall(arg0, arg1, arg2);
-	}
+    public CallableStatement prepareCall(String arg0, int arg1, int arg2)
+            throws SQLException {
+        return connection.prepareCall(arg0, arg1, arg2);
+    }
 
-	public Map<String, Class<?>> getTypeMap() throws SQLException {
-		return connection.getTypeMap();
-	}
+    public Map<String, Class<?>> getTypeMap() throws SQLException {
+        return connection.getTypeMap();
+    }
 
-	/* (non-Javadoc)
-	 * @see java.sql.Connection#setTypeMap(java.util.Map)
-	 */
-	public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
-		connection.setTypeMap(map);
-	}
+    /* (non-Javadoc)
+     * @see java.sql.Connection#setTypeMap(java.util.Map)
+     */
+    public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+        connection.setTypeMap(map);
+    }
 
-	public void setHoldability(int arg0) throws SQLException {
-		connection.setHoldability(arg0);
-	}
+    public void setHoldability(int arg0) throws SQLException {
+        connection.setHoldability(arg0);
+    }
 
-	public int getHoldability() throws SQLException {
-		return connection.getHoldability();
-	}
+    public int getHoldability() throws SQLException {
+        return connection.getHoldability();
+    }
 
-	public Savepoint setSavepoint() throws SQLException {
-		return connection.setSavepoint();
-	}
+    public Savepoint setSavepoint() throws SQLException {
+        return connection.setSavepoint();
+    }
 
-	public Savepoint setSavepoint(String arg0) throws SQLException {
-		return connection.setSavepoint(arg0);
-	}
+    public Savepoint setSavepoint(String arg0) throws SQLException {
+        return connection.setSavepoint(arg0);
+    }
 
-	public void rollback(Savepoint arg0) throws SQLException {
-		connection.rollback();
-	}
+    public void rollback(Savepoint arg0) throws SQLException {
+        connection.rollback();
+    }
 
-	public void releaseSavepoint(Savepoint arg0) throws SQLException {
-		connection.releaseSavepoint(arg0);
-	}
+    public void releaseSavepoint(Savepoint arg0) throws SQLException {
+        connection.releaseSavepoint(arg0);
+    }
 
-	public Statement createStatement(int arg0, int arg1, int arg2) throws SQLException {
-		return connection.createStatement(arg0, arg1, arg2);
-	}
+    public Statement createStatement(int arg0, int arg1, int arg2) throws SQLException {
+        return connection.createStatement(arg0, arg1, arg2);
+    }
 
-	public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException {
-		return connection.prepareCall(arg0, arg1, arg2, arg3);
-	}
+    public CallableStatement prepareCall(String arg0, int arg1, int arg2, int arg3) throws SQLException {
+        return connection.prepareCall(arg0, arg1, arg2, arg3);
+    }
 
     @Override
     public void setSchema(String schema) throws SQLException {
@@ -500,6 +508,6 @@ public class ConnectionWrapper implements Connection {
 
     @Override
     public boolean isWrapperFor(Class<?> aClass) throws SQLException {
-		return aClass.isInstance(this) || connection.isWrapperFor(aClass);
-	}
+        return aClass.isInstance(this) || connection.isWrapperFor(aClass);
+    }
 }

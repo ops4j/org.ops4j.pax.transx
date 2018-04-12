@@ -31,73 +31,71 @@ import java.util.logging.Logger;
  *
  * @author Brett Wooldridge
  */
-public class StubDataSource implements DataSource
-{
-   private long connectionDelay;
+public class StubDataSource implements DataSource {
 
-   public void setConnectionDelay(long millis)
-   {
-      this.connectionDelay = millis;
-   }
+    private long connectionDelay;
 
-   /** {@inheritDoc} */
-   public PrintWriter getLogWriter() throws SQLException
-   {
-      return null;
-   }
+    public void setConnectionDelay(long millis) {
+        this.connectionDelay = millis;
+    }
 
-   /** {@inheritDoc} */
-   public void setLogWriter(PrintWriter out) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PrintWriter getLogWriter() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setLoginTimeout(int seconds) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setLogWriter(PrintWriter out) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public int getLoginTimeout() throws SQLException
-   {
-      return 0;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setLoginTimeout(int seconds) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public Logger getParentLogger() throws SQLFeatureNotSupportedException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public int getLoginTimeout() throws SQLException {
+        return 0;
+    }
 
-   /** {@inheritDoc} */
-   public <T> T unwrap(Class<T> iface) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public boolean isWrapperFor(Class<?> iface) throws SQLException
-   {
-      return false;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public Connection getConnection() throws SQLException
-   {
-      if (connectionDelay > 0) {
-         try {
-            TimeUnit.MILLISECONDS.sleep(connectionDelay);
-         }
-         catch (InterruptedException e) {
-            throw new SQLTransientConnectionException();
-         }
-      }
+    /** {@inheritDoc} */
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
 
-      return new StubConnection();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Connection getConnection() throws SQLException {
+        if (connectionDelay > 0) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(connectionDelay);
+            } catch (InterruptedException e) {
+                throw new SQLTransientConnectionException();
+            }
+        }
 
-   /** {@inheritDoc} */
-   public Connection getConnection(String username, String password) throws SQLException
-   {
-      return getConnection();
-   }
+        return new StubConnection();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return getConnection();
+    }
 }

@@ -125,6 +125,8 @@ final class Wrappers {
                         } else {
                             return method.invoke(h, args);
                         }
+                    default:
+                        break;
                 }
             }
             return UNHANLED;

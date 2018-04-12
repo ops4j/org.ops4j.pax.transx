@@ -46,8 +46,12 @@ public class UserPasswordConnectionRequestInfoImpl
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserPasswordConnectionRequestInfoImpl)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof UserPasswordConnectionRequestInfoImpl)) {
+            return false;
+        }
         UserPasswordConnectionRequestInfoImpl that = (UserPasswordConnectionRequestInfoImpl) o;
         return hashcode == that.hashcode
                 && Objects.equals(userName, that.userName)

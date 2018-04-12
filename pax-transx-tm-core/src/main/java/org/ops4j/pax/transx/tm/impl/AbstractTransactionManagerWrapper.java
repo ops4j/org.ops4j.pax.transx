@@ -32,8 +32,8 @@ import java.util.function.Consumer;
 
 public abstract class AbstractTransactionManagerWrapper<TM extends javax.transaction.TransactionManager> implements TransactionManager {
 
-    final protected TM tm;
-    final protected WeakHashMap<javax.transaction.Transaction, TransactionWrapper> transactions = new WeakHashMap<>();
+    protected final TM tm;
+    protected final WeakHashMap<javax.transaction.Transaction, TransactionWrapper> transactions = new WeakHashMap<>();
 
     public AbstractTransactionManagerWrapper(TM tm) {
         this.tm = tm;
@@ -52,12 +52,6 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
         }
     }
 
-    void disassociate() {
-    }
-
-    void associate(Transaction tx) {
-    }
-
     @Override
     public Transaction begin() throws Exception {
         tm.begin();
@@ -67,6 +61,12 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
 
     protected TransactionWrapper doCreateTransactionWrapper(javax.transaction.Transaction tx) {
         return new TransactionWrapper(tx);
+    }
+
+    void disassociate() {
+    }
+
+    void associate(Transaction tx) {
     }
 
     protected class TransactionWrapper implements Transaction {
@@ -192,7 +192,7 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
 
     }
 
-    static protected Status toStatus(int status) {
+    protected static Status toStatus(int status) {
         switch (status) {
             case javax.transaction.Status.STATUS_ACTIVE:
                 return Status.ACTIVE;

@@ -37,7 +37,7 @@ public abstract class AbstractJdbcManagedConnectionFactory<
         MC extends AbstractManagedConnection<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,
         T extends CommonDataSource>
             extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>
-            implements AutocommitSpecCompliant{
+            implements AutocommitSpecCompliant {
 
     protected final T dataSource;
     protected boolean commitBeforeAutocommit = false;

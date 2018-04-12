@@ -39,16 +39,15 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
-@Warmup(iterations=3)
-@Measurement(iterations=8)
+@Warmup(iterations = 3)
+@Measurement(iterations = 8)
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class PreparedStatementBench extends BenchBase
-{
+public class PreparedStatementBench extends BenchBase {
+
     @Benchmark
     @CompilerControl(CompilerControl.Mode.INLINE)
-    public Statement cycleStatement(Blackhole bh, ConnectionState state) throws SQLException
-    {
+    public Statement cycleStatement(Blackhole bh, ConnectionState state) throws SQLException {
         PreparedStatement statement = state.connection.prepareStatement("INSERT INTO test (column) VALUES (?)");
         statement.setInt(1, 1);
         bh.consume(statement.executeUpdate());
@@ -57,19 +56,17 @@ public class PreparedStatementBench extends BenchBase
     }
 
     @State(Scope.Thread)
-    public static class ConnectionState
-    {
+    public static class ConnectionState {
+
         Connection connection;
 
         @Setup(Level.Iteration)
-        public void setup() throws SQLException
-        {
-            connection = DS.getConnection();
+        public void setup() throws SQLException {
+            connection = dataSource.getConnection();
         }
 
         @TearDown(Level.Iteration)
-        public void teardown() throws SQLException
-        {
+        public void teardown() throws SQLException {
             connection.close();
         }
     }

@@ -175,7 +175,7 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
         };
     }
 
-    static private void safe(Utils.RunnableWithException<JMSException> cb, String msg) {
+    private static void safe(Utils.RunnableWithException<JMSException> cb, String msg) {
         try {
             cb.run();
         } catch (JMSException e) {

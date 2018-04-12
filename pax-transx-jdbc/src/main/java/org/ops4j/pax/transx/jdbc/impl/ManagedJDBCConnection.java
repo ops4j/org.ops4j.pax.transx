@@ -87,7 +87,7 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
         super.localTransactionStart(isSPI);
     }
 
-	protected void localTransactionCommit(boolean isSPI) throws ResourceException {
+    protected void localTransactionCommit(boolean isSPI) throws ResourceException {
         try {
             if (mcf.isCommitBeforeAutocommit()) {
                 getPhysicalConnection().commit();
@@ -106,7 +106,7 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
         super.localTransactionCommit(isSPI);
     }
 
-	protected void localTransactionRollback(boolean isSPI) throws ResourceException {
+    protected void localTransactionRollback(boolean isSPI) throws ResourceException {
         try {
             getPhysicalConnection().rollback();
         } catch (SQLException e) {
@@ -120,7 +120,7 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
         }
     }
 
-	public void cleanup() throws ResourceException {
+    public void cleanup() throws ResourceException {
         super.cleanup();
         try {
             //TODO reset tx isolation level
@@ -131,8 +131,8 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
             throw new ResourceException("Could not reset autocommit when returning to pool", e);
         }
     }
-    
-	protected void closePhysicalConnection() throws ResourceException {
+
+    protected void closePhysicalConnection() throws ResourceException {
         try {
             getPhysicalConnection().close();
         } catch (SQLException e) {
@@ -140,7 +140,7 @@ public class ManagedJDBCConnection extends AbstractManagedConnection<LocalDataSo
         }
     }
 
-	protected void attemptRollback() {
+    protected void attemptRollback() {
         try {
             getPhysicalConnection().rollback();
         } catch (SQLException e) {

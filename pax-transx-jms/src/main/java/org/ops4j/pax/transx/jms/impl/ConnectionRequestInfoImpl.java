@@ -60,8 +60,12 @@ public class ConnectionRequestInfoImpl implements UserPasswordConnectionRequestI
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ConnectionRequestInfoImpl that = (ConnectionRequestInfoImpl) o;
         return transacted == that.transacted &&
                acknowledgeMode == that.acknowledgeMode &&

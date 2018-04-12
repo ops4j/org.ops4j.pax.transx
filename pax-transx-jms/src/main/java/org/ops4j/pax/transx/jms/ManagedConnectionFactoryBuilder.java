@@ -33,10 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 public class ManagedConnectionFactoryBuilder {
 
-    public static ManagedConnectionFactoryBuilder builder() {
-        return new ManagedConnectionFactoryBuilder();
-    }
-
     private ConnectionManagerBuilder builder = ConnectionManagerBuilder.builder();
     private ConnectionFactory connectionFactory;
     private XAConnectionFactory xaConnectionFactory;
@@ -47,6 +43,10 @@ public class ManagedConnectionFactoryBuilder {
     private ManagedConnectionFactory managedConnectionFactory;
 
     private ManagedConnectionFactoryBuilder() {
+    }
+
+    public static ManagedConnectionFactoryBuilder builder() {
+        return new ManagedConnectionFactoryBuilder();
     }
 
     public ManagedConnectionFactoryBuilder name(String name) {

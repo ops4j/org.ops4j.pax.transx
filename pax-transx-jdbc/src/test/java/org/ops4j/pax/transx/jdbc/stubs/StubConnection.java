@@ -42,335 +42,335 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * @author Brett Wooldridge
  */
-public class StubConnection implements Connection
-{
-   public static volatile boolean throwRandomExceptions;
+public class StubConnection implements Connection {
 
-   private static long foo;
+    private static volatile boolean throwRandomExceptions;
 
-   private boolean autoCommit;
-   private boolean isClosed;
-   private int isolation;
+    private static long foo;
 
-   static {
-      foo = System.currentTimeMillis();
-   }
+    private boolean autoCommit;
+    private boolean isClosed;
+    private int isolation;
 
-   /** {@inheritDoc} */
-   public <T> T unwrap(Class<T> iface) throws SQLException
-   {
-      return null;
-   }
+    static {
+        foo = System.currentTimeMillis();
+    }
 
-   /** {@inheritDoc} */
-   public boolean isWrapperFor(Class<?> iface) throws SQLException
-   {
-      return false;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public Statement createStatement() throws SQLException
-   {
-      return new StubStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return false;
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Statement createStatement() throws SQLException {
+        return new StubStatement();
+    }
 
-   /** {@inheritDoc} */
-   public CallableStatement prepareCall(String sql) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public String nativeSQL(String sql) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public CallableStatement prepareCall(String sql) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setAutoCommit(boolean autoCommit) throws SQLException
-   {
-      this.autoCommit = autoCommit;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public String nativeSQL(String sql) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public boolean getAutoCommit() throws SQLException
-   {
-      return autoCommit;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        this.autoCommit = autoCommit;
+    }
 
-   /** {@inheritDoc} */
-   public void commit() throws SQLException
-   {
+    /** {@inheritDoc} */
+    @Override
+    public boolean getAutoCommit() throws SQLException {
+        return autoCommit;
+    }
 
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void commit() throws SQLException {
 
-   /** {@inheritDoc} */
-   public void rollback() throws SQLException
-   {
-      autoCommit = false;
-   }
+    }
 
-   /** {@inheritDoc} */
-   public void close() throws SQLException
-   {
-      isClosed = true;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void rollback() throws SQLException {
+        autoCommit = false;
+    }
 
-   /** {@inheritDoc} */
-   public boolean isClosed() throws SQLException
-   {
-      return isClosed;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws SQLException {
+        isClosed = true;
+    }
 
-   /** {@inheritDoc} */
-   public DatabaseMetaData getMetaData() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public boolean isClosed() throws SQLException {
+        return isClosed;
+    }
 
-   /** {@inheritDoc} */
-   public void setReadOnly(boolean readOnly) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public DatabaseMetaData getMetaData() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public boolean isReadOnly() throws SQLException
-   {
-      return false;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setReadOnly(boolean readOnly) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public void setCatalog(String catalog) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public boolean isReadOnly() throws SQLException {
+        return false;
+    }
 
-   /** {@inheritDoc} */
-   public String getCatalog() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setCatalog(String catalog) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public void setTransactionIsolation(int level) throws SQLException
-   {
-      this.isolation = level;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public String getCatalog() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public int getTransactionIsolation() throws SQLException
-   {
-      return isolation;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        this.isolation = level;
+    }
 
-   /** {@inheritDoc} */
-   public SQLWarning getWarnings() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public int getTransactionIsolation() throws SQLException {
+        return isolation;
+    }
 
-   /** {@inheritDoc} */
-   public void clearWarnings() throws SQLException
-   {
-      autoCommit = false;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public SQLWarning getWarnings() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void clearWarnings() throws SQLException {
+        autoCommit = false;
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public Map<String, Class<?>> getTypeMap() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setTypeMap(Map<String, Class<?>> map) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Map<String, Class<?>> getTypeMap() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setHoldability(int holdability) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public int getHoldability() throws SQLException
-   {
-      return (int) foo;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setHoldability(int holdability) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public Savepoint setSavepoint() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public int getHoldability() throws SQLException {
+        return (int) foo;
+    }
 
-   /** {@inheritDoc} */
-   public Savepoint setSavepoint(String name) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Savepoint setSavepoint() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void rollback(Savepoint savepoint) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Savepoint setSavepoint(String name) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void releaseSavepoint(Savepoint savepoint) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void rollback(Savepoint savepoint) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void releaseSavepoint(Savepoint savepoint) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException
-   {
-      return new StubPreparedStatement();
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public Clob createClob() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
+        return new StubPreparedStatement();
+    }
 
-   /** {@inheritDoc} */
-   public Blob createBlob() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Clob createClob() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public NClob createNClob() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Blob createBlob() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public SQLXML createSQLXML() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public NClob createNClob() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public boolean isValid(int timeout) throws SQLException
-   {
-      if (throwRandomExceptions && ThreadLocalRandom.current().nextInt(100) == 9) {
-         throw new RuntimeException("isValidThrowsException=true");
-      }
+    /** {@inheritDoc} */
+    @Override
+    public SQLXML createSQLXML() throws SQLException {
+        return null;
+    }
 
-      return true;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public boolean isValid(int timeout) throws SQLException {
+        if (throwRandomExceptions && ThreadLocalRandom.current().nextInt(100) == 9) {
+            throw new RuntimeException("isValidThrowsException=true");
+        }
 
-   /** {@inheritDoc} */
-   public void setClientInfo(String name, String value) throws SQLClientInfoException
-   {
-   }
+        return true;
+    }
 
-   /** {@inheritDoc} */
-   public void setClientInfo(Properties properties) throws SQLClientInfoException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setClientInfo(String name, String value) throws SQLClientInfoException {
+    }
 
-   /** {@inheritDoc} */
-   public String getClientInfo(String name) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+    }
 
-   /** {@inheritDoc} */
-   public Properties getClientInfo() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public String getClientInfo(String name) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public Array createArrayOf(String typeName, Object[] elements) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Properties getClientInfo() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public Struct createStruct(String typeName, Object[] attributes) throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setSchema(String schema) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public String getSchema() throws SQLException
-   {
-      return null;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setSchema(String schema) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public void abort(Executor executor) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public String getSchema() throws SQLException {
+        return null;
+    }
 
-   /** {@inheritDoc} */
-   public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException
-   {
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void abort(Executor executor) throws SQLException {
+    }
 
-   /** {@inheritDoc} */
-   public int getNetworkTimeout() throws SQLException
-   {
-      return 0;
-   }
+    /** {@inheritDoc} */
+    @Override
+    public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public int getNetworkTimeout() throws SQLException {
+        return 0;
+    }
 
 }

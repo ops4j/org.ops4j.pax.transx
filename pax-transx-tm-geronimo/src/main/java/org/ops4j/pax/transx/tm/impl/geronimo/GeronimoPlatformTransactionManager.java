@@ -34,7 +34,6 @@ import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.xa.XAException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -141,7 +140,7 @@ public class GeronimoPlatformTransactionManager extends GeronimoTransactionManag
 
         private final boolean readOnly;
 
-        public SuspendedResourcesHolder(
+        SuspendedResourcesHolder(
                 Object suspendedResources, List<TransactionSynchronization> suspendedSynchronizations, String name, boolean readOnly) {
 
             this.suspendedResources = suspendedResources;

@@ -96,7 +96,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
 
         LastResource last;
 
-        public GeronimoTransactionWrapper(javax.transaction.Transaction transaction) {
+        GeronimoTransactionWrapper(javax.transaction.Transaction transaction) {
             super(transaction);
         }
 

@@ -32,17 +32,16 @@ import javax.resource.spi.TransactionSupport;
 import javax.sql.DataSource;
 
 @State(Scope.Benchmark)
-public class BenchBase
-{
-    @Param({ "32" })
-    public int maxPoolSize;
+public class BenchBase {
 
-    public static DataSource DS;
+    static DataSource dataSource;
+
+    @Param({ "32" })
+    int maxPoolSize;
 
     @Setup(Level.Trial)
-    public void setup(BenchmarkParams params) throws Exception
-    {
-        DS = ManagedDataSourceBuilder.builder()
+    public void setup(BenchmarkParams params) throws Exception {
+        dataSource = ManagedDataSourceBuilder.builder()
                 .dataSource(new StubDataSource())
                 .userName("gnodet")
                 .password("")
@@ -54,9 +53,8 @@ public class BenchBase
     }
 
     @TearDown(Level.Trial)
-    public void teardown() throws Exception
-    {
-        ((AutoCloseable) DS).close();
+    public void teardown() throws Exception {
+        ((AutoCloseable) dataSource).close();
     }
 
 }

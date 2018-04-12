@@ -51,8 +51,13 @@ public class SubjectCRIKey {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         SubjectCRIKey that = (SubjectCRIKey) o;
         return hashcode == that.hashcode
                 && Objects.equals(cri, that.cri)

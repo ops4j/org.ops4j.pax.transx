@@ -474,9 +474,9 @@
                                     <goal>check</goal>
                                 </goals>
                                 <configuration>
-                                    <configLocation>checkstyle/pax-jdbc-checks.xml</configLocation>
-                                    <suppressionsLocation>checkstyle/pax-jdbc-checks-suppressions.xml</suppressionsLocation>
-                                    <includes>org/ops4j/pax/jdbc/**/*.java</includes>
+                                    <configLocation>checkstyle/pax-transx-checks.xml</configLocation>
+                                    <suppressionsLocation>checkstyle/pax-transx-checks-suppressions.xml</suppressionsLocation>
+                                    <includes>**/*.java</includes>
                                     <encoding>UTF-8</encoding>
                                     <consoleOutput>true</consoleOutput>
                                     <failsOnError>true</failsOnError>

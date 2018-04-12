@@ -48,13 +48,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class ActiveMQTest {
 
     public static final String BROKER_URL = "vm://broker?marshal=false&broker.persistent=false";
     public static final String QUEUE = "myqueue";
 
+    static int brokerId;
 
     AriesPlatformTransactionManager ptm;
     TransactionManager tm;
@@ -286,7 +290,6 @@ public class ActiveMQTest {
         }
     }
 
-    static int brokerId;
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
         ConnectionFactory cf = ManagedConnectionFactoryBuilder.builder()
                 .transaction(TransactionSupportLevel.XATransaction)
