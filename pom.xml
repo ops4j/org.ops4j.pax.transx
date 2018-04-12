@@ -1,18 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.ops4j</groupId>
+        <artifactId>master</artifactId>
+        <version>4.3.0</version>
+    </parent>
 
     <groupId>org.ops4j.pax.transx</groupId>
     <artifactId>pax-transx</artifactId>
     <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
     <name>OPS4J Pax TransX (Reactor POM)</name>
 
-    <parent>
-        <groupId>org.ops4j</groupId>
-        <artifactId>master</artifactId>
-        <version>4.2.0</version>
-    </parent>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- versions of Maven plugins -->
+
+        <version.plugin.maven-checkstyle-plugin>3.0.0</version.plugin.maven-checkstyle-plugin>
+        <version.com.puppycrawl.tools.checkstyle>8.9</version.com.puppycrawl.tools.checkstyle>
+        <version.plugin.maven-compiler-plugin>3.7.0</version.plugin.maven-compiler-plugin>
+        <version.plugin.maven-surefire-plugin>2.21.0</version.plugin.maven-surefire-plugin>
+        <version.plugin.felix.maven-bundle-plugin>3.5.0</version.plugin.felix.maven-bundle-plugin>
+        <version.plugin.mojo.build-helper-maven-plugin>3.0.0</version.plugin.mojo.build-helper-maven-plugin>
+        <version.plugin.mycila.license-maven-plugin>3.0</version.plugin.mycila.license-maven-plugin>
+        <version.plugin.servicemix.depends-maven-plugin>1.4.0</version.plugin.servicemix.depends-maven-plugin>
+
+        <!-- versions of Maven dependencies -->
+
+        <pax.exam.version>4.11.0</pax.exam.version>
+        <pax.url.version>2.5.2</pax.url.version>
+        <karaf.version>4.1.1</karaf.version>
+    </properties>
 
     <scm>
         <connection>scm:git:git@github.com:ops4j/org.ops4j.pax.transx.git</connection>
@@ -21,11 +65,20 @@
         <tag>HEAD</tag>
     </scm>
 
-    <properties>
-        <pax.exam.version>4.11.0</pax.exam.version>
-        <pax.url.version>2.5.2</pax.url.version>
-        <karaf.version>4.1.1</karaf.version>
-    </properties>
+    <modules>
+        <module>pax-transx-checkstyle-rules</module>
+        <module>pax-transx-tm-api</module>
+        <module>pax-transx-tm-core</module>
+        <module>pax-transx-tm-atomikos</module>
+        <module>pax-transx-tm-geronimo</module>
+        <module>pax-transx-tm-narayana</module>
+        <module>pax-transx-connector</module>
+        <module>pax-transx-connection</module>
+        <module>pax-transx-jms</module>
+        <module>pax-transx-jdbc</module>
+        <module>pax-transx-features</module>
+        <module>pax-transx-itests</module>
+    </modules>
 
     <dependencyManagement>
         <dependencies>
@@ -309,8 +362,9 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.6.1</version>
+                    <version>${version.plugin.maven-compiler-plugin}</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -319,15 +373,33 @@
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>${version.plugin.felix.maven-bundle-plugin}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <obrRepository>NONE</obrRepository>
+                    </configuration>
                 </plugin>
+
                 <plugin>
                     <groupId>org.apache.karaf.tooling</groupId>
                     <artifactId>karaf-maven-plugin</artifactId>
                     <version>4.1.1</version>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.servicemix.tooling</groupId>
+                    <artifactId>depends-maven-plugin</artifactId>
+                    <version>${version.plugin.servicemix.depends-maven-plugin}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${version.plugin.maven-checkstyle-plugin}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -342,18 +414,147 @@
         </plugins>
     </build>
 
-    <modules>
-        <module>pax-transx-tm-api</module>
-        <module>pax-transx-tm-core</module>
-        <module>pax-transx-tm-atomikos</module>
-        <module>pax-transx-tm-geronimo</module>
-        <module>pax-transx-tm-narayana</module>
-        <module>pax-transx-connector</module>
-        <module>pax-transx-connection</module>
-        <module>pax-transx-jms</module>
-        <module>pax-transx-jdbc</module>
-        <module>pax-transx-features</module>
-        <module>pax-transx-itests</module>
-    </modules>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <comments>
+                Licensed under the Apache License, Version 2.0 (the "License");
+                you may not use this file except in compliance with the License.
+                You may obtain a copy of the License at
+
+                http://www.apache.org/licenses/LICENSE-2.0
+
+                Unless required by applicable law or agreed to in writing, software
+                distributed under the License is distributed on an "AS IS" BASIS,
+                WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+                implied.
+
+                See the License for the specific language governing permissions and
+                limitations under the License.
+            </comments>
+        </license>
+    </licenses>
+
+    <url>https://ops4j1.jira.com/wiki/spaces/PAXTRANSX/overview</url>
+    <inceptionYear>2017</inceptionYear>
+
+    <issueManagement>
+        <system>jira</system>
+        <url>https://ops4j1.jira.com/projects/PAXTRANSX/summary/statistics</url>
+    </issueManagement>
+
+    <repositories>
+        <repository>
+            <id>apache-snapshots</id>
+            <url>https://repository.apache.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <profiles>
+        <!-- Checkstyle: `mvn -Pcs validate` -->
+        <profile>
+            <id>cs</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>verify-style</id>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                                <configuration>
+                                    <configLocation>checkstyle/pax-jdbc-checks.xml</configLocation>
+                                    <suppressionsLocation>checkstyle/pax-jdbc-checks-suppressions.xml</suppressionsLocation>
+                                    <includes>org/ops4j/pax/jdbc/**/*.java</includes>
+                                    <encoding>UTF-8</encoding>
+                                    <consoleOutput>true</consoleOutput>
+                                    <failsOnError>true</failsOnError>
+                                    <failOnViolation>true</failOnViolation>
+                                    <logViolationsToConsole>true</logViolationsToConsole>
+                                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                                    <violationSeverity>warning</violationSeverity>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.puppycrawl.tools</groupId>
+                                <artifactId>checkstyle</artifactId>
+                                <version>${version.com.puppycrawl.tools.checkstyle}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.ops4j.pax.transx</groupId>
+                                <artifactId>pax-transx-checkstyle-rules</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- License generation: `mvn -Plicense process-sources` -->
+        <profile>
+            <id>license</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>${version.plugin.mycila.license-maven-plugin}</version>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                            <useDefaultExcludes>true</useDefaultExcludes>
+                            <header>license-header.txt</header>
+                            <includes>
+                                <include>src/main/java/**/*.java</include>
+                                <include>src/test/java/**/*.java</include>
+                                <!--<include>**/README</include>-->
+                                <include>pom.xml</include>
+                                <include>**/*.xml</include>
+                                <include>**/*.cfg</include>
+                                <include>**/*.properties</include>
+                            </includes>
+                            <excludes />
+                            <mapping>
+                                <!--<README>SCRIPT_STYLE</README>-->
+                            </mapping>
+                            <headerDefinitions>
+                                <headerDefinition>license-headers.xml</headerDefinition>
+                            </headerDefinitions>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>license-format</id>
+                                <phase>process-sources</phase>
+                                <goals>
+                                    <goal>format</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>license-check</id>
+                                <!-- This is the phase this plugin runs by default. Just an explicit information -->
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
