@@ -19,19 +19,37 @@
     under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>pax-transx</artifactId>
-        <groupId>org.ops4j.pax.transx</groupId>
-        <version>0.3.0-SNAPSHOT</version>
-    </parent>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
-    <packaging>feature</packaging>
+    <parent>
+        <groupId>org.ops4j.pax.transx</groupId>
+        <artifactId>pax-transx</artifactId>
+        <version>0.3.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>pax-transx-features</artifactId>
+    <packaging>feature</packaging>
 
     <dependencies>
+
+        <!-- pax-transx own artifacts -->
+
+        <dependency>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-jdbc</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-jms</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Framework distribution -->
+
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>framework</artifactId>
@@ -45,16 +63,6 @@
             <classifier>features</classifier>
         </dependency>
 
-        <dependency>
-            <groupId>org.ops4j.pax.transx</groupId>
-            <artifactId>pax-transx-jdbc</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.ops4j.pax.transx</groupId>
-            <artifactId>pax-transx-jms</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>

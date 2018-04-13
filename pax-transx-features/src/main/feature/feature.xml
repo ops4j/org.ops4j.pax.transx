@@ -27,7 +27,7 @@
             http://karaf.apache.org/xmlns/features/v1.3.0">
 
     <feature name="pax-transx-tm-api" version="${project.version}">
-        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/1.1.1</bundle>
+        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${geronimo.specs.jta.version}</bundle>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-tm-api/${project.version}</bundle>
     </feature>
 
@@ -55,7 +55,7 @@
 
     <feature name="pax-transx-connector" version="${project.version}">
         <feature version="${project.version}">pax-transx-tm-api</feature>
-        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-connector_1.6_spec/1.0</bundle>
+        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-connector_1.6_spec/${geronimo.specs.jca.version}</bundle>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-connector/${project.version}</bundle>
     </feature>
 
@@ -66,7 +66,7 @@
 
     <feature name="pax-transx-jms" version="${project.version}">
         <feature version="${project.version}">pax-transx-connector</feature>
-        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_2.0_spec/1.0-alpha-2</bundle>
+        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_2.0_spec/${geronimo.specs.jms.version}</bundle>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-jms/${project.version}</bundle>
     </feature>
 
