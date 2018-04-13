@@ -23,6 +23,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ThreadUtils {
 
+    private ThreadUtils() {
+    }
+
     /**
      * Constructs threads with names <code>&lt;prefix&gt;-&lt;pool number&gt;-thread-&lt;thread number&gt;</code>.
      * @param prefix prefix to be used for thread names created by this {@link ThreadFactory}
@@ -34,24 +37,26 @@ public class ThreadUtils {
 
     private static class NamedThreadFactory implements ThreadFactory {
 
-        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;
 
-        public NamedThreadFactory(String prefix) {
+        NamedThreadFactory(String prefix) {
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-            namePrefix = prefix + "-" + poolNumber.getAndIncrement() + "-thread-";
+            namePrefix = prefix + "-" + POOL_NUMBER.getAndIncrement() + "-thread-";
         }
 
         @Override
         public Thread newThread(Runnable r) {
             Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (t.isDaemon())
+            if (t.isDaemon()) {
                 t.setDaemon(false);
-            if (t.getPriority() != Thread.NORM_PRIORITY)
+            }
+            if (t.getPriority() != Thread.NORM_PRIORITY) {
                 t.setPriority(Thread.NORM_PRIORITY);
+            }
             return t;
         }
 
