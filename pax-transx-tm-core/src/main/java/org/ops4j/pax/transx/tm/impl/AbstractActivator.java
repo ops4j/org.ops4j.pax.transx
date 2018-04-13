@@ -37,10 +37,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class AbstractActivator implements BundleActivator {
 
+    public static final String REQUIRE_CM = "org.ops4j.pax.transx.requireConfigAdminConfig";
+
     private BundleContext bundleContext;
 
     private ExecutorService executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>());
+            new LinkedBlockingQueue<>(), ThreadUtils.namedThreadFactory("paxtransx-config"));
     private AtomicBoolean scheduled = new AtomicBoolean();
 
     private long schedulerStopTimeout = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
@@ -56,6 +58,12 @@ public abstract class AbstractActivator implements BundleActivator {
         props.put(Constants.SERVICE_PID, getPid());
         managedServiceRegistration = bundleContext.registerService(ManagedService.class, this::updated, props);
         scheduled.set(false);
+
+        // configadmin configuration, if available, will always be provided (initially and on update)
+        if (getConfiguration() == null && "true".equalsIgnoreCase(context.getProperty(REQUIRE_CM))) {
+            info("Skipping reconfiguration in activator. Configuration is empty, awaiting Config Admin configuration.");
+            return;
+        }
         reconfigure();
     }
 
@@ -126,6 +134,15 @@ public abstract class AbstractActivator implements BundleActivator {
 
     protected Dictionary<String, ?> getConfiguration() {
         return configuration;
+    }
+
+    protected void info(String message) {
+        ServiceReference<LogService> ref = bundleContext.getServiceReference(LogService.class);
+        if (ref != null) {
+            LogService svc = bundleContext.getService(ref);
+            svc.log(LogService.LOG_INFO, message);
+            bundleContext.ungetService(ref);
+        }
     }
 
     protected void warn(String message, Throwable t) {
