@@ -62,6 +62,13 @@ import static com.zaxxer.hikari.util.UtilityElf.quietlySleep;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+/**
+ * <p>pax-transx implementation of {@link ConnectionManager} which implements:<ul>
+ *     <li>pooling using hikari</li>
+ *     <li>transaction management by delegating to pax-transx specific {@link TransactionManager}</li>
+ * </ul></p>
+ * <p>Both pax-transx-jms and pax-transx-jdbc create an instance of this class.</p>
+ */
 public class GenericConnectionManager implements ConnectionManager, AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(GenericConnectionManager.class.getName());
@@ -71,7 +78,6 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
     private static final Comparator<ManagedConnectionInfo> LASTACCESS_REVERSE_COMPARABLE =
             (entryOne, entryTwo) -> Long.compare(entryTwo.lastAccessed, entryOne.lastAccessed);
-
 
     private final TransactionManager transactionManager;
     private final SubjectSource subjectSource;

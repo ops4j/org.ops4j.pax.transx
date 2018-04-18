@@ -63,7 +63,7 @@ public class GeronimoRecoveryTest {
                 regressionDefaults(),
                 mvnBundle("org.apache.geronimo.specs", "geronimo-jta_1.1_spec"),
                 mvnBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec"),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-jms_2.0_spec"),
+                mvnBundle("javax.jms", "javax.jms-api"),
                 mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-api"),
                 mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-geronimo"),
                 mvnBundle("org.ops4j.pax.transx", "pax-transx-connector"),

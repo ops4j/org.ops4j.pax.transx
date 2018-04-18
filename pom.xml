@@ -63,6 +63,8 @@
         <h2.version>1.4.196</h2.version>
         <hsqldb.version>2.3.4</hsqldb.version>
         <hikari.version>2.6.3</hikari.version>
+        <javax.jms.version>2.0.1</javax.jms.version>
+        <javax.transaction-api.version>1.2</javax.transaction-api.version>
         <jboss.logging.version>3.3.0.Final</jboss.logging.version>
         <jboss.narayana.version>5.6.3.Final</jboss.narayana.version>
         <jboss.transaction.version>7.5.1.Final</jboss.transaction.version>
@@ -81,7 +83,6 @@
         <osgi.compendium.version>5.0.0</osgi.compendium.version>
 
         <geronimo.specs.jca.version>1.0</geronimo.specs.jca.version>
-        <geronimo.specs.jms.version>1.0-alpha-2</geronimo.specs.jms.version>
         <geronimo.specs.jta.version>1.1.1</geronimo.specs.jta.version>
         <servicemix.bundles.javax-inject.version>1_2</servicemix.bundles.javax-inject.version>
     </properties>
@@ -214,14 +215,18 @@
             <!-- APIs -->
 
             <dependency>
-                <groupId>org.apache.geronimo.specs</groupId>
-                <artifactId>geronimo-jms_2.0_spec</artifactId>
-                <version>${geronimo.specs.jms.version}</version>
-            </dependency>
-            <dependency>
+                <!--
+                    javax.transaction:javax.transaction-api additionally requires cdi-api,
+                    interceptor-api and el-api so we stick to JTA 1.1
+                -->
                 <groupId>org.apache.geronimo.specs</groupId>
                 <artifactId>geronimo-jta_1.1_spec</artifactId>
                 <version>${geronimo.specs.jta.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.jms</groupId>
+                <artifactId>javax.jms-api</artifactId>
+                <version>${javax.jms.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.geronimo.specs</groupId>
@@ -240,12 +245,6 @@
                 <groupId>org.apache.geronimo.components</groupId>
                 <artifactId>geronimo-transaction</artifactId>
                 <version>${geronimo.transaction.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.apache.geronimo.specs</groupId>
-                        <artifactId>geronimo-jta_1.1_spec</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.aries.transaction</groupId>

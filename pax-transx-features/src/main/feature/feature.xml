@@ -20,13 +20,17 @@
 
 -->
 <features name="pax-transx-${project.version}"
-          xmlns="http://karaf.apache.org/xmlns/features/v1.3.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="
+        xmlns="http://karaf.apache.org/xmlns/features/v1.3.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
             http://karaf.apache.org/xmlns/features/v1.3.0
             http://karaf.apache.org/xmlns/features/v1.3.0">
 
     <feature name="pax-transx-tm-api" version="${project.version}">
+        <!--
+            That's only a dependency="true". Karaf's "transaction" feature installs javax.transaction:javax.transaction-api:1.2
+            together with cdi-api, el-api, interceptor-api and javax.inject bundles
+        -->
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${geronimo.specs.jta.version}</bundle>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-tm-api/${project.version}</bundle>
     </feature>
@@ -66,7 +70,7 @@
 
     <feature name="pax-transx-jms" version="${project.version}">
         <feature version="${project.version}">pax-transx-connector</feature>
-        <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_2.0_spec/${geronimo.specs.jms.version}</bundle>
+        <bundle dependency="true">mvn:javax.jms/javax.jms-api/${javax.jms.version}</bundle>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-jms/${project.version}</bundle>
     </feature>
 
