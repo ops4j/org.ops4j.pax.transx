@@ -150,14 +150,16 @@ public class ActiveMQTest {
         }
         assertEquals(1, consumeMessages(cf, QUEUE).size());
 
+        tx = tm.begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession(true, Session.SESSION_TRANSACTED)) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
-                s.rollback();
+                tx.setRollbackOnly();
             }
         }
         assertEquals(0, consumeMessages(cf, QUEUE).size());
+        tx.rollback();
 
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession(false, Session.SESSION_TRANSACTED)) {
@@ -247,7 +249,7 @@ public class ActiveMQTest {
 
     @Test
     public void testSpringLocalTx() throws Exception {
-        ConnectionFactory cf = createCF(BROKER_URL);
+        ConnectionFactory cf = createCF(BROKER_URL, false);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
         jms.setReceiveTimeout(1000);
@@ -291,12 +293,16 @@ public class ActiveMQTest {
     }
 
     private ConnectionFactory createCF(String brokerUrl) throws Exception {
+        return createCF(brokerUrl, true);
+    }
+
+    private ConnectionFactory createCF(String brokerUrl, boolean xa) throws Exception {
         ConnectionFactory cf = ManagedConnectionFactoryBuilder.builder()
-                .transaction(TransactionSupportLevel.XATransaction)
-                .transactionManager(tm)
+                .transaction(xa ? TransactionSupportLevel.XATransaction : TransactionSupportLevel.NoTransaction)
+                .transactionManager(xa ? tm : null)
                 .name("vmbroker" + brokerId++ )
                 .connectionFactory(new ActiveMQConnectionFactory(brokerUrl),
-                                   new ActiveMQXAConnectionFactory(brokerUrl))
+                                   xa ? new ActiveMQXAConnectionFactory(brokerUrl) : null)
                 .build();
         if (cf instanceof AutoCloseable) {
             closeables.add((AutoCloseable) cf);
