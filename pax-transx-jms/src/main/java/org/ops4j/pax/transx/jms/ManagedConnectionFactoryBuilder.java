@@ -29,7 +29,10 @@ import javax.jms.XAConnectionFactory;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ManagedConnectionFactoryBuilder {
 
@@ -150,9 +153,90 @@ public class ManagedConnectionFactoryBuilder {
         return this;
     }
 
+    /**
+     * Configure with whitelisted set of properties
+     * @param properties
+     * @return
+     */
+    public ManagedConnectionFactoryBuilder properties(Properties properties) {
+        configure(properties::get);
+        return this;
+    }
+
+    /**
+     * Configure with whitelisted set of properties
+     * @param properties
+     * @return
+     */
+    public ManagedConnectionFactoryBuilder properties(Map<String, Object> properties) {
+        configure(properties::get);
+        return this;
+    }
+
+    /**
+     * Configuration using known properties
+     * @param property
+     */
+    private void configure(Function<String, Object> property) {
+        Object name = property.apply("name");
+        if (name != null) {
+            this.name(name.toString());
+        }
+        Object userName = property.apply("userName");
+        if (userName != null) {
+            this.userName(userName.toString());
+        }
+        Object password = property.apply("password");
+        if (password != null) {
+            this.password(password.toString());
+        }
+        Object clientID = property.apply("clientID");
+        if (clientID != null) {
+            this.clientID(clientID.toString());
+        }
+        // TODO: exception sorter
+//        Object exceptionSorter = property.apply("exceptionSorter");
+        Object minIdle = property.apply("minIdle");
+        if (minIdle != null) {
+            this.minIdle(toInt(minIdle, "minIdle"));
+        }
+        Object maxPoolSize = property.apply("maxPoolSize");
+        if (maxPoolSize != null) {
+            this.maxPoolSize(toInt(maxPoolSize, "maxPoolSize"));
+        }
+        Object aliveBypassWindow = property.apply("aliveBypassWindow");
+        if (aliveBypassWindow != null) {
+            this.aliveBypassWindow(toInt(aliveBypassWindow, "aliveBypassWindow"));
+        }
+        Object houseKeepingPeriod = property.apply("houseKeepingPeriod");
+        if (houseKeepingPeriod != null) {
+            this.houseKeepingPeriod(toInt(houseKeepingPeriod, "houseKeepingPeriod"));
+        }
+        Object connectionTimeout = property.apply("connectionTimeout");
+        if (connectionTimeout != null) {
+            this.connectionTimeout(toInt(connectionTimeout, "connectionTimeout"));
+        }
+        Object idleTimeout = property.apply("idleTimeout");
+        if (idleTimeout != null) {
+            this.idleTimeout(toInt(idleTimeout, "idleTimeout"));
+        }
+        Object maxLifetime = property.apply("maxLifetime");
+        if (maxLifetime != null) {
+            this.maxLifetime(toInt(maxLifetime, "maxLifetime"));
+        }
+    }
+
+    private int toInt(Object v, String property) {
+        try {
+            return Integer.parseInt(v.toString());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Can't parse property \"" + property + "\" as int");
+        }
+    }
+
     public ConnectionFactory build() throws Exception {
-        if (connectionFactory == null) {
-            throw new NullPointerException("dataSource must be set");
+        if (connectionFactory == null && xaConnectionFactory == null) {
+            throw new NullPointerException("connectionFactory must be set");
         }
         if (managedConnectionFactory == null) {
             ExceptionSorter es = exceptionSorter != null ? exceptionSorter : new NoExceptionsAreFatalSorter();

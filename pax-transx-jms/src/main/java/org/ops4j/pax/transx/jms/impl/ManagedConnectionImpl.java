@@ -57,17 +57,18 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
             String userName = credentialExtractor.getUserName();
             String password = credentialExtractor.getPassword();
             if (userName != null && password != null) {
-                connection = mcf.getConnectionFactory().createConnection(userName, password);
-                xaConnection = xaSupport ? mcf.getXaConnectionFactory().createXAConnection(userName, password): null;
+                xaConnection = xaSupport ? mcf.getXaConnectionFactory().createXAConnection(userName, password) : null;
+                connection = xaSupport ? xaConnection : mcf.getConnectionFactory().createConnection(userName, password);
             } else {
-                connection = mcf.getConnectionFactory().createConnection();
                 xaConnection = xaSupport ? mcf.getXaConnectionFactory().createXAConnection() : null;
+                connection = xaSupport ? xaConnection : mcf.getConnectionFactory().createConnection();
             }
             connection.setExceptionListener(this::onException);
             session = connection.createSession(transacted, acknowledgeMode);
             if (xaSupport) {
                 xaConnection.setExceptionListener(this::onException);
                 xaSession = xaConnection.createXASession();
+
                 xaSessionSession = xaSession.getSession();
                 xaResource = xaSession.getXAResource();
             } else {

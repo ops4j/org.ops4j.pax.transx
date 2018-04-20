@@ -32,7 +32,10 @@ import javax.sql.CommonDataSource;
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ManagedDataSourceBuilder {
 
@@ -161,6 +164,95 @@ public class ManagedDataSourceBuilder {
     public ManagedDataSourceBuilder maxLifetime(long maxLifetime, TimeUnit unit) {
         builder.maxLifetime(unit.toMillis(maxLifetime));
         return this;
+    }
+
+    /**
+     * Configure with whitelisted set of properties
+     * @param properties
+     * @return
+     */
+    public ManagedDataSourceBuilder properties(Properties properties) {
+        configure(properties::get);
+        return this;
+    }
+
+    /**
+     * Configure with whitelisted set of properties
+     * @param properties
+     * @return
+     */
+    public ManagedDataSourceBuilder properties(Map<String, Object> properties) {
+        configure(properties::get);
+        return this;
+    }
+
+    /**
+     * Configuration using known properties
+     * @param property
+     */
+    private void configure(Function<String, Object> property) {
+        Object name = property.apply("name");
+        if (name != null) {
+            this.name(name.toString());
+        }
+        Object userName = property.apply("userName");
+        if (userName != null) {
+            this.userName(userName.toString());
+        }
+        Object password = property.apply("password");
+        if (password != null) {
+            this.password(password.toString());
+        }
+        Object commitBeforeAutocommit = property.apply("commitBeforeAutocommit");
+        if (commitBeforeAutocommit != null) {
+            this.commitBeforeAutocommit("true".equalsIgnoreCase(commitBeforeAutocommit.toString()));
+        }
+        Object preparedStatementCacheSize = property.apply("preparedStatementCacheSize");
+        if (preparedStatementCacheSize != null) {
+            this.preparedStatementCacheSize(toInt(preparedStatementCacheSize, "preparedStatementCacheSize"));
+        }
+        Object transactionIsolationLevel = property.apply("transactionIsolationLevel");
+        if (transactionIsolationLevel != null) {
+            this.transactionIsolationLevel(toInt(transactionIsolationLevel, "transactionIsolationLevel"));
+        }
+        // TODO: exception sorter
+//        Object exceptionSorter = property.apply("exceptionSorter");
+        Object minIdle = property.apply("minIdle");
+        if (minIdle != null) {
+            this.minIdle(toInt(minIdle, "minIdle"));
+        }
+        Object maxPoolSize = property.apply("maxPoolSize");
+        if (maxPoolSize != null) {
+            this.maxPoolSize(toInt(maxPoolSize, "maxPoolSize"));
+        }
+        Object aliveBypassWindow = property.apply("aliveBypassWindow");
+        if (aliveBypassWindow != null) {
+            this.aliveBypassWindow(toInt(aliveBypassWindow, "aliveBypassWindow"));
+        }
+        Object houseKeepingPeriod = property.apply("houseKeepingPeriod");
+        if (houseKeepingPeriod != null) {
+            this.houseKeepingPeriod(toInt(houseKeepingPeriod, "houseKeepingPeriod"));
+        }
+        Object connectionTimeout = property.apply("connectionTimeout");
+        if (connectionTimeout != null) {
+            this.connectionTimeout(toInt(connectionTimeout, "connectionTimeout"));
+        }
+        Object idleTimeout = property.apply("idleTimeout");
+        if (idleTimeout != null) {
+            this.idleTimeout(toInt(idleTimeout, "idleTimeout"));
+        }
+        Object maxLifetime = property.apply("maxLifetime");
+        if (maxLifetime != null) {
+            this.maxLifetime(toInt(maxLifetime, "maxLifetime"));
+        }
+    }
+
+    private int toInt(Object v, String property) {
+        try {
+            return Integer.parseInt(v.toString());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Can't parse property \"" + property + "\" as int");
+        }
     }
 
     public DataSource build() throws Exception {

@@ -39,7 +39,6 @@ public class ManagedConnectionFactoryImpl
     private String clientID;
 
     public ManagedConnectionFactoryImpl(ConnectionFactory connectionFactory, XAConnectionFactory xaConnectionFactory, ExceptionSorter exceptionSorter) {
-        assert connectionFactory != null;
         assert exceptionSorter != null;
         this.connectionFactory = connectionFactory;
         this.xaConnectionFactory = xaConnectionFactory;
