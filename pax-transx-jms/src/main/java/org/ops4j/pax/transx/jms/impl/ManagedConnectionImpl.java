@@ -96,7 +96,11 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
 
     private void onException(final JMSException exception) {
         safe(() -> connection.setExceptionListener(null), "Unable to unset exception listener");
-        safe(() -> { if (xaSupport) xaConnection.setExceptionListener(null);}, "Unable to unset exception listener");
+        safe(() -> {
+            if (xaSupport) {
+                xaConnection.setExceptionListener(null);
+            }
+        }, "Unable to unset exception listener");
         unfilteredConnectionError(exception);
     }
 
@@ -138,7 +142,11 @@ public class ManagedConnectionImpl extends AbstractManagedConnection<ManagedConn
         super.cleanup();
 
         safe(connection::stop, "Error stopping connection");
-        safe( () -> { if (xaSupport) xaConnection.stop();}, "Error stopping xaConnection");
+        safe(() -> {
+            if (xaSupport) {
+                xaConnection.stop();
+            }
+        }, "Error stopping xaConnection");
 
         inXaTransaction = false;
     }
