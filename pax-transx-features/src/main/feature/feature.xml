@@ -36,6 +36,14 @@
     </feature>
 
     <feature name="pax-transx-tm-geronimo" version="${project.version}">
+        <config name="org.ops4j.pax.transx.tm.geronimo">
+            org.apache.geronimo.tm.recoverable = true
+            org.apache.geronimo.tm.timeout = 600
+            org.apache.geronimo.tm.howl.logFileDir = ${karaf.data}/txlog
+            org.apache.geronimo.tm.howl.maxLogFiles = 2
+            org.apache.geronimo.tm.howl.maxBlocksPerFile = 512
+            org.apache.geronimo.tm.howl.bufferSize = 4
+        </config>
         <feature>pax-transx-tm-api</feature>
         <bundle>mvn:org.ops4j.pax.transx/pax-transx-tm-geronimo/${project.version}</bundle>
     </feature>
