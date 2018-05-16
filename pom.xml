@@ -106,6 +106,7 @@
         <module>pax-transx-jms</module>
         <module>pax-transx-jdbc</module>
         <module>pax-transx-features</module>
+        <module>pax-transx-itests-logback</module>
         <module>pax-transx-itests</module>
     </modules>
 
@@ -157,6 +158,11 @@
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
                 <artifactId>pax-transx-jms</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.transx</groupId>
+                <artifactId>pax-transx-itests-logback</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

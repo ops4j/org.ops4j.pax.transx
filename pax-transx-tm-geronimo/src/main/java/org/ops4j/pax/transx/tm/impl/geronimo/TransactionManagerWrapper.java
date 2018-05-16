@@ -48,7 +48,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     @Override
     public void registerResource(ResourceFactory resource) {
         tm.registerNamedXAResourceFactory(new NamedXAResourceFactory() {
-            private Map<NamedXAResource, NamedResource> resources = new IdentityHashMap<>();
+            private final Map<NamedXAResource, NamedResource> resources = new IdentityHashMap<>();
 
             @Override
             public String getName() {
@@ -95,6 +95,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     class GeronimoTransactionWrapper extends TransactionWrapper {
 
         LastResource last;
+        private final Map<NamedResource, NamedXAResource> resources = new IdentityHashMap<>();
 
         GeronimoTransactionWrapper(javax.transaction.Transaction transaction) {
             super(transaction);
@@ -124,13 +125,18 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
                 }
                 last = (LastResource) xares;
             } else {
-                super.enlistResource(xares);
+                NamedXAResource nxares = new WrapperNamedXAResource(xares, xares.getName());
+                resources.put(xares, nxares);
+                ensureAssociated();
+                getTransaction().enlistResource(nxares);
             }
         }
 
         @Override
         public void delistResource(NamedResource xares, int flags) throws Exception {
-            super.delistResource(xares, flags);
+            NamedXAResource nxares = resources.remove(xares);
+            ensureAssociated();
+            getTransaction().delistResource(nxares, flags);
         }
     }
 

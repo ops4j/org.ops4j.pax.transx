@@ -71,6 +71,11 @@
             <artifactId>pax-transx-tm-atomikos</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.transx</groupId>
+            <artifactId>pax-transx-itests-logback</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Test dependencies -->
 

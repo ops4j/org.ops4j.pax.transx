@@ -50,6 +50,7 @@ public class GeronimoTest {
 
         assertTrue(tm.isLastResourceCommitSupported());
 
+        when(xares2.getName()).thenReturn("xares2");
         when(xares2.prepare(any(Xid.class))).thenThrow(new XAException());
 
         tm.begin();
