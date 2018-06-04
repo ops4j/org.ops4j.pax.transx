@@ -27,13 +27,14 @@ import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.xa.XAResource;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<TransactionManager> {
 
-    Map<String, ResourceFactory> resources = new HashMap<>();
-    Map<ResourceFactory, XATransactionalResource> recoverables = new HashMap<>();
+    Map<String, ResourceFactory> resources = Collections.synchronizedMap(new HashMap<>());
+    Map<ResourceFactory, XATransactionalResource> recoverables = Collections.synchronizedMap(new HashMap<>());
 
     public TransactionManagerWrapper() {
         this(initTransactionManager());
