@@ -36,9 +36,12 @@
     </encoder>
   </appender>
   
+  <appender name="ASSERT" class="org.ops4j.pax.transx.itests.logback.AssertionAppender"/>
+  
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="TEST_LOG"/>
+    <appender-ref ref="ASSERT"/>
   </root>
   <logger name="org.ops4j.pax.exam" level="INFO"/> 
   

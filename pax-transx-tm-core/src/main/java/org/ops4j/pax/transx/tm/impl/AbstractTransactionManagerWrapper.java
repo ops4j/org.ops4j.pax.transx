@@ -184,7 +184,7 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
             }
         }
 
-        private void ensureAssociated() {
+        protected void ensureAssociated() {
             if (suspended) {
                 throw new IllegalStateException("Transaction is suspended");
             }

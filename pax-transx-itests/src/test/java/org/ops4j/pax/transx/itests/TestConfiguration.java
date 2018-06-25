@@ -58,8 +58,7 @@ public class TestConfiguration {
                 composite(options.toArray(new Option[options.size()])),
                 // Logging
                 mvnBundle("org.slf4j", "slf4j-api"),
-                mvnBundle("ch.qos.logback", "logback-core"),
-                mvnBundle("ch.qos.logback", "logback-classic"),
+                mvnBundle("org.ops4j.pax.transx", "pax-transx-itests-logback"),
                 mvnBundle("org.jboss.logging", "jboss-logging"),
                 // Set logback configuration via system property.
                 // This way, both the driver and the container use the same configuration

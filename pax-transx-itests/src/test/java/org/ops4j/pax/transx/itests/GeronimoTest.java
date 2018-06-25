@@ -27,6 +27,7 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.util.Filter;
+import org.ops4j.pax.transx.itests.logback.AssertionAppender;
 import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
@@ -34,6 +35,8 @@ import org.osgi.service.jdbc.DataSourceFactory;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
+
+import java.sql.Connection;
 import java.util.Properties;
 
 import static org.ops4j.pax.exam.CoreOptions.options;
@@ -52,6 +55,9 @@ public class GeronimoTest {
 
     @Inject
     private TransactionManager tm;
+
+    @Inject
+    private javax.transaction.TransactionManager tmgr;
 
     @Configuration
     public Option[] config() throws Exception {
@@ -85,4 +91,44 @@ public class GeronimoTest {
         Assert.assertNotNull(ds);
     }
 
+    @Test
+    public void roundtripWith2Resources() throws Exception {
+        AssertionAppender.startCapture();
+
+        Properties jdbc = new Properties();
+        jdbc.setProperty("url", "jdbc:h2:mem:test");
+        jdbc.setProperty("user", "sa");
+        jdbc.setProperty("password", "");
+
+        XADataSource xaDs1 = dsf.createXADataSource(jdbc);
+
+        DataSource ds1 = ManagedDataSourceBuilder.builder()
+                .dataSource(xaDs1)
+                .transactionManager(tm)
+                .name("h2")
+                .build();
+        Assert.assertNotNull(ds1);
+
+        XADataSource xaDs2 = dsf.createXADataSource(jdbc);
+
+        DataSource ds2 = ManagedDataSourceBuilder.builder()
+                .dataSource(xaDs2)
+                .transactionManager(tm)
+                .name("h2")
+                .build();
+        Assert.assertNotNull(ds2);
+
+        tmgr.begin();
+        try (Connection conn1 = ds1.getConnection();
+                Connection conn2 = ds2.getConnection()) {
+        }
+        tmgr.commit();
+
+        Assert.assertFalse(AssertionAppender.findText(
+                "Please correct the integration and supply a NamedXAResource",
+                "Cannot log transactions ",
+                " is not a NamedXAResource."));
+
+        AssertionAppender.stopCapture();
+    }
 }
