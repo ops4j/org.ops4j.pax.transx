@@ -69,7 +69,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * </ul>
  * <p>Both pax-transx-jms and pax-transx-jdbc create an instance of this class.
  */
-public class GenericConnectionManager implements ConnectionManager, AutoCloseable {
+public class GenericConnectionManager implements PoolConfigMXBean, ConnectionManager, AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(GenericConnectionManager.class.getName());
 
@@ -88,18 +88,19 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
     private volatile boolean destroyed = false;
 
-    private String poolName;
-    private int maxPoolSize;
-    private int minIdle;
-    private long aliveBypassWindow;
-    private long houseKeepingPeriod;
-    private long connectionTimeout;
-    private long idleTimeout;
-    private long maxLifetime;
+    private final String mbeanName;
+    private final String poolName;
+    private final int maxPoolSize;
+    private final int minIdle;
+    private final long aliveBypassWindow;
+    private final long houseKeepingPeriod;
+    private final long connectionTimeout;
+    private final long idleTimeout;
+    private final long maxLifetime;
 
     private final ThreadPoolExecutor addConnectionExecutor;
     private final ThreadPoolExecutor closeConnectionExecutor;
-    private ScheduledExecutorService houseKeepingExecutorService;
+    private final ScheduledExecutorService houseKeepingExecutorService;
 
     private ScheduledFuture<?> houseKeeperTask;
 
@@ -150,6 +151,44 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
         if (transactionManager != null && name != null) {
             transactionManager.registerResource(new RecoverableResourceFactoryImpl(managedConnectionFactory, name));
         }
+
+        this.mbeanName = "org.ops4j.pax.transx:type=Pool,name=" + poolName;
+        MBeanHandler.registerMBean(this, mbeanName);
+    }
+
+    @Override
+    public int getMinIdle() {
+        return minIdle;
+    }
+
+    @Override
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    @Override
+    public long getConnectionTimeout() {
+        return connectionTimeout;
+    }
+
+    @Override
+    public long getIdleTimeout() {
+        return idleTimeout;
+    }
+
+    @Override
+    public long getMaxLifetime() {
+        return maxLifetime;
+    }
+
+    @Override
+    public long getAliveBypassWindow() {
+        return aliveBypassWindow;
+    }
+
+    @Override
+    public long getHouseKeepingPeriod() {
+        return houseKeepingPeriod;
     }
 
     private void houseKeep() {
@@ -160,6 +199,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
      * in: jms != null, is a deployed jms
      * out: useable connection object.
      */
+    @Override
     public Object allocateConnection(ManagedConnectionFactory managedConnectionFactory,
                                      ConnectionRequestInfo connectionRequestInfo) throws ResourceException {
         assert managedConnectionFactory == this.managedConnectionFactory;
@@ -265,7 +305,9 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
         return true;
     }
 
+    @Override
     public void close() throws Exception {
+        MBeanHandler.unregisterMBean(mbeanName);
         destroyed = true;
         if (houseKeeperTask != null) {
             houseKeeperTask.cancel(false);
@@ -309,8 +351,9 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
         }
     }
 
-    final class Pool {
+    final class Pool implements PoolMXBean {
 
+        private final String mbeanName;
         private final SubjectCRIKey key;
         private final ConcurrentBag<ManagedConnectionInfo> bag;
         private volatile long previous = plusMillis(currentTime(), -houseKeepingPeriod);
@@ -318,6 +361,23 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
         Pool(SubjectCRIKey key) {
             this.key = key;
             this.bag = new ConcurrentBag<>(this::addNewConnection);
+            this.mbeanName = "org.ops4j.pax.transx:type=Pool,name=" + poolName + ",subpool=" + key;
+            MBeanHandler.registerMBean(this, mbeanName);
+        }
+
+        @Override
+        public int getIdleConnections() {
+            return bag.getCount(STATE_NOT_IN_USE);
+        }
+
+        @Override
+        public int getActiveConnections() {
+            return bag.getCount(STATE_IN_USE);
+        }
+
+        @Override
+        public int getTotalConnections() {
+            return bag.size();
         }
 
         private Future<Boolean> addNewConnection(int waiting) {
@@ -502,6 +562,7 @@ public class GenericConnectionManager implements ConnectionManager, AutoCloseabl
 
         void close() {
             logPoolState("Before shutdown ");
+            MBeanHandler.unregisterMBean(mbeanName);
             bag.close();
             bag.values().forEach(mci -> closeConnection(mci, "pool destroyed"));
         }
