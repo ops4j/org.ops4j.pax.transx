@@ -28,13 +28,14 @@ import org.ops4j.pax.transx.tm.ResourceFactory;
 import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
 
 import javax.transaction.SystemException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<GeronimoTransactionManager> {
 
-    protected final Map<String, ResourceFactory> resources = new HashMap<>();
+    protected final Map<String, ResourceFactory> resources = Collections.synchronizedMap(new HashMap<>());
 
     public TransactionManagerWrapper(GeronimoTransactionManager geronimoTransactionManager) {
         super(geronimoTransactionManager);
