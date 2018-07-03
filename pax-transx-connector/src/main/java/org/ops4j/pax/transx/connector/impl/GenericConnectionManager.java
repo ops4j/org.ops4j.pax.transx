@@ -340,6 +340,10 @@ public class GenericConnectionManager implements PoolConfigMXBean, ConnectionMan
 
         closeConnectionExecutor.shutdown();
         closeConnectionExecutor.awaitTermination(5L, SECONDS);
+
+        if (transactionManager != null && name != null) {
+            transactionManager.unregisterResource(name);
+        }
     }
 
     private void quietlyCloseConnection(final ManagedConnectionInfo connection, final String closureReason) {
