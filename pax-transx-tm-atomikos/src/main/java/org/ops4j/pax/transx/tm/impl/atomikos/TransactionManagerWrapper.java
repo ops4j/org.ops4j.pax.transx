@@ -27,14 +27,13 @@ import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
 
 import javax.transaction.TransactionManager;
 import javax.transaction.xa.XAResource;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<TransactionManager> {
 
-    Map<String, ResourceFactory> resources = Collections.synchronizedMap(new HashMap<>());
-    Map<ResourceFactory, XATransactionalResource> recoverables = Collections.synchronizedMap(new HashMap<>());
+    Map<String, ResourceFactory> resources = new HashMap<>();
+    Map<ResourceFactory, XATransactionalResource> recoverables = new HashMap<>();
 
     public TransactionManagerWrapper() {
         this(initTransactionManager());
@@ -55,7 +54,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     }
 
     @Override
-    public void registerResource(ResourceFactory resource) {
+    public synchronized void registerResource(ResourceFactory resource) {
         XATransactionalResource xatr = new XATransactionalResource(resource.getName()) {
             @Override
             protected XAResource refreshXAConnection() throws ResourceException {
@@ -68,14 +67,14 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     }
 
     @Override
-    public void unregisterResource(String name) {
+    public synchronized void unregisterResource(String name) {
         ResourceFactory resource = resources.remove(name);
         XATransactionalResource xatr = resource != null ? recoverables.remove(resource) : null;
         Configuration.removeResource(name);
     }
 
     @Override
-    public ResourceFactory getResource(String name) {
+    public synchronized ResourceFactory getResource(String name) {
         return resources.get(name);
     }
 
