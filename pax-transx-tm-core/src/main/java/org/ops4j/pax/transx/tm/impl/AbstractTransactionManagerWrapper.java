@@ -26,7 +26,6 @@ import org.ops4j.pax.transx.tm.TransactionManager;
 import javax.transaction.RollbackException;
 import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
@@ -35,7 +34,7 @@ import java.util.function.Consumer;
 public abstract class AbstractTransactionManagerWrapper<TM extends javax.transaction.TransactionManager> implements TransactionManager {
 
     protected final TM tm;
-    protected final Map<javax.transaction.Transaction, TransactionWrapper> transactions = Collections.synchronizedMap(new WeakHashMap<>());
+    protected final Map<javax.transaction.Transaction, TransactionWrapper> transactions = new WeakHashMap<>();
 
     public AbstractTransactionManagerWrapper(TM tm) {
         this.tm = tm;
@@ -48,7 +47,9 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
             if (jtx == null) {
                 return null;
             }
-            return transactions.computeIfAbsent(jtx, this::doCreateTransactionWrapper);
+            synchronized(transactions) {
+                return transactions.computeIfAbsent(jtx, this::doCreateTransactionWrapper);
+            }
         } catch (SystemException e) {
             throw new RuntimeException("Unable to get transaction", e);
         }

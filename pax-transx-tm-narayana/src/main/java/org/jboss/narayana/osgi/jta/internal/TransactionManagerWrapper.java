@@ -30,15 +30,14 @@ import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
 import java.lang.reflect.Proxy;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<TransactionManager> {
 
     final RecoveryManagerService recoveryManagerService;
-    final Map<String, ResourceFactory> resources = Collections.synchronizedMap(new HashMap<>());
-    final Map<ResourceFactory, XAResourceRecovery> recoverables = Collections.synchronizedMap(new HashMap<>());
+    final Map<String, ResourceFactory> resources = new HashMap<>();
+    final Map<ResourceFactory, XAResourceRecovery> recoverables = new HashMap<>();
 
     public TransactionManagerWrapper(TransactionManager narayanaTransactionManager) {
         super(narayanaTransactionManager);
@@ -53,7 +52,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     }
 
     @Override
-    public void registerResource(ResourceFactory resource) {
+    public synchronized void registerResource(ResourceFactory resource) {
         XAResourceRecovery rr = () -> new XAResource[] {
                 new XAResource() {
                     NamedResource xares = resource.create();
@@ -110,7 +109,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     }
 
     @Override
-    public void unregisterResource(String name) {
+    public synchronized void unregisterResource(String name) {
         ResourceFactory resource = resources.remove(name);
         XAResourceRecovery rr = resource != null ? recoverables.remove(resource) : null;
         if (rr != null) {
@@ -119,7 +118,7 @@ public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper
     }
 
     @Override
-    public ResourceFactory getResource(String name) {
+    public synchronized ResourceFactory getResource(String name) {
         return resources.get(name);
     }
 
