@@ -41,6 +41,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
 import java.sql.Statement;
 import java.util.Objects;
 
@@ -310,6 +311,17 @@ public class HsqlTest {
         doBenchPs(0);
         System.err.println("PS cache");
         doBenchPs(10);
+    }
+
+    @Test
+    public void testMissingTable() throws Exception {
+        DataSource ds = wrap(createHsqlDataSource());
+        try (Connection con = ds.getConnection()) {
+            try (Statement st = con.createStatement()) {
+                st.execute("select * from x");
+            } catch (SQLSyntaxErrorException expected) {
+            }
+        }
     }
 
     protected void doBenchPs(int psCacheSize) throws Exception {

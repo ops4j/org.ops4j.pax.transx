@@ -75,7 +75,11 @@ final class Wrappers {
                 if (t instanceof Exception) {
                     c.connectionError((Exception) t);
                 }
-                throw e;
+                if (t != null) {
+                    throw t;
+                } else {
+                    throw new IllegalStateException("InvocationTargetException without a cause", e);
+                }
             }
         };
         return Proxy.newProxyInstance(h.getClass().getClassLoader(), new Class[] { clazz }, ih);
