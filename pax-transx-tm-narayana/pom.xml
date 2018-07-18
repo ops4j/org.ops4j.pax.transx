@@ -167,7 +167,7 @@
                             javax.xml.parsers,
                             org.xml.sax,
                             org.xml.sax.helpers,
-                            org.springframework.*;version="[2.5,5)";resolution:=optional,
+                            org.springframework.*;version="[2.5,6)";resolution:=optional,
                             org.apache.karaf.shell.*;resolution:=optional,
                             *
                         </Import-Package>
