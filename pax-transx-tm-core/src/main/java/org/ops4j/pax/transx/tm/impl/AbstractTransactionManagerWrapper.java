@@ -26,6 +26,7 @@ import org.ops4j.pax.transx.tm.TransactionManager;
 import javax.transaction.RollbackException;
 import javax.transaction.Synchronization;
 import javax.transaction.SystemException;
+import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
@@ -74,18 +75,19 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
 
     protected class TransactionWrapper implements Transaction {
 
-        final javax.transaction.Transaction transaction;
+        final WeakReference<javax.transaction.Transaction> transactionWr;
         boolean suspended;
 
         public TransactionWrapper(javax.transaction.Transaction transaction) {
-            this.transaction = Objects.requireNonNull(transaction, "transaction should not be null");
+            this.transactionWr = new WeakReference<>(Objects.requireNonNull(transaction, "transaction should not be null"));
             if (isActive()) {
                 synchronization(null, st -> disassociate());
             }
         }
 
         protected javax.transaction.Transaction getTransaction() throws SystemException {
-            return transaction;
+            //should not return null for active transaction. May be check for null and throw IllegalStateException?
+            return transactionWr.get();
         }
 
         @Override
@@ -96,7 +98,7 @@ public abstract class AbstractTransactionManagerWrapper<TM extends javax.transac
         @Override
         public void suspend() throws Exception {
             javax.transaction.Transaction tx = tm.suspend();
-            if (tx != transaction) {
+            if (tx != getTransaction()) {
                 throw new IllegalStateException();
             }
             disassociate();
