@@ -32,6 +32,7 @@ import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
 
 import javax.inject.Inject;
+import javax.resource.spi.TransactionSupport;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
 import java.util.Properties;
@@ -72,6 +73,25 @@ public class NarayanaTest {
     }
 
     @Test
+    public void createLocaTxJdbcResource() throws Exception {
+        Properties jdbc = new Properties();
+        jdbc.setProperty("url", "jdbc:h2:mem:test");
+        jdbc.setProperty("user", "sa");
+        jdbc.setProperty("password", "");
+        DataSource localTxDs = dsf.createDataSource(jdbc);
+
+        DataSource ds = ManagedDataSourceBuilder.builder()
+                .dataSource(localTxDs)
+                .transactionManager(tm)
+                .transaction(TransactionSupport.TransactionSupportLevel.LocalTransaction)
+                .name("h2")
+                .build();
+        Assert.assertNotNull(ds);
+
+        AutoCloseable.class.cast(ds).close();
+    }
+
+    @Test
     public void createJdbcResource() throws Exception {
         Properties jdbc = new Properties();
         jdbc.setProperty("url", "jdbc:h2:mem:test");
@@ -85,6 +105,7 @@ public class NarayanaTest {
                 .name("h2")
                 .build();
         Assert.assertNotNull(ds);
-    }
 
+        AutoCloseable.class.cast(ds).close();
+    }
 }

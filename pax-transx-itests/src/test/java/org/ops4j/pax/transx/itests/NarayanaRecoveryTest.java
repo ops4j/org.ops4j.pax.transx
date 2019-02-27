@@ -100,6 +100,7 @@ public class NarayanaRecoveryTest {
                 .build();
         assertNotNull(ds);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
 
+        AutoCloseable.class.cast(ds).close();
+    }
 }

@@ -33,6 +33,7 @@ import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
 
 import javax.inject.Inject;
+import javax.resource.spi.TransactionSupport;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
 
@@ -76,6 +77,25 @@ public class GeronimoTest {
     }
 
     @Test
+    public void createLocaTxJdbcResource() throws Exception {
+        Properties jdbc = new Properties();
+        jdbc.setProperty("url", "jdbc:h2:mem:test");
+        jdbc.setProperty("user", "sa");
+        jdbc.setProperty("password", "");
+        DataSource localTxDs = dsf.createDataSource(jdbc);
+
+        DataSource ds = ManagedDataSourceBuilder.builder()
+                .dataSource(localTxDs)
+                .transactionManager(tm)
+                .transaction(TransactionSupport.TransactionSupportLevel.LocalTransaction)
+                .name("h2")
+                .build();
+        Assert.assertNotNull(ds);
+
+        AutoCloseable.class.cast(ds).close();
+    }
+
+    @Test
     public void createJdbcResource() throws Exception {
         Properties jdbc = new Properties();
         jdbc.setProperty("url", "jdbc:h2:mem:test");
@@ -89,6 +109,33 @@ public class GeronimoTest {
                 .name("h2")
                 .build();
         Assert.assertNotNull(ds);
+
+        AutoCloseable.class.cast(ds).close();
+    }
+
+    @Test
+    public void roundtripWithSingleResource() throws Exception {
+        Properties jdbc = new Properties();
+        jdbc.setProperty("url", "jdbc:h2:mem:test");
+        jdbc.setProperty("user", "sa");
+        jdbc.setProperty("password", "");
+
+        DataSource localTxDs = dsf.createDataSource(jdbc);
+
+        DataSource ds = ManagedDataSourceBuilder.builder()
+                .dataSource(localTxDs)
+                .transactionManager(tm)
+                .transaction(TransactionSupport.TransactionSupportLevel.LocalTransaction)
+                .name("h2")
+                .build();
+        Assert.assertNotNull(ds);
+
+        tmgr.begin();
+        try (Connection conn = ds.getConnection()) {
+        }
+        tmgr.commit();
+
+        AutoCloseable.class.cast(ds).close();
     }
 
     @Test
@@ -128,6 +175,9 @@ public class GeronimoTest {
                 "Please correct the integration and supply a NamedXAResource",
                 "Cannot log transactions ",
                 " is not a NamedXAResource."));
+
+        AutoCloseable.class.cast(ds1).close();
+        AutoCloseable.class.cast(ds2).close();
 
         AssertionAppender.stopCapture();
     }

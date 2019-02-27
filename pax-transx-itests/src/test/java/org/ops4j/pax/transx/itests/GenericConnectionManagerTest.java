@@ -58,7 +58,7 @@ public class GenericConnectionManagerTest {
         try (Connection conn = ds.getConnection()) {
             ObjectName queryConfig = new ObjectName("org.ops4j.pax.transx:type=Pool,*");
             Set<ObjectName> queryResult = mBeanServer.queryNames(queryConfig, null);
-            Assert.assertEquals(4, queryResult.size());
+            Assert.assertEquals(2, queryResult.size());
             for (ObjectName on : queryResult) {
                 if (mBeanServer.isInstanceOf(on, PoolConfigMXBean.class.getName())) {
                     Assert.assertEquals(Integer.valueOf(10), (Integer) mBeanServer.getAttribute(on, "MinIdle"));

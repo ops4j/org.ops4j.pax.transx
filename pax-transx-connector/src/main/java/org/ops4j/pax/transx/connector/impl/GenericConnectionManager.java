@@ -148,7 +148,7 @@ public class GenericConnectionManager implements PoolConfigMXBean, ConnectionMan
 
         this.houseKeeperTask = this.houseKeepingExecutorService.scheduleWithFixedDelay(this::houseKeep, 100L, this.houseKeepingPeriod, MILLISECONDS);
 
-        if (transactionManager != null && name != null) {
+        if (transactionManager != null && name != null && transactionSupportLevel == TransactionSupportLevel.XATransaction) {
             transactionManager.registerResource(new RecoverableResourceFactoryImpl(managedConnectionFactory, name));
         }
 
