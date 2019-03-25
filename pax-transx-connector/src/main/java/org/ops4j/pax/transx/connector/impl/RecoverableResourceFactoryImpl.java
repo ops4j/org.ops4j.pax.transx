@@ -47,7 +47,7 @@ public class RecoverableResourceFactoryImpl implements ResourceFactory {
             NamedResource xares = new WrapperNamedXAResource(mc.getXAResource(), name);
             return new NamedXAResourceWithConnection(mc, xares);
         } catch (ResourceException e) {
-            throw new RuntimeException("Could not get XAResource for recovery for jms: " + name, e);
+            throw new RuntimeException("Could not get XAResource for recovery for: " + name, e);
         }
     }
 
