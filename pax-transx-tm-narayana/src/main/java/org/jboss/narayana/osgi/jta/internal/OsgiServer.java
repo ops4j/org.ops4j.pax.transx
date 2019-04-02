@@ -40,6 +40,7 @@ import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 import javax.transaction.UserTransaction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -79,7 +80,11 @@ public class OsgiServer implements ServiceTrackerCustomizer<XAResourceRecovery, 
             for (Enumeration<String> keyEnum = configuration.keys(); keyEnum.hasMoreElements(); ) {
                 String key = keyEnum.nextElement();
                 String val = configuration.get(key).toString();
-                properties.put(key, val);
+                if (val.indexOf(',') > 0) {
+                    properties.put(key, Arrays.asList(val.split(",")));
+                } else {
+                    properties.put(key, val);
+                }
             }
         }
 
