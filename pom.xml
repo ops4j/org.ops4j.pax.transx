@@ -69,7 +69,7 @@
         <jboss.narayana.version>5.9.5.Final</jboss.narayana.version>
         <jboss.transaction.version>7.6.0.Final</jboss.transaction.version>
         <jmh.version>1.17.2</jmh.version>
-        <karaf.version>4.1.1</karaf.version>
+        <karaf.version>4.2.5</karaf.version>
         <pax.exam.version>4.11.0</pax.exam.version>
         <pax.url.version>2.6.1</pax.url.version>
         <spring.version>5.0.7.RELEASE</spring.version>
