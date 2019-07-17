@@ -95,6 +95,7 @@
     </scm>
 
     <modules>
+        <module>pax-transx-report</module>
         <module>pax-transx-checkstyle-rules</module>
         <module>pax-transx-tm-api</module>
         <module>pax-transx-tm-core</module>
