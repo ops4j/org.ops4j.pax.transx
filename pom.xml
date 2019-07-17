@@ -66,7 +66,7 @@
         <javax.jms.version>2.0.1</javax.jms.version>
         <javax.transaction-api.version>1.2</javax.transaction-api.version>
         <jboss.logging.version>3.3.0.Final</jboss.logging.version>
-        <jboss.narayana.version>5.8.2.Final</jboss.narayana.version>
+        <jboss.narayana.version>5.9.5.Final</jboss.narayana.version>
         <jboss.transaction.version>7.6.0.Final</jboss.transaction.version>
         <jmh.version>1.17.2</jmh.version>
         <karaf.version>4.1.1</karaf.version>
