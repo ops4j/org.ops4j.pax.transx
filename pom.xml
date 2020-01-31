@@ -43,7 +43,7 @@
         <!-- versions of Maven plugins -->
 
         <version.plugin.maven-checkstyle-plugin>3.0.0</version.plugin.maven-checkstyle-plugin>
-        <version.com.puppycrawl.tools.checkstyle>8.9</version.com.puppycrawl.tools.checkstyle>
+        <version.com.puppycrawl.tools.checkstyle>8.29</version.com.puppycrawl.tools.checkstyle>
         <version.plugin.maven-compiler-plugin>3.7.0</version.plugin.maven-compiler-plugin>
         <version.plugin.maven-surefire-plugin>2.21.0</version.plugin.maven-surefire-plugin>
         <version.plugin.felix.maven-bundle-plugin>3.5.0</version.plugin.felix.maven-bundle-plugin>
