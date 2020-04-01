@@ -1,7 +1,7 @@
 Pax TransX
 ==========
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ops4j.pax/transx/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ops4j.pax/transx)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.ops4j.pax.transx/pax-transx/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.ops4j.pax.transx/pax-transx)
 [![License](https://img.shields.io/hexpm/l/plug.svg)](https://ops4j1.jira.com/wiki/display/ops4j/Licensing)
 
 Pax TransX aims at providing support for JTA/JTS transaction management in OSGi, along with resource pooling for JDBC and JMS.
