@@ -158,8 +158,8 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            org.jboss.narayana.osgi,
-                            org.jboss.tm.*
+                            org.jboss.narayana.osgi;-split-package:=merge-first,
+                            org.jboss.tm.*;-split-package:=merge-first
                         </Export-Package>
                         <Import-Package>
                             !com.arjuna.*,
@@ -172,9 +172,8 @@
                             *
                         </Import-Package>
                         <Private-Package>
-                            org.jboss.narayana.osgi.*,
-                            org.ops4j.pax.transx.tm.impl,
-                            org.ops4j.pax.transx.tm.impl.narayana
+                            org.jboss.narayana.osgi.*;-split-package:=merge-first,
+                            org.ops4j.pax.transx.tm.impl;-split-package:=merge-first
                         </Private-Package>
                         <Bundle-Activator>
                             org.jboss.narayana.osgi.jta.internal.Activator

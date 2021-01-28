@@ -149,8 +149,7 @@
                         </Import-Package>
                         <Private-Package>
                             org.ops4j.pax.transx.connection.utils,
-                            org.ops4j.pax.transx.jdbc.impl,
-                            org.ops4j.pax.transx.jdbc.utils
+                            org.ops4j.pax.transx.jdbc.impl
                         </Private-Package>
                     </instructions>
                 </configuration>

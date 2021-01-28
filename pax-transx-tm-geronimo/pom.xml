@@ -121,7 +121,7 @@
                             org.ops4j.pax.transx.tm.impl.geronimo,
                             org.apache.aries.transaction.internal,
                             org.apache.aries.util.nls,
-                            org.apache.geronimo.transaction.*,
+                            org.apache.geronimo.transaction.*;-split-package:=merge-first,
                             org.objectweb.howl.log.*
                         </Private-Package>
                         <Bundle-Activator>

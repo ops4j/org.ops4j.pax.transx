@@ -54,10 +54,25 @@
                 <configuration>
                     <instructions>
                         <_exportcontents>
-                            ch.qos.logback.core;
-                            ch.qos.logback.core.spi;
-                            ch.qos.logback.classic;
-                            ch.qos.logback.classic.spi;version=${logback.version}
+                            ch.qos.logback.core,
+                            ch.qos.logback.core.boolex,
+                            ch.qos.logback.core.encoder,
+                            ch.qos.logback.core.filter,
+                            ch.qos.logback.core.helpers,
+                            ch.qos.logback.core.joran.action,
+                            ch.qos.logback.core.joran.event,
+                            ch.qos.logback.core.joran.spi,
+                            ch.qos.logback.core.joran.util,
+                            ch.qos.logback.core.joran.util.beans,
+                            ch.qos.logback.core.pattern,
+                            ch.qos.logback.core.rolling,
+                            ch.qos.logback.core.rolling.helper,
+                            ch.qos.logback.core.status,
+                            ch.qos.logback.core.util,
+                            ch.qos.logback.core.spi,
+                            ch.qos.logback.classic,
+                            ch.qos.logback.classic.spi;version=${logback.version},
+                            ch.qos.logback.classic.turbo,
                         </_exportcontents>
                         <Export-Package>
                             org.slf4j.impl;version=${slf4j.version},

@@ -142,11 +142,11 @@
                         <Private-Package>
                             !com.atomikos.jdbc.*,
                             !com.atomikos.jms.*,
-                            com.atomikos.*,
+                            com.atomikos.*;-split-package:=merge-first,
                             org.ops4j.pax.transx.tm.impl,
                             org.ops4j.pax.transx.tm.impl.atomikos,
                             slf4j.org.slf4j.impl,
-                            META-INF.services
+                            META-INF.services;-split-package:=merge-first
                         </Private-Package>
                         <Bundle-Activator>
                             org.ops4j.pax.transx.tm.impl.atomikos.Activator
