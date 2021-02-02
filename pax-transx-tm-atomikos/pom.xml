@@ -32,22 +32,23 @@
 
     <dependencies>
 
-        <!-- OSGi -->
-
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-
         <!-- pax-transx own artifacts -->
 
         <dependency>
             <groupId>org.ops4j.pax.transx</groupId>
             <artifactId>pax-transx-tm-core</artifactId>
+        </dependency>
+
+        <!-- OSGi -->
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.cmpn</artifactId>
             <scope>provided</scope>
         </dependency>
 

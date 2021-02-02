@@ -61,8 +61,8 @@ public class TransactionManagerService {
     @SuppressWarnings("rawtypes")
     private final Dictionary properties;
     private final BundleContext bundleContext;
-    private UserTransactionService uts;
-    private TransactionManagerImp tm;
+    private final UserTransactionService uts;
+    private final TransactionManagerImp tm;
     private List<ServiceRegistration<?>> services;
 
     public TransactionManagerService(String pid, Dictionary<String, ?> properties, BundleContext bundleContext) throws ConfigurationException {
@@ -92,7 +92,7 @@ public class TransactionManagerService {
     }
 
     public void destroy() throws Exception {
-        for (ServiceRegistration sr : services) {
+        for (ServiceRegistration<?> sr : services) {
             try {
                 sr.unregister();
             } catch (IllegalStateException e) {

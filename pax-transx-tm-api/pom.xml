@@ -35,73 +35,8 @@
         <!-- APIs -->
 
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
-        </dependency>
-
-        <!-- Apache components -->
-
-        <dependency>
-            <groupId>org.apache.geronimo.components</groupId>
-            <artifactId>geronimo-transaction</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!--JBoss components -->
-
-        <dependency>
-            <groupId>org.jboss.narayana.jta</groupId>
-            <artifactId>narayana-jta</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.narayana.osgi</groupId>
-            <artifactId>narayana-osgi-jta</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.narayana.jts</groupId>
-            <artifactId>narayana-jts-integration</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.narayana.arjunacore</groupId>
-            <artifactId>arjuna</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Atomikos -->
-
-        <dependency>
-            <groupId>com.atomikos</groupId>
-            <artifactId>transactions-jta</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.atomikos</groupId>
-            <artifactId>transactions-osgi</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Test dependencies -->
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- Logging dependencies -->
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <scope>test</scope>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
         </dependency>
 
     </dependencies>
@@ -111,10 +46,22 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
                 <configuration>
                     <instructions>
+                        <Import-Package>
+                            <!--
+                                Important note about javax.transaction[.xa] packages:
+                                 - javax.transaction.xa is part of JTA API only up to version 1.2
+                                 - it was removed in JTA API 1.3, because since then, it is provided by JDK itself
+                                 - JDK since version 9 (or definitely since the version where Corba support was removed)
+                                   doesn't provide javax.transaction package at all - this *has to* be provided by
+                                   external library/bundle
+                            -->
+                            javax.transaction.xa;version="[1.1,2)"
+                        </Import-Package>
                         <Export-Package>
-                            org.ops4j.pax.transx.tm;-noimport:=true
+                            org.ops4j.pax.transx.tm;uses:="javax.transaction.xa"
                         </Export-Package>
                     </instructions>
                 </configuration>

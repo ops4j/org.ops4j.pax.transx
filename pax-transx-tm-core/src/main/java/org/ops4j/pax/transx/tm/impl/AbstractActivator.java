@@ -38,13 +38,13 @@ public abstract class AbstractActivator implements BundleActivator {
 
     private BundleContext bundleContext;
 
-    private ExecutorService executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
+    private final ExecutorService executor = new ThreadPoolExecutor(0, 1, 0L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(), ThreadUtils.namedThreadFactory("paxtransx-config"));
-    private AtomicBoolean scheduled = new AtomicBoolean();
+    private final AtomicBoolean scheduled = new AtomicBoolean();
 
-    private long schedulerStopTimeout = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
+    private final long schedulerStopTimeout = TimeUnit.MILLISECONDS.convert(30, TimeUnit.SECONDS);
 
-    private ServiceRegistration managedServiceRegistration;
+    private ServiceRegistration<ManagedService> managedServiceRegistration;
     private Dictionary<String, ?> configuration;
 
     @Override
