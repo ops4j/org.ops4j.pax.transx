@@ -80,7 +80,12 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -88,31 +93,6 @@
 
     <build>
         <plugins>
-            <!--
-              - Move the slf4j class into a separate directory
-              - so that it will be available in the bundle's classpath
-              - but not mess the unit tests.
-              -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>move-slf4j</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <tasks>
-                                <move todir="target/classes/slf4j/org/slf4j">
-                                    <fileset dir="target/classes/org/slf4j" />
-                                </move>
-                            </tasks>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
@@ -130,8 +110,6 @@
                             javax.jms;resolution:=optional,
                             javax.rmi.*;resolution:=optional,
                             javax.sql;resolution:=optional,
-                            org.apache.log4j;resolution:=optional,
-                            org.apache.logging.log4j;resolution:=optional,
                             org.omg.*;resolution:=optional,
                             org.slf4j;resolution:=optional,
                             javax.management;resolution:=optional,
@@ -143,7 +121,6 @@
                             com.atomikos.*;-split-package:=merge-first,
                             org.ops4j.pax.transx.tm.impl,
                             org.ops4j.pax.transx.tm.impl.atomikos,
-                            slf4j.org.slf4j.impl,
                             META-INF.services;-split-package:=merge-first
                         </Private-Package>
                         <Bundle-Activator>
@@ -154,9 +131,6 @@
                             osgi.service;objectClass="javax.transaction.UserTransaction",
                             osgi.service;objectClass="org.ops4j.pax.transx.tm.TransactionManager",
                         </Provide-Capability>
-                        <Bundle-ClassPath>
-                            .,slf4j
-                        </Bundle-ClassPath>
                     </instructions>
                 </configuration>
             </plugin>
