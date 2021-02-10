@@ -32,22 +32,23 @@
 
     <dependencies>
 
-        <!-- OSGi -->
-
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-
         <!-- pax-transx own artifacts -->
 
         <dependency>
             <groupId>org.ops4j.pax.transx</groupId>
             <artifactId>pax-transx-tm-core</artifactId>
+        </dependency>
+
+        <!-- OSGi -->
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.cmpn</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -89,7 +90,12 @@
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -105,6 +111,10 @@
                         <Import-Package>
                             !org.apache.aries.util,
                             !org.apache.aries.util.internal,
+                            <!--
+                                In theory it works - it allows to run the bundle without a need for separate JCA API bundle
+                                but it'd be better to remove the private-packaged XATerminator interface
+                            -->
                             javax.resource.spi;resolution:=optional,
                             *
                         </Import-Package>
