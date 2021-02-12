@@ -61,8 +61,8 @@
             <artifactId>javax.jms-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
+            <groupId>javax.transaction</groupId>
+            <artifactId>javax.transaction-api</artifactId>
         </dependency>
 
         <!-- Apache components -->
@@ -107,6 +107,19 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Logging dependencies -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -121,12 +134,14 @@
                             org.ops4j.pax.transx.connection
                         </Export-Package>
                         <Import-Package>
-                            org.ops4j.pax.transx.connection;version="[0.4,0.5)",
+                            org.ops4j.pax.transx.connection,
+                            javax.resource;version="[1.6,2)",
+                            javax.resource.*;version="[1.6,2)",
                             *
                         </Import-Package>
                         <Private-Package>
                             org.ops4j.pax.transx.connection.utils,
-                            org.ops4j.pax.transx.jms.impl,
+                            org.ops4j.pax.transx.jms.impl
                         </Private-Package>
                     </instructions>
                 </configuration>

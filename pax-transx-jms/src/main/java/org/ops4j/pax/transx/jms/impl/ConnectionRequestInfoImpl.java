@@ -15,9 +15,9 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
-
 import java.util.Objects;
+
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
 
 public class ConnectionRequestInfoImpl implements UserPasswordConnectionRequestInfo {
 

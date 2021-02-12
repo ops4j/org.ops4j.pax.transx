@@ -15,10 +15,14 @@
  */
 package org.ops4j.pax.transx.itests;
 
+import java.util.Properties;
+import javax.inject.Inject;
+import javax.resource.spi.TransactionSupport;
+import javax.sql.DataSource;
+import javax.sql.XADataSource;
+
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.Option;
@@ -28,21 +32,12 @@ import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 import org.osgi.service.jdbc.DataSourceFactory;
 
-import javax.inject.Inject;
-import javax.resource.spi.TransactionSupport;
-import javax.sql.DataSource;
-import javax.sql.XADataSource;
-import java.util.Properties;
-
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.transx.itests.TestConfiguration.mvnBundle;
-import static org.ops4j.pax.transx.itests.TestConfiguration.regressionDefaults;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.CoreOptions.systemProperty;
+import static org.ops4j.pax.exam.OptionUtils.combine;
 
 @RunWith(PaxExam.class)
-public class AtomikosTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+public class AtomikosTest extends AbstractControlledTestBase {
 
     @Inject
     @Filter(value = "(osgi.jdbc.driver.name=H2 JDBC Driver)")
@@ -53,17 +48,21 @@ public class AtomikosTest {
 
     @Configuration
     public Option[] config() throws Exception {
-        return options(
-                regressionDefaults(),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-jta_1.1_spec"),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec"),
-                mvnBundle("javax.jms", "javax.jms-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-atomikos"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-connector"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jms"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jdbc"),
-                mvnBundle("com.h2database", "h2")
+        return combine(baseConfigure(),
+                mavenBundle("javax.transaction", "javax.transaction-api").versionAsInProject(),
+                mavenBundle("javax.interceptor", "javax.interceptor-api").versionAsInProject(),
+                mavenBundle("javax.el", "javax.el-api").versionAsInProject(),
+                mavenBundle("javax.enterprise", "cdi-api").versionAsInProject(),
+                mavenBundle("javax.resource", "javax.resource-api").versionAsInProject(),
+                mavenBundle("javax.jms", "javax.jms-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-atomikos").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-connector").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jms").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jdbc").versionAsInProject(),
+                mavenBundle("org.osgi", "org.osgi.service.jdbc").versionAsInProject(),
+                mavenBundle("com.h2database", "h2").versionAsInProject(),
+                systemProperty("com.atomikos.icatch.recovery_delay").value("1000")
         );
     }
 
@@ -83,7 +82,7 @@ public class AtomikosTest {
                 .build();
         Assert.assertNotNull(ds);
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
 
     @Test
@@ -101,6 +100,7 @@ public class AtomikosTest {
                 .build();
         Assert.assertNotNull(ds);
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
+
 }

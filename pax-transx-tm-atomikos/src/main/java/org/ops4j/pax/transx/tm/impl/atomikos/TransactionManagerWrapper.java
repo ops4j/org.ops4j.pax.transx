@@ -15,17 +15,17 @@
  */
 package org.ops4j.pax.transx.tm.impl.atomikos;
 
+import java.util.HashMap;
+import java.util.Map;
+import javax.transaction.TransactionManager;
+import javax.transaction.xa.XAResource;
+
 import com.atomikos.datasource.ResourceException;
 import com.atomikos.datasource.xa.XATransactionalResource;
 import com.atomikos.icatch.config.Configuration;
 import com.atomikos.icatch.jta.J2eeTransactionManager;
 import org.ops4j.pax.transx.tm.ResourceFactory;
 import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
-
-import javax.transaction.TransactionManager;
-import javax.transaction.xa.XAResource;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<TransactionManager> {
 

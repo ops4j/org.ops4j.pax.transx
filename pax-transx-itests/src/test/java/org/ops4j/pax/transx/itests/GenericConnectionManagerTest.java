@@ -15,24 +15,22 @@
  */
 package org.ops4j.pax.transx.itests;
 
-import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
-import org.h2.jdbcx.JdbcDataSource;
-import org.junit.Assert;
-import org.junit.Test;
-import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
-import org.ops4j.pax.transx.tm.TransactionManager;
-import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
-
+import java.lang.management.ManagementFactory;
+import java.sql.Connection;
+import java.util.Set;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.sql.DataSource;
 
-import java.lang.management.ManagementFactory;
-import java.sql.Connection;
-import java.util.Set;
-
+import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
+import org.h2.jdbcx.JdbcDataSource;
+import org.junit.Assert;
+import org.junit.Test;
 import org.ops4j.pax.transx.connector.impl.PoolConfigMXBean;
 import org.ops4j.pax.transx.connector.impl.PoolMXBean;
+import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
+import org.ops4j.pax.transx.tm.TransactionManager;
+import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
 
 public class GenericConnectionManagerTest {
 
@@ -58,12 +56,13 @@ public class GenericConnectionManagerTest {
             Assert.assertEquals(2, queryResult.size());
             for (ObjectName on : queryResult) {
                 if (mBeanServer.isInstanceOf(on, PoolConfigMXBean.class.getName())) {
-                    Assert.assertEquals(Integer.valueOf(10), (Integer) mBeanServer.getAttribute(on, "MinIdle"));
-                    Assert.assertEquals(Integer.valueOf(10), (Integer) mBeanServer.getAttribute(on, "MaxPoolSize"));
+                    Assert.assertEquals(10, mBeanServer.getAttribute(on, "MinIdle"));
+                    Assert.assertEquals(10, mBeanServer.getAttribute(on, "MaxPoolSize"));
                 } else if (mBeanServer.isInstanceOf(on, PoolMXBean.class.getName())) {
-                    Assert.assertEquals(Integer.valueOf(1), (Integer) mBeanServer.getAttribute(on, "ActiveConnections"));
+                    Assert.assertEquals(1, mBeanServer.getAttribute(on, "ActiveConnections"));
                 }
             }
         }
     }
+
 }

@@ -15,8 +15,10 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
-
+import java.io.Serializable;
+import java.lang.reflect.Proxy;
+import java.util.HashSet;
+import java.util.Set;
 import javax.jms.BytesMessage;
 import javax.jms.Destination;
 import javax.jms.IllegalStateException;
@@ -43,10 +45,8 @@ import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
 import javax.jms.TopicSubscriber;
 import javax.resource.spi.ConnectionRequestInfo;
-import java.io.Serializable;
-import java.lang.reflect.Proxy;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 

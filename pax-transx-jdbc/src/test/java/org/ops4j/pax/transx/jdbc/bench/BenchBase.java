@@ -15,6 +15,9 @@
  */
 package org.ops4j.pax.transx.jdbc.bench;
 
+import javax.resource.spi.TransactionSupport;
+import javax.sql.DataSource;
+
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
@@ -24,9 +27,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.infra.BenchmarkParams;
 import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.jdbc.stubs.StubDataSource;
-
-import javax.resource.spi.TransactionSupport;
-import javax.sql.DataSource;
 
 @State(Scope.Benchmark)
 public class BenchBase {

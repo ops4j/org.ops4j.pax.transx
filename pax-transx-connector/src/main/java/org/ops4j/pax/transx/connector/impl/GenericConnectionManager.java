@@ -15,23 +15,6 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import com.zaxxer.hikari.util.ConcurrentBag;
-import com.zaxxer.hikari.util.UtilityElf;
-import org.ops4j.pax.transx.connector.SubjectSource;
-import org.ops4j.pax.transx.tm.NamedResource;
-import org.ops4j.pax.transx.tm.Transaction;
-import org.ops4j.pax.transx.tm.TransactionManager;
-
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ConnectionEventListener;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
-import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
-import javax.resource.spi.ValidatingManagedConnectionFactory;
-import javax.security.auth.Subject;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
@@ -47,6 +30,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionEvent;
+import javax.resource.spi.ConnectionEventListener;
+import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.ConnectionRequestInfo;
+import javax.resource.spi.ManagedConnection;
+import javax.resource.spi.ManagedConnectionFactory;
+import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
+import javax.resource.spi.ValidatingManagedConnectionFactory;
+import javax.security.auth.Subject;
+
+import com.zaxxer.hikari.util.ConcurrentBag;
+import com.zaxxer.hikari.util.UtilityElf;
+import org.ops4j.pax.transx.connector.SubjectSource;
+import org.ops4j.pax.transx.tm.NamedResource;
+import org.ops4j.pax.transx.tm.Transaction;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 import static com.zaxxer.hikari.util.ClockSource.currentTime;
 import static com.zaxxer.hikari.util.ClockSource.elapsedDisplayString;

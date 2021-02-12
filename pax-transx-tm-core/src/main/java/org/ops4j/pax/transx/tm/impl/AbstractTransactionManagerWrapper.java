@@ -15,19 +15,19 @@
  */
 package org.ops4j.pax.transx.tm.impl;
 
-import org.ops4j.pax.transx.tm.NamedResource;
-import org.ops4j.pax.transx.tm.Status;
-import org.ops4j.pax.transx.tm.Transaction;
-import org.ops4j.pax.transx.tm.TransactionManager;
-
-import javax.transaction.RollbackException;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
 import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
+import javax.transaction.RollbackException;
+import javax.transaction.Synchronization;
+import javax.transaction.SystemException;
+
+import org.ops4j.pax.transx.tm.NamedResource;
+import org.ops4j.pax.transx.tm.Status;
+import org.ops4j.pax.transx.tm.Transaction;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 public abstract class AbstractTransactionManagerWrapper<TM extends javax.transaction.TransactionManager> implements TransactionManager {
 

@@ -15,10 +15,6 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-
 import javax.jms.Connection;
 import javax.jms.ConnectionMetaData;
 import javax.jms.JMSException;
@@ -29,6 +25,10 @@ import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.ManagedConnection;
 import javax.security.auth.Subject;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.trace;
 

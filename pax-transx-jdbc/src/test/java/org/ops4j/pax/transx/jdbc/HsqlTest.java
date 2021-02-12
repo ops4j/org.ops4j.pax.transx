@@ -15,6 +15,18 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.SQLSyntaxErrorException;
+import java.sql.Statement;
+import java.util.Objects;
+import javax.sql.DataSource;
+import javax.sql.XADataSource;
+
 import org.hsqldb.jdbc.pool.JDBCXADataSource;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -29,18 +41,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import javax.sql.DataSource;
-import javax.sql.XADataSource;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLSyntaxErrorException;
-import java.sql.Statement;
-import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;

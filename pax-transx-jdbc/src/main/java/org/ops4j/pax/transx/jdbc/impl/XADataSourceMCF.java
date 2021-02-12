@@ -15,10 +15,8 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
@@ -27,8 +25,10 @@ import javax.security.auth.Subject;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
 import javax.transaction.xa.XAResource;
-import java.sql.Connection;
-import java.sql.SQLException;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 public class XADataSourceMCF extends AbstractJdbcManagedConnectionFactory<XADataSourceMCF, ManagedXAConnection, XADataSource> {
 

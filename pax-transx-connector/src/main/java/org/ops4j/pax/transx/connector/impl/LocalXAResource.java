@@ -15,13 +15,13 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import org.ops4j.pax.transx.tm.NamedResource;
-
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
+
+import org.ops4j.pax.transx.tm.NamedResource;
 
 /**
  * LocalXAResource adapts a local transaction to be controlled by a

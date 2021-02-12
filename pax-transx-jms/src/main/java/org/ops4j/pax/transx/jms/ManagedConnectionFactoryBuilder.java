@@ -15,21 +15,21 @@
  */
 package org.ops4j.pax.transx.jms;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
-import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
-import org.ops4j.pax.transx.jms.impl.ManagedConnectionFactoryImpl;
-import org.ops4j.pax.transx.tm.TransactionManager;
-
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import javax.jms.ConnectionFactory;
 import javax.jms.XAConnectionFactory;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
+import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
+import org.ops4j.pax.transx.jms.impl.ManagedConnectionFactoryImpl;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 public class ManagedConnectionFactoryBuilder {
 

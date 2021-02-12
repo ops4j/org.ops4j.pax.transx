@@ -15,6 +15,12 @@
  */
 package org.ops4j.pax.transx.tm.impl.atomikos;
 
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.List;
+import javax.transaction.TransactionManager;
+import javax.transaction.UserTransaction;
+
 import com.atomikos.icatch.config.Configuration;
 import com.atomikos.icatch.config.UserTransactionService;
 import com.atomikos.icatch.config.UserTransactionServiceImp;
@@ -24,12 +30,6 @@ import com.atomikos.icatch.jta.TransactionManagerImp;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
-
-import javax.transaction.TransactionManager;
-import javax.transaction.UserTransaction;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.List;
 
 /**
  */

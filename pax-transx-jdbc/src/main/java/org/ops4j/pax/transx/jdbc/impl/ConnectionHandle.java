@@ -15,13 +15,6 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
-
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.LocalTransaction;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
@@ -40,6 +33,13 @@ import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
+import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionRequestInfo;
+import javax.resource.spi.LocalTransaction;
+
+import org.ops4j.pax.transx.connection.utils.AbstractConnectionHandle;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 public class ConnectionHandle<
             MCF extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,

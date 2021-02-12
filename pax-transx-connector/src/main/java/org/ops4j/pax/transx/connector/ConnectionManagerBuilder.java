@@ -15,14 +15,14 @@
  */
 package org.ops4j.pax.transx.connector;
 
-import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
-import org.ops4j.pax.transx.tm.TransactionManager;
-
+import java.util.logging.Logger;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ManagedConnectionFactory;
 import javax.resource.spi.TransactionSupport;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
-import java.util.logging.Logger;
+
+import org.ops4j.pax.transx.connector.impl.GenericConnectionManager;
+import org.ops4j.pax.transx.tm.TransactionManager;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;

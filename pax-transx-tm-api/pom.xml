@@ -35,8 +35,8 @@
         <!-- APIs -->
 
         <dependency>
-            <groupId>jakarta.transaction</groupId>
-            <artifactId>jakarta.transaction-api</artifactId>
+            <groupId>javax.transaction</groupId>
+            <artifactId>javax.transaction-api</artifactId>
         </dependency>
 
     </dependencies>
@@ -57,8 +57,9 @@
                                  - JDK since version 9 (or definitely since the version where Corba support was removed)
                                    doesn't provide javax.transaction package at all - this *has to* be provided by
                                    external library/bundle
+                                 - it has to be versionless
                             -->
-                            javax.transaction.xa;version="[1.1,2)"
+                            javax.transaction.xa;version=!
                         </Import-Package>
                         <Export-Package>
                             org.ops4j.pax.transx.tm;uses:="javax.transaction.xa"

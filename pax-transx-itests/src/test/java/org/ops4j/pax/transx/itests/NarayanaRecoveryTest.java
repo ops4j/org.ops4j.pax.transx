@@ -15,9 +15,17 @@
  */
 package org.ops4j.pax.transx.itests;
 
-import org.junit.Rule;
+import java.sql.Connection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import javax.sql.DataSource;
+import javax.sql.XAConnection;
+import javax.sql.XADataSource;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
+
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.ops4j.pax.exam.Configuration;
@@ -26,47 +34,36 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
 import org.ops4j.pax.transx.tm.TransactionManager;
 
-import javax.inject.Inject;
-import javax.sql.DataSource;
-import javax.sql.XAConnection;
-import javax.sql.XADataSource;
-import javax.transaction.xa.XAResource;
-import javax.transaction.xa.Xid;
-import java.sql.Connection;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static javax.transaction.xa.XAResource.TMSTARTRSCAN;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
-import static org.ops4j.pax.exam.CoreOptions.options;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.systemProperty;
-import static org.ops4j.pax.transx.itests.TestConfiguration.mvnBundle;
-import static org.ops4j.pax.transx.itests.TestConfiguration.regressionDefaults;
+import static org.ops4j.pax.exam.OptionUtils.combine;
 
 @RunWith(PaxExam.class)
-public class NarayanaRecoveryTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+public class NarayanaRecoveryTest extends AbstractControlledTestBase {
 
     @Inject
     private TransactionManager tm;
 
     @Configuration
     public Option[] config() throws Exception {
-        return options(
-                regressionDefaults(),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-jta_1.1_spec"),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec"),
-                mvnBundle("javax.jms", "javax.jms-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-narayana"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-connector"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jms"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jdbc"),
-                systemProperty("com.arjuna.ats.arjuna.recovery.periodicRecoveryInitilizationOffset").value("1")
+        return combine(baseConfigure(),
+                mavenBundle("javax.transaction", "javax.transaction-api").versionAsInProject(),
+                mavenBundle("javax.interceptor", "javax.interceptor-api").versionAsInProject(),
+                mavenBundle("javax.el", "javax.el-api").versionAsInProject(),
+                mavenBundle("javax.enterprise", "cdi-api").versionAsInProject(),
+                mavenBundle("javax.resource", "javax.resource-api").versionAsInProject(),
+                mavenBundle("javax.jms", "javax.jms-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-narayana").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-connector").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jms").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jdbc").versionAsInProject(),
+                systemProperty("com.arjuna.ats.arjuna.recovery.periodicRecoveryInitilizationOffset").value("1"),
+                systemProperty("com.arjuna.ats.arjuna.hornetqjournal.asyncIO").value("false")
         );
     }
 
@@ -98,6 +95,7 @@ public class NarayanaRecoveryTest {
         assertNotNull(ds);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
+
 }

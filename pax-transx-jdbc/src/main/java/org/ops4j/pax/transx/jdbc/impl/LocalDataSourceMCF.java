@@ -15,18 +15,18 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-import org.ops4j.pax.transx.jdbc.KnownSQLStateExceptionSorter;
-
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ResourceAdapterInternalException;
 import javax.security.auth.Subject;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
+import org.ops4j.pax.transx.jdbc.KnownSQLStateExceptionSorter;
 
 public class LocalDataSourceMCF extends AbstractJdbcManagedConnectionFactory<LocalDataSourceMCF, ManagedJDBCConnection, DataSource> {
 

@@ -16,7 +16,7 @@
     limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -51,48 +51,86 @@
         <!-- versions of Maven dependencies -->
 
         <version.com.atomikos>5.0.8</version.com.atomikos>
+        <version.com.h2database>1.4.200</version.com.h2database>
         <version.com.zaxxer.hikari>3.4.5</version.com.zaxxer.hikari>
 
-        <version.jakarta.el>3.0.3</version.jakarta.el>
-        <version.jakarta.enterprise.cdi>2.0.2</version.jakarta.enterprise.cdi>
-        <version.jakarta.inject>1.0.3</version.jakarta.inject>
-        <version.jakarta.interceptor>1.2.5</version.jakarta.interceptor>
-        <version.jakarta.transaction>1.3.3</version.jakarta.transaction>
+        <!--
+            JavaEE APIs should ideally come from jakarta.* groupIds, but these are still not consistent yet
+            Where needed, even javax.* artifacts are not quite good...
+        -->
 
+        <!-- JSR 341 - EL API -->
+        <version.javax.el>3.0.0</version.javax.el>
+<!--        <version.jakarta.el>3.0.3</version.jakarta.el>-->
+
+        <!-- JSR 365 - CDI API -->
+        <version.javax.enterprise.cdi>2.0.SP1</version.javax.enterprise.cdi>
+<!--        <version.jakarta.enterprise.cdi>2.0.2</version.jakarta.enterprise.cdi>-->
+
+        <!-- JSR 330 - Inject API -->
+        <!-- javax.inject/javax.inject/1 is not an OSGi bundle -->
+        <version.org.apache.servicemix.bundles.javax-inject>1_3</version.org.apache.servicemix.bundles.javax-inject>
+<!--        <version.javax.inject>1</version.jakarta.inject>-->
+<!--        <version.jakarta.inject>1.0.3</version.jakarta.inject>-->
+
+        <!-- JSR 318 - Interceptors API -->
+        <version.javax.interceptor>1.2.2</version.javax.interceptor>
+<!--        <version.jakarta.interceptor>1.2.5</version.jakarta.interceptor>-->
+
+        <!-- JSR 907 - Transaction API -->
+        <!--
+            javax.transaction/1.3 is the one without javax.transaction.xa package, but with "Require-Bundle: system.bundle"
+            which is still needed. See:
+             - https://github.com/ops4j/org.ops4j.pax.transx/issues/33
+             - https://github.com/eclipse-ee4j/jta-api/issues/186
+             - https://github.com/eclipse-ee4j/jca-api/issues/120
+            but it exports javax.transaction with version 1.3 - we want (I want) 1.2, but until jta-api/issues/186 is
+            fixed, we have to stay with what we have.
+            That's not a big problem though - only bundles importing javax.transaction;version="[1.2,1.3)" will fail,
+            but that's not a big issue - no bundle should do it...
+        -->
+        <version.javax.transaction>1.3</version.javax.transaction>
+<!--        <version.jakarta.transaction>1.3.3</version.jakarta.transaction>-->
+
+        <!-- JSR 322 - Connectors API -->
+        <!--
+            - javax.resource-api/1.7 imports javax.transaction;version="[1.2,1.3)" AND (wrong!) javax.transaction.xa;version="[1.2,1.3)"
+            - javax.resource-api/1.7.1 imports javax.transaction;version="[1.3,2.0)" AND (good) javax.transaction.xa
+            - jakarta.resource-api/1.7.4 imports javax.transaction;version="[1.3,2.0)" AND (good) javax.transaction.xa
+            But because we have javax.transaction-api/1.3, we can stay at javax.resource-api/1.7.1
+        -->
+        <version.javax.resource>1.7.1</version.javax.resource>
+<!--        <version.jakarta.resource>1.7.4</version.jakarta.resource>-->
+
+        <!-- JSR 914 - JMS API -->
+        <version.javax.jms>2.0.1</version.javax.jms>
+
+        <version.junit.version>4.13.1</version.junit.version>
+
+        <version.org.apache.activemq>5.14.5</version.org.apache.activemq>
         <version.org.apache.aries.transaction>1.3.3</version.org.apache.aries.transaction>
+        <version.org.apache.derby>10.15.2.0</version.org.apache.derby>
+        <version.org.apache.felix.configadmin>1.8.14</version.org.apache.felix.configadmin>
+        <version.org.apache.felix.metatype>1.2.2</version.org.apache.felix.metatype>
+        <version.org.apache.felix.framework>5.6.2</version.org.apache.felix.framework>
         <version.org.apache.geronimo.transaction>3.1.4</version.org.apache.geronimo.transaction>
-        <version.org.apache.karaf>4.2.10</version.org.apache.karaf>
+        <version.org.apache.karaf>4.2.11-SNAPSHOT</version.org.apache.karaf>
         <version.org.apache.logging.log4j>2.14.0</version.org.apache.logging.log4j>
+        <version.org.hsqldb>2.5.1</version.org.hsqldb>
+        <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
+        <version.org.jboss.narayana>5.10.6.Final</version.org.jboss.narayana>
+        <version.org.jboss.transaction>7.6.0.Final</version.org.jboss.transaction>
+        <version.org.mockito>1.10.19</version.org.mockito>
+        <version.org.openjdk.jmh>1.17.2</version.org.openjdk.jmh>
+        <version.org.ops4j.pax.exam>4.13.4</version.org.ops4j.pax.exam>
+        <version.org.ops4j.pax.logging>1.11.7</version.org.ops4j.pax.logging>
+        <version.org.ops4j.pax.url>2.6.5</version.org.ops4j.pax.url>
         <version.org.osgi.core>6.0.0</version.org.osgi.core>
         <version.org.osgi.cmpn>6.0.0</version.org.osgi.cmpn>
+        <version.org.osgi.service.jdbc>1.0.0</version.org.osgi.service.jdbc>
         <version.org.slf4j>1.7.30</version.org.slf4j>
         <version.org.springframework>5.0.20.RELEASE</version.org.springframework>
 
-        <activemq.version>5.14.5</activemq.version>
-        <derby.version>10.13.1.1</derby.version>
-        <felix.configadmin.version>1.8.14</felix.configadmin.version>
-        <felix.framework.version>5.6.2</felix.framework.version>
-        <h2.version>1.4.196</h2.version>
-        <hsqldb.version>2.3.4</hsqldb.version>
-        <javax.jms.version>2.0.1</javax.jms.version>
-        <javax.transaction-api.version>1.2</javax.transaction-api.version>
-        <jboss.logging.version>3.3.0.Final</jboss.logging.version>
-        <jboss.narayana.version>5.10.6.Final</jboss.narayana.version>
-        <jboss.transaction.version>7.6.0.Final</jboss.transaction.version>
-        <jmh.version>1.17.2</jmh.version>
-        <pax.exam.version>4.11.0</pax.exam.version>
-        <pax.url.version>2.6.1</pax.url.version>
-
-        <junit.version>4.13.1</junit.version>
-        <logback.version>1.2.3</logback.version>
-        <mockito.version>1.10.19</mockito.version>
-
-        <osgi.core.version>6.0.0</osgi.core.version>
-        <osgi.compendium.version>5.0.0</osgi.compendium.version>
-
-        <geronimo.specs.jca.version>1.0</geronimo.specs.jca.version>
-        <geronimo.specs.jta.version>1.1.1</geronimo.specs.jta.version>
-        <servicemix.bundles.javax-inject.version>1_2</servicemix.bundles.javax-inject.version>
     </properties>
 
     <scm>
@@ -113,7 +151,7 @@
         <module>pax-transx-jms</module>
         <module>pax-transx-jdbc</module>
         <module>pax-transx-features</module>
-        <module>pax-transx-itests-logback</module>
+        <module>pax-transx-itests-custom-appender</module>
         <module>pax-transx-itests</module>
     </modules>
 
@@ -169,7 +207,7 @@
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.transx</groupId>
-                <artifactId>pax-transx-itests-logback</artifactId>
+                <artifactId>pax-transx-itests-custom-appender</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -178,27 +216,27 @@
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>
                 <artifactId>pax-url-aether</artifactId>
-                <version>${pax.url.version}</version>
+                <version>${version.org.ops4j.pax.url}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>
                 <artifactId>pax-url-wrap</artifactId>
-                <version>${pax.url.version}</version>
+                <version>${version.org.ops4j.pax.url}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>
                 <artifactId>pax-url-commons</artifactId>
-                <version>${pax.url.version}</version>
+                <version>${version.org.ops4j.pax.url}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>
                 <artifactId>pax-url-classpath</artifactId>
-                <version>${pax.url.version}</version>
+                <version>${version.org.ops4j.pax.url}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.url</groupId>
                 <artifactId>pax-url-link</artifactId>
-                <version>${pax.url.version}</version>
+                <version>${version.org.ops4j.pax.url}</version>
             </dependency>
 
             <!-- OSGi -->
@@ -213,89 +251,129 @@
                 <artifactId>osgi.cmpn</artifactId>
                 <version>${version.org.osgi.cmpn}</version>
             </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>org.osgi.service.jdbc</artifactId>
+                <version>${version.org.osgi.service.jdbc}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.framework</artifactId>
-                <version>${felix.framework.version}</version>
+                <version>${version.org.apache.felix.framework}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>org.apache.felix.configadmin</artifactId>
-                <version>${felix.configadmin.version}</version>
+                <version>${version.org.apache.felix.configadmin}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>org.apache.felix.metatype</artifactId>
+                <version>${version.org.apache.felix.metatype}</version>
             </dependency>
 
             <!-- APIs -->
 
+            <!--
+                This bundle imports (packages):
+                 - javax.enterprise.context
+                 - javax.enterprise.util
+                 - javax.interceptor;version="[1.2,1.2.98)"
+                 - javax.transaction;version="1.3.3"
+                 - javax.transaction.xa
+            -->
             <dependency>
-                <!--
-                    This bundle imports (packages):
-                     - javax.enterprise.context
-                     - javax.enterprise.util
-                     - javax.interceptor;version="[1.2,1.2.98)"
-                     - javax.transaction;version="1.3.3"
-                     - javax.transaction.xa
-                -->
-                <groupId>jakarta.transaction</groupId>
-                <artifactId>jakarta.transaction-api</artifactId>
-                <version>${version.jakarta.transaction}</version>
+                <groupId>javax.transaction</groupId>
+                <artifactId>javax.transaction-api</artifactId>
+                <version>${version.javax.transaction}</version>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>jakarta.transaction</groupId>-->
+<!--                <artifactId>jakarta.transaction-api</artifactId>-->
+<!--                <version>${version.jakarta.transaction}</version>-->
+<!--            </dependency>-->
+            <!--
+                This bundle imports (packages):
+                 - javax.el;version="2.2"
+                 - javax.inject
+                 - javax.interceptor;version="[1.2,2)"
+            -->
             <dependency>
-                <!--
-                    This bundle imports (packages):
-                     - javax.el;version="2.2"
-                     - javax.inject
-                     - javax.interceptor;version="[1.2,2)"
-                -->
-                <groupId>jakarta.enterprise</groupId>
-                <artifactId>jakarta.enterprise.cdi-api</artifactId>
-                <version>${version.jakarta.enterprise.cdi}</version>
+                <groupId>javax.enterprise</groupId>
+                <artifactId>cdi-api</artifactId>
+                <version>${version.javax.enterprise.cdi}</version>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>jakarta.enterprise</groupId>-->
+<!--                <artifactId>jakarta.enterprise.cdi-api</artifactId>-->
+<!--                <version>${version.jakarta.enterprise.cdi}</version>-->
+<!--            </dependency>-->
             <dependency>
-                <groupId>jakarta.el</groupId>
-                <artifactId>jakarta.el-api</artifactId>
-                <version>${version.jakarta.el}</version>
+                <groupId>javax.el</groupId>
+                <artifactId>javax.el-api</artifactId>
+                <version>${version.javax.el}</version>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>jakarta.el</groupId>-->
+<!--                <artifactId>jakarta.el-api</artifactId>-->
+<!--                <version>${version.jakarta.el}</version>-->
+<!--            </dependency>-->
+            <!-- This is a proper OSGi bundle since 1.0.2 (ee8 branch of eclipse-ee4j/injection-api) -->
+<!--            <dependency>-->
+<!--                <groupId>jakarta.inject</groupId>-->
+<!--                <artifactId>jakarta.inject-api</artifactId>-->
+<!--                <version>${version.jakarta.inject}</version>-->
+<!--            </dependency>-->
+            <!--
+                Exclusions are needed before https://github.com/eclipse-ee4j/interceptor-api/issues/31
+                which is fixed in jakarta.interceptor-api-1.2.6
+            -->
             <dependency>
-                <!-- This is a proper OSGi bundle since 1.0.2 (ee8 branch of eclipse-ee4j/injection-api) -->
-                <groupId>jakarta.inject</groupId>
-                <artifactId>jakarta.inject-api</artifactId>
-                <version>${version.jakarta.inject}</version>
-            </dependency>
-            <dependency>
-                <groupId>jakarta.interceptor</groupId>
-                <artifactId>jakarta.interceptor-api</artifactId>
-                <version>${version.jakarta.interceptor}</version>
-                <!--
-                    Exclusions are needed before https://github.com/eclipse-ee4j/interceptor-api/issues/31
-                    which is fixed in jakarta.interceptor-api-1.2.6
-                -->
+                <groupId>javax.interceptor</groupId>
+                <artifactId>javax.interceptor-api</artifactId>
+                <version>${version.javax.interceptor}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>jakarta.annotation</groupId>
-                        <artifactId>jakarta.annotation-api</artifactId>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>javax.annotation-api</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>jakarta.ejb</groupId>
-                        <artifactId>jakarta.ejb-api</artifactId>
+                        <groupId>javax.ejb</groupId>
+                        <artifactId>javax.ejb-api</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
+<!--            <dependency>-->
+<!--                <groupId>jakarta.interceptor</groupId>-->
+<!--                <artifactId>jakarta.interceptor-api</artifactId>-->
+<!--                <version>${version.jakarta.interceptor}</version>-->
+<!--                <exclusions>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>jakarta.annotation</groupId>-->
+<!--                        <artifactId>jakarta.annotation-api</artifactId>-->
+<!--                    </exclusion>-->
+<!--                    <exclusion>-->
+<!--                        <groupId>jakarta.ejb</groupId>-->
+<!--                        <artifactId>jakarta.ejb-api</artifactId>-->
+<!--                    </exclusion>-->
+<!--                </exclusions>-->
+<!--            </dependency>-->
 
             <dependency>
                 <groupId>javax.jms</groupId>
                 <artifactId>javax.jms-api</artifactId>
-                <version>${javax.jms.version}</version>
+                <version>${version.javax.jms}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.geronimo.specs</groupId>
-                <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
-                <version>${geronimo.specs.jca.version}</version>
+                <groupId>javax.resource</groupId>
+                <artifactId>javax.resource-api</artifactId>
+                <version>${version.javax.resource}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.servicemix.bundles</groupId>
                 <artifactId>org.apache.servicemix.bundles.javax-inject</artifactId>
-                <version>${servicemix.bundles.javax-inject.version}</version>
+                <version>${version.org.apache.servicemix.bundles.javax-inject}</version>
             </dependency>
 
             <!-- Apache components -->
@@ -304,6 +382,16 @@
                 <groupId>org.apache.geronimo.components</groupId>
                 <artifactId>geronimo-transaction</artifactId>
                 <version>${version.org.apache.geronimo.transaction}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.geronimo.specs</groupId>
+                        <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.geronimo.specs</groupId>
+                        <artifactId>geronimo-jta_1.1_spec</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.aries.transaction</groupId>
@@ -313,7 +401,7 @@
             <dependency>
                 <groupId>org.apache.activemq</groupId>
                 <artifactId>activemq-broker</artifactId>
-                <version>${activemq.version}</version>
+                <version>${version.org.apache.activemq}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.apache.geronimo.specs</groupId>
@@ -352,7 +440,7 @@
             <dependency>
                 <groupId>org.jboss.narayana.jta</groupId>
                 <artifactId>narayana-jta</artifactId>
-                <version>${jboss.narayana.version}</version>
+                <version>${version.org.jboss.narayana}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.jboss.spec.javax.resource</groupId>
@@ -363,7 +451,7 @@
             <dependency>
                 <groupId>org.jboss.narayana.osgi</groupId>
                 <artifactId>narayana-osgi-jta</artifactId>
-                <version>${jboss.narayana.version}</version>
+                <version>${version.org.jboss.narayana}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.osgi</groupId>
@@ -374,12 +462,12 @@
             <dependency>
                 <groupId>org.jboss.narayana.jts</groupId>
                 <artifactId>narayana-jts-integration</artifactId>
-                <version>${jboss.narayana.version}</version>
+                <version>${version.org.jboss.narayana}</version>
             </dependency>
             <dependency>
                 <groupId>org.jboss.narayana.arjunacore</groupId>
                 <artifactId>arjuna</artifactId>
-                <version>${jboss.narayana.version}</version>
+                <version>${version.org.jboss.narayana}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>sun.jdk</groupId>
@@ -390,7 +478,7 @@
             <dependency>
                 <groupId>org.jboss</groupId>
                 <artifactId>jboss-transaction-spi</artifactId>
-                <version>${jboss.transaction.version}</version>
+                <version>${version.org.jboss.transaction}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.jboss.spec.javax.resource</groupId>
@@ -421,33 +509,33 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
+                <version>${version.junit.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-all</artifactId>
-                <version>${mockito.version}</version>
+                <version>${version.org.mockito}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-junit4</artifactId>
-                <version>${pax.exam.version}</version>
+                <version>${version.org.ops4j.pax.exam}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam</artifactId>
-                <version>${pax.exam.version}</version>
+                <version>${version.org.ops4j.pax.exam}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-container-native</artifactId>
-                <version>${pax.exam.version}</version>
+                <version>${version.org.ops4j.pax.exam}</version>
             </dependency>
             <dependency>
                 <groupId>org.ops4j.pax.exam</groupId>
                 <artifactId>pax-exam-link-mvn</artifactId>
-                <version>${pax.exam.version}</version>
+                <version>${version.org.ops4j.pax.exam}</version>
             </dependency>
 
             <!-- Logging dependencies -->
@@ -465,6 +553,26 @@
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-slf4j-impl</artifactId>
+                <version>${version.org.apache.logging.log4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.logging</groupId>
+                <artifactId>pax-logging-api</artifactId>
+                <version>${version.org.ops4j.pax.logging}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ops4j.pax.logging</groupId>
+                <artifactId>pax-logging-log4j2</artifactId>
+                <version>${version.org.ops4j.pax.logging}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${version.org.apache.logging.log4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
                 <version>${version.org.apache.logging.log4j}</version>
             </dependency>
 
@@ -501,12 +609,12 @@
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-core</artifactId>
-                <version>${jmh.version}</version>
+                <version>${version.org.openjdk.jmh}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
                 <artifactId>jmh-generator-annprocess</artifactId>
-                <version>${jmh.version}</version>
+                <version>${version.org.openjdk.jmh}</version>
             </dependency>
 
             <!-- Database drivers -->
@@ -514,17 +622,17 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>${h2.version}</version>
+                <version>${version.com.h2database}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.derby</groupId>
                 <artifactId>derby</artifactId>
-                <version>${derby.version}</version>
+                <version>${version.org.apache.derby}</version>
             </dependency>
             <dependency>
                 <groupId>org.hsqldb</groupId>
                 <artifactId>hsqldb</artifactId>
-                <version>${hsqldb.version}</version>
+                <version>${version.org.hsqldb}</version>
             </dependency>
 
         </dependencies>

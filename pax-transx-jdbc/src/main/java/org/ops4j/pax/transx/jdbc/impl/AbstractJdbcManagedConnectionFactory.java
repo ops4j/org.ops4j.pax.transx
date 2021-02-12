@@ -15,19 +15,19 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
-
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
 import javax.resource.spi.ResourceAdapterInternalException;
 import javax.sql.CommonDataSource;
-import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.SQLException;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 public abstract class AbstractJdbcManagedConnectionFactory<
         MCF extends AbstractManagedConnectionFactory<MCF, MC, Connection, ConnectionHandle<MCF, MC>>,

@@ -15,20 +15,20 @@
  */
 package org.jboss.narayana.osgi.jta.internal;
 
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
+import javax.transaction.TransactionManager;
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.XAResource;
+import javax.transaction.xa.Xid;
+
 import com.arjuna.ats.jbossatx.jta.RecoveryManagerService;
 import org.jboss.tm.XAResourceRecovery;
 import org.ops4j.pax.transx.tm.LastResource;
 import org.ops4j.pax.transx.tm.NamedResource;
 import org.ops4j.pax.transx.tm.ResourceFactory;
 import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
-
-import javax.transaction.TransactionManager;
-import javax.transaction.xa.XAException;
-import javax.transaction.xa.XAResource;
-import javax.transaction.xa.Xid;
-import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<TransactionManager> {
 

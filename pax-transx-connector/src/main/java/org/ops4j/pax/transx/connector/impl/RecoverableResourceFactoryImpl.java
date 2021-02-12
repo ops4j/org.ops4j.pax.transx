@@ -15,12 +15,12 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import org.ops4j.pax.transx.tm.NamedResource;
-import org.ops4j.pax.transx.tm.ResourceFactory;
-
 import javax.resource.ResourceException;
 import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.ManagedConnectionFactory;
+
+import org.ops4j.pax.transx.tm.NamedResource;
+import org.ops4j.pax.transx.tm.ResourceFactory;
 
 public class RecoverableResourceFactoryImpl implements ResourceFactory {
 

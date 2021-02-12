@@ -15,37 +15,32 @@
  */
 package org.ops4j.pax.transx.itests;
 
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.ops4j.pax.exam.Configuration;
-import org.ops4j.pax.exam.Option;
-import org.ops4j.pax.exam.junit.PaxExam;
-import org.ops4j.pax.exam.util.Filter;
-import org.ops4j.pax.transx.itests.logback.AssertionAppender;
-import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
-import org.ops4j.pax.transx.tm.TransactionManager;
-import org.osgi.service.jdbc.DataSourceFactory;
-
+import java.sql.Connection;
+import java.util.Properties;
 import javax.inject.Inject;
 import javax.resource.spi.TransactionSupport;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
 
-import java.sql.Connection;
-import java.util.Properties;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.ops4j.pax.exam.Configuration;
+import org.ops4j.pax.exam.Option;
+import org.ops4j.pax.exam.junit.PaxExam;
+import org.ops4j.pax.exam.util.Filter;
+import org.ops4j.pax.transx.jdbc.ManagedDataSourceBuilder;
+import org.ops4j.pax.transx.log4j2.extra.AssertionAppender;
+import org.ops4j.pax.transx.tm.TransactionManager;
+import org.osgi.service.jdbc.DataSourceFactory;
 
-import static org.ops4j.pax.exam.CoreOptions.options;
-import static org.ops4j.pax.transx.itests.TestConfiguration.mvnBundle;
-import static org.ops4j.pax.transx.itests.TestConfiguration.regressionDefaults;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
+import static org.ops4j.pax.exam.OptionUtils.combine;
 
 @RunWith(PaxExam.class)
-public class GeronimoTest {
-
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+public class GeronimoTest extends AbstractControlledTestBase {
 
     @Inject
     @Filter(value = "(osgi.jdbc.driver.name=H2 JDBC Driver)")
@@ -59,17 +54,20 @@ public class GeronimoTest {
 
     @Configuration
     public Option[] config() throws Exception {
-        return options(
-                regressionDefaults(),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-jta_1.1_spec"),
-                mvnBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec"),
-                mvnBundle("javax.jms", "javax.jms-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-api"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-tm-geronimo"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-connector"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jms"),
-                mvnBundle("org.ops4j.pax.transx", "pax-transx-jdbc"),
-                mvnBundle("com.h2database", "h2")
+        return combine(baseConfigure(),
+                mavenBundle("javax.transaction", "javax.transaction-api").versionAsInProject(),
+                mavenBundle("javax.interceptor", "javax.interceptor-api").versionAsInProject(),
+                mavenBundle("javax.el", "javax.el-api").versionAsInProject(),
+                mavenBundle("javax.enterprise", "cdi-api").versionAsInProject(),
+                mavenBundle("javax.resource", "javax.resource-api").versionAsInProject(),
+                mavenBundle("javax.jms", "javax.jms-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-api").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-geronimo").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-connector").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jms").versionAsInProject(),
+                mavenBundle("org.ops4j.pax.transx", "pax-transx-jdbc").versionAsInProject(),
+                mavenBundle("org.osgi", "org.osgi.service.jdbc").versionAsInProject(),
+                mavenBundle("com.h2database", "h2").versionAsInProject()
         );
     }
 
@@ -87,9 +85,9 @@ public class GeronimoTest {
                 .transaction(TransactionSupport.TransactionSupportLevel.LocalTransaction)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds);
+        assertNotNull(ds);
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
 
     @Test
@@ -105,9 +103,9 @@ public class GeronimoTest {
                 .transactionManager(tm)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds);
+        assertNotNull(ds);
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
 
     @Test
@@ -125,14 +123,14 @@ public class GeronimoTest {
                 .transaction(TransactionSupport.TransactionSupportLevel.LocalTransaction)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds);
+        assertNotNull(ds);
 
         tmgr.begin();
         try (Connection conn = ds.getConnection()) {
         }
         tmgr.commit();
 
-        AutoCloseable.class.cast(ds).close();
+        ((AutoCloseable) ds).close();
     }
 
     @Test
@@ -151,7 +149,7 @@ public class GeronimoTest {
                 .transactionManager(tm)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds1);
+        assertNotNull(ds1);
 
         XADataSource xaDs2 = dsf.createXADataSource(jdbc);
 
@@ -160,22 +158,28 @@ public class GeronimoTest {
                 .transactionManager(tm)
                 .name("h2")
                 .build();
-        Assert.assertNotNull(ds2);
+        assertNotNull(ds2);
 
         tmgr.begin();
-        try (Connection conn1 = ds1.getConnection();
-                Connection conn2 = ds2.getConnection()) {
+        try (Connection conn1 = ds1.getConnection(); Connection conn2 = ds2.getConnection()) {
         }
         tmgr.commit();
 
-        Assert.assertFalse(AssertionAppender.findText(
+        assertTrue(AssertionAppender.findText("Recover called on XAResource h2"));
+        assertTrue(AssertionAppender.findText("Start called on XAResource h2"));
+        assertTrue(AssertionAppender.findText("End called on XAResource h2"));
+        assertTrue(AssertionAppender.findText("Prepare called on XAResource h2"));
+        assertTrue(AssertionAppender.findText("Commit called on XAResource h2"));
+
+        assertFalse(AssertionAppender.findText(
                 "Please correct the integration and supply a NamedXAResource",
                 "Cannot log transactions ",
                 " is not a NamedXAResource."));
 
-        AutoCloseable.class.cast(ds1).close();
-        AutoCloseable.class.cast(ds2).close();
+        ((AutoCloseable) ds1).close();
+        ((AutoCloseable) ds2).close();
 
         AssertionAppender.stopCapture();
     }
+
 }

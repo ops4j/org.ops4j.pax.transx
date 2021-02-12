@@ -15,10 +15,10 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-
 import java.sql.SQLException;
 import java.util.Collection;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
 
 public class ConfigurableSQLStateExceptionSorter implements ExceptionSorter {
 

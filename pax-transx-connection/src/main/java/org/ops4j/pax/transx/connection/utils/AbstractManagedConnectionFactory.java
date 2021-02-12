@@ -15,9 +15,10 @@
  */
 package org.ops4j.pax.transx.connection.utils;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
-
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.HashSet;
+import java.util.Set;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.InvalidPropertyException;
@@ -25,10 +26,9 @@ import javax.resource.spi.ManagedConnection;
 import javax.resource.spi.TransactionSupport;
 import javax.resource.spi.ValidatingManagedConnectionFactory;
 import javax.security.auth.Subject;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.HashSet;
-import java.util.Set;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.NoExceptionsAreFatalSorter;
 
 public abstract class AbstractManagedConnectionFactory<
         MCF extends AbstractManagedConnectionFactory<MCF, MC, C, CI>,

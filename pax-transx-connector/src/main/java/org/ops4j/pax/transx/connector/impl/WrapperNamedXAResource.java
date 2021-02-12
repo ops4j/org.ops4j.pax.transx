@@ -15,12 +15,12 @@
  */
 package org.ops4j.pax.transx.connector.impl;
 
-import org.ops4j.pax.transx.tm.NamedResource;
-
+import java.util.logging.Logger;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import java.util.logging.Logger;
+
+import org.ops4j.pax.transx.tm.NamedResource;
 
 /**
  *

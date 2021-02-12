@@ -15,7 +15,9 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import javax.jms.ConnectionConsumer;
 import javax.jms.ConnectionMetaData;
 import javax.jms.Destination;
@@ -34,9 +36,6 @@ import javax.jms.TopicConnection;
 import javax.jms.TopicSession;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionManager;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 

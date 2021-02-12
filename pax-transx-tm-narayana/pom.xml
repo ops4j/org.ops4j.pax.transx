@@ -163,6 +163,8 @@
                         <Import-Package>
                             !com.arjuna.*,
                             !javax.resource.spi.*,
+                            javax.transaction;version="[1.1,2)",
+                            javax.transaction.xa;version=!,
                             javax.xml.parsers,
                             org.xml.sax,
                             org.xml.sax.helpers,

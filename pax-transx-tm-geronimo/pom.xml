@@ -115,7 +115,8 @@
                                 In theory it works - it allows to run the bundle without a need for separate JCA API bundle
                                 but it'd be better to remove the private-packaged XATerminator interface
                             -->
-                            javax.resource.spi;resolution:=optional,
+                            javax.resource.spi;version="[1.6,2)";resolution:=optional,
+                            javax.transaction;version="[1.1,2)",
                             *
                         </Import-Package>
                         <Export-Package>

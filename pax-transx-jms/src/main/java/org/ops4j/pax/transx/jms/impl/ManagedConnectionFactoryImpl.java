@@ -15,9 +15,7 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
-
+import java.io.PrintWriter;
 import javax.jms.ConnectionFactory;
 import javax.jms.Session;
 import javax.jms.XAConnectionFactory;
@@ -26,7 +24,9 @@ import javax.resource.spi.ConnectionManager;
 import javax.resource.spi.ConnectionRequestInfo;
 import javax.resource.spi.ManagedConnection;
 import javax.security.auth.Subject;
-import java.io.PrintWriter;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnectionFactory;
 
 public class ManagedConnectionFactoryImpl
         extends AbstractManagedConnectionFactory<ManagedConnectionFactoryImpl, ManagedConnectionImpl, Session, SessionImpl> {

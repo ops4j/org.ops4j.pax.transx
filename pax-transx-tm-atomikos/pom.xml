@@ -107,22 +107,26 @@
                 <configuration>
                     <instructions>
                         <Import-Package>
+                            !com.atomikos.logging,
+                            javax.transaction;version="[1.1,2)",
                             javax.jms;resolution:=optional,
-                            javax.rmi.*;resolution:=optional,
                             javax.sql;resolution:=optional,
-                            org.omg.*;resolution:=optional,
                             org.slf4j;resolution:=optional,
                             javax.management;resolution:=optional,
+                            org.apache.log4j;resolution:=optional,
+                            org.apache.logging.log4j;resolution:=optional,
                             *
                         </Import-Package>
                         <Private-Package>
                             !com.atomikos.jdbc.*,
                             !com.atomikos.jms.*,
+                            com.atomikos.logging;-split-package:=merge-first,
                             com.atomikos.*;-split-package:=merge-first,
                             org.ops4j.pax.transx.tm.impl,
                             org.ops4j.pax.transx.tm.impl.atomikos,
                             META-INF.services;-split-package:=merge-first
                         </Private-Package>
+                        <Export-Package />
                         <Bundle-Activator>
                             org.ops4j.pax.transx.tm.impl.atomikos.Activator
                         </Bundle-Activator>

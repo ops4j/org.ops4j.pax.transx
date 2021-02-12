@@ -15,6 +15,7 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import java.io.Serializable;
 import javax.jms.BytesMessage;
 import javax.jms.Connection;
 import javax.jms.ConnectionMetaData;
@@ -37,7 +38,6 @@ import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
-import java.io.Serializable;
 
 import static org.ops4j.pax.transx.jms.impl.Utils.unsupported;
 

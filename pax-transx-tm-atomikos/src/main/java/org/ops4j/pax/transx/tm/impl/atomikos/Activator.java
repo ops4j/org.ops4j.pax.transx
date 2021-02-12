@@ -15,10 +15,10 @@
  */
 package org.ops4j.pax.transx.tm.impl.atomikos;
 
-import org.ops4j.pax.transx.tm.impl.AbstractActivator;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.ops4j.pax.transx.tm.impl.AbstractActivator;
 
 /**
  */

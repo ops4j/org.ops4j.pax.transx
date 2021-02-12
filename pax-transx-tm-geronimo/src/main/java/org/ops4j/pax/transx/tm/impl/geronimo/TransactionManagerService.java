@@ -15,6 +15,15 @@
  */
 package org.ops4j.pax.transx.tm.impl.geronimo;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.List;
+import javax.transaction.TransactionManager;
+import javax.transaction.TransactionSynchronizationRegistry;
+import javax.transaction.UserTransaction;
+import javax.transaction.xa.XAException;
+
 import org.apache.geronimo.transaction.log.HOWLLog;
 import org.apache.geronimo.transaction.log.UnrecoverableLog;
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
@@ -25,15 +34,6 @@ import org.apache.geronimo.transaction.manager.XidFactoryImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
-
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
-import javax.transaction.UserTransaction;
-import javax.transaction.xa.XAException;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.List;
 
 /**
  */

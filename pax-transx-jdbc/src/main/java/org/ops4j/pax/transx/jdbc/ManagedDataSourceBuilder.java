@@ -15,6 +15,17 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import javax.resource.spi.ConnectionManager;
+import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
+import javax.sql.CommonDataSource;
+import javax.sql.ConnectionPoolDataSource;
+import javax.sql.DataSource;
+import javax.sql.XADataSource;
+
 import org.ops4j.pax.transx.connection.ExceptionSorter;
 import org.ops4j.pax.transx.connector.ConnectionManagerBuilder;
 import org.ops4j.pax.transx.jdbc.impl.AbstractJdbcManagedConnectionFactory;
@@ -22,17 +33,6 @@ import org.ops4j.pax.transx.jdbc.impl.ConnectionPoolDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.LocalDataSourceMCF;
 import org.ops4j.pax.transx.jdbc.impl.XADataSourceMCF;
 import org.ops4j.pax.transx.tm.TransactionManager;
-
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
-import javax.sql.CommonDataSource;
-import javax.sql.ConnectionPoolDataSource;
-import javax.sql.DataSource;
-import javax.sql.XADataSource;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 public class ManagedDataSourceBuilder {
 

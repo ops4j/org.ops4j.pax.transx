@@ -80,14 +80,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Logging dependencies -->
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <!-- Spring -->
 
         <dependency>
@@ -127,6 +119,20 @@
             <scope>test</scope>
         </dependency>
 
+
+        <!-- Logging dependencies -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -141,7 +147,9 @@
                             org.ops4j.pax.transx.connection
                         </Export-Package>
                         <Import-Package>
-                            org.ops4j.pax.transx.connection;version="[0.4,0.5)",
+                            org.ops4j.pax.transx.connection,
+                            javax.resource;version="[1.6,2)",
+                            javax.resource.*;version="[1.6,2)",
                             *
                         </Import-Package>
                         <Private-Package>

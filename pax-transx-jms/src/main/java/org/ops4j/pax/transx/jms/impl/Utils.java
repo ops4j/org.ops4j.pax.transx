@@ -15,6 +15,7 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import java.util.Set;
 import javax.jms.IllegalStateRuntimeException;
 import javax.jms.InvalidClientIDException;
 import javax.jms.InvalidClientIDRuntimeException;
@@ -36,7 +37,6 @@ import javax.jms.TransactionInProgressException;
 import javax.jms.TransactionInProgressRuntimeException;
 import javax.jms.TransactionRolledBackException;
 import javax.jms.TransactionRolledBackRuntimeException;
-import java.util.Set;
 
 final class Utils {
 

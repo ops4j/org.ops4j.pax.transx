@@ -32,14 +32,6 @@
 
     <dependencies>
 
-        <!-- OSGi -->
-
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- pax-transx own artifacts -->
 
         <dependency>
@@ -47,15 +39,23 @@
             <artifactId>pax-transx-tm-api</artifactId>
         </dependency>
 
+        <!-- OSGi -->
+
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- APIs -->
 
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
+            <groupId>javax.transaction</groupId>
+            <artifactId>javax.transaction-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
+            <groupId>javax.resource</groupId>
+            <artifactId>javax.resource-api</artifactId>
         </dependency>
 
         <!-- Apache components -->
@@ -105,6 +105,8 @@
                         <Import-Package>
                             !com.zaxxer.hikari.*,
                             !javassist.*,
+                            javax.resource;version="[1.6,2)",
+                            javax.resource.*;version="[1.6,2)",
                             *
                         </Import-Package>
                         <Private-Package>

@@ -15,6 +15,11 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import javax.jms.BytesMessage;
 import javax.jms.CompletionListener;
 import javax.jms.DeliveryMode;
@@ -28,11 +33,6 @@ import javax.jms.MessageFormatException;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.TextMessage;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 public final class JMSProducerImpl implements JMSProducer {
 

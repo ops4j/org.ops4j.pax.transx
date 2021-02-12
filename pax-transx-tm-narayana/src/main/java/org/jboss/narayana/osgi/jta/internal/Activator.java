@@ -15,11 +15,6 @@
  */
 package org.jboss.narayana.osgi.jta.internal;
 
-import org.ops4j.pax.transx.tm.impl.AbstractActivator;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.wiring.BundleWiring;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -27,6 +22,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+
+import org.ops4j.pax.transx.tm.impl.AbstractActivator;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleWiring;
 
 public class Activator extends AbstractActivator {
 

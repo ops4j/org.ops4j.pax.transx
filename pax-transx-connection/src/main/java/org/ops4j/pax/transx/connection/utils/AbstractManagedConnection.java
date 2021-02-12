@@ -15,8 +15,10 @@
  */
 package org.ops4j.pax.transx.connection.utils;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-
+import java.io.PrintWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedList;
 import javax.resource.NotSupportedException;
 import javax.resource.ResourceException;
 import javax.resource.spi.ConnectionEvent;
@@ -30,10 +32,8 @@ import javax.security.auth.Subject;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-import java.io.PrintWriter;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.LinkedList;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
 
 public abstract class AbstractManagedConnection<
         MCF extends AbstractManagedConnectionFactory<MCF, MC, C, CI>,

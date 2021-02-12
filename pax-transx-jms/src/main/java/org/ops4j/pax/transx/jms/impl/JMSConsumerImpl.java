@@ -15,6 +15,9 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import javax.jms.BytesMessage;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSException;
@@ -24,9 +27,6 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 public class JMSConsumerImpl implements JMSConsumer {
 

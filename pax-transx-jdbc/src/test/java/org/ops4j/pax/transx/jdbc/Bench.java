@@ -15,15 +15,15 @@
  */
 package org.ops4j.pax.transx.jdbc;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.resource.spi.TransactionSupport;
+import javax.sql.DataSource;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.Test;
 import org.ops4j.pax.transx.jdbc.stubs.StubDataSource;
-
-import javax.resource.spi.TransactionSupport;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 public class Bench {
 

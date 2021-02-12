@@ -15,6 +15,11 @@
  */
 package org.ops4j.pax.transx.tm.impl.geronimo;
 
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import javax.transaction.SystemException;
+
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
 import org.apache.geronimo.transaction.manager.NamedXAResource;
 import org.apache.geronimo.transaction.manager.NamedXAResourceFactory;
@@ -23,11 +28,6 @@ import org.ops4j.pax.transx.tm.LastResource;
 import org.ops4j.pax.transx.tm.NamedResource;
 import org.ops4j.pax.transx.tm.ResourceFactory;
 import org.ops4j.pax.transx.tm.impl.AbstractTransactionManagerWrapper;
-
-import javax.transaction.SystemException;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
 
 public class TransactionManagerWrapper extends AbstractTransactionManagerWrapper<GeronimoTransactionManager> {
 

@@ -15,10 +15,8 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.LocalTransactionException;
@@ -26,8 +24,10 @@ import javax.resource.spi.ResourceAdapterInternalException;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.PooledConnection;
-import java.sql.Connection;
-import java.sql.SQLException;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 public class ManagedPooledConnection extends AbstractManagedConnection<ConnectionPoolDataSourceMCF, ManagedPooledConnection, Connection, ConnectionHandle<ConnectionPoolDataSourceMCF, ManagedPooledConnection>> {
 

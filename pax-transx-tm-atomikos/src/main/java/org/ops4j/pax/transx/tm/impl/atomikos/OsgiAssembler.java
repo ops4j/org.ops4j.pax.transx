@@ -15,9 +15,6 @@
  */
 package org.ops4j.pax.transx.tm.impl.atomikos;
 
-import com.atomikos.icatch.provider.ConfigProperties;
-import com.atomikos.icatch.provider.imp.AssemblerImp;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,6 +22,9 @@ import java.nio.file.Paths;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Properties;
+
+import com.atomikos.icatch.provider.ConfigProperties;
+import com.atomikos.icatch.provider.imp.AssemblerImp;
 
 public class OsgiAssembler extends AssemblerImp {
 

@@ -15,14 +15,6 @@
  */
 package org.ops4j.pax.transx.tm.impl;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
-import org.osgi.service.log.LogService;
-
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -31,6 +23,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.log.LogService;
 
 public abstract class AbstractActivator implements BundleActivator {
 

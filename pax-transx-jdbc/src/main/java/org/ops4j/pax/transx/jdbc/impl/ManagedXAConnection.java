@@ -15,10 +15,8 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.ExceptionSorter;
-import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
-import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
-
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.resource.ResourceException;
 import javax.resource.spi.LocalTransaction;
 import javax.resource.spi.LocalTransactionException;
@@ -27,8 +25,10 @@ import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAResource;
-import java.sql.Connection;
-import java.sql.SQLException;
+
+import org.ops4j.pax.transx.connection.ExceptionSorter;
+import org.ops4j.pax.transx.connection.utils.AbstractManagedConnection;
+import org.ops4j.pax.transx.connection.utils.CredentialExtractor;
 
 public class ManagedXAConnection extends AbstractManagedConnection<XADataSourceMCF, ManagedXAConnection, Connection, ConnectionHandle<XADataSourceMCF, ManagedXAConnection>> {
 

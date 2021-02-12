@@ -15,15 +15,15 @@
  */
 package org.ops4j.pax.transx.tm;
 
+import javax.transaction.xa.XAException;
+import javax.transaction.xa.Xid;
+
 import org.apache.geronimo.transaction.manager.GeronimoTransactionManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.ops4j.pax.transx.tm.impl.geronimo.TransactionManagerWrapper;
-
-import javax.transaction.xa.XAException;
-import javax.transaction.xa.Xid;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

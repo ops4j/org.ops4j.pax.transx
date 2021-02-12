@@ -31,8 +31,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
+            <groupId>javax.resource</groupId>
+            <artifactId>javax.resource-api</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

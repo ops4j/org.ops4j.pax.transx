@@ -15,21 +15,21 @@
  */
 package org.ops4j.pax.transx.jdbc.impl;
 
-import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
-import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfoImpl;
-import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
-
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
-import javax.sql.CommonDataSource;
-import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.resource.ResourceException;
+import javax.resource.spi.ConnectionManager;
+import javax.sql.CommonDataSource;
+import javax.sql.DataSource;
+
+import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfo;
+import org.ops4j.pax.transx.connection.utils.UserPasswordConnectionRequestInfoImpl;
+import org.ops4j.pax.transx.connection.utils.UserPasswordManagedConnectionFactory;
 
 /**
  * DataSource connection factory for JDBC Connections.

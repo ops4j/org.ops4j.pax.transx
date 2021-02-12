@@ -15,14 +15,14 @@
  */
 package org.ops4j.pax.transx.jms.impl;
 
-import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
-
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TopicConnectionFactory;
 import javax.resource.spi.ConnectionManager;
+
+import org.ops4j.pax.transx.connection.utils.SimpleConnectionManager;
 
 public class TransxConnectionFactory implements TopicConnectionFactory, QueueConnectionFactory, AutoCloseable {
 

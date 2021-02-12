@@ -15,7 +15,6 @@
  */
 package org.ops4j.pax.transx.jdbc.stubs;
 
-import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -23,6 +22,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.sql.SQLTransientConnectionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
 
 /**
  *
