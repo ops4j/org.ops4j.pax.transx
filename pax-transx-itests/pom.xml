@@ -127,6 +127,11 @@
             <artifactId>javax.interceptor-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Database drivers -->
 

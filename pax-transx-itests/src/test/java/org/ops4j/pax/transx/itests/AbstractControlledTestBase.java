@@ -173,4 +173,9 @@ public class AbstractControlledTestBase {
         };
     }
 
+    protected Option jcaApiBundle() {
+//        return mavenBundle("javax.resource", "javax.resource-api").versionAsInProject();
+        return mavenBundle("org.apache.geronimo.specs", "geronimo-j2ee-connector_1.6_spec").versionAsInProject();
+    }
+
 }

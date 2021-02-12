@@ -55,7 +55,7 @@ public class GeronimoRecoveryTest extends AbstractControlledTestBase {
                 mavenBundle("javax.interceptor", "javax.interceptor-api").versionAsInProject(),
                 mavenBundle("javax.el", "javax.el-api").versionAsInProject(),
                 mavenBundle("javax.enterprise", "cdi-api").versionAsInProject(),
-                mavenBundle("javax.resource", "javax.resource-api").versionAsInProject(),
+                jcaApiBundle(),
                 mavenBundle("javax.jms", "javax.jms-api").versionAsInProject(),
                 mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-api").versionAsInProject(),
                 mavenBundle("org.ops4j.pax.transx", "pax-transx-tm-geronimo").versionAsInProject(),

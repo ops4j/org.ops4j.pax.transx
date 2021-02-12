@@ -105,6 +105,7 @@
                         <Import-Package>
                             !com.zaxxer.hikari.*,
                             !javassist.*,
+                            javax.transaction.xa;version=!,
                             javax.resource;version="[1.6,2)",
                             javax.resource.*;version="[1.6,2)",
                             *
