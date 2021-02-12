@@ -22,10 +22,6 @@
 <!-- Checkstyle configuration that checks the Pax TRANSX coding conventions. -->
 <module name="Checker">
 
-    <module name="SuppressionFilter">
-        <property name="file" value="pax-transx-checks-suppression.xml" />
-    </module>
-
     <!-- We want yellow markers in Eclipse by default, not red ones. -->
     <property name="severity" value="error" />
 

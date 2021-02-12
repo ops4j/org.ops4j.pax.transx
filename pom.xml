@@ -770,6 +770,7 @@
                                 </goals>
                                 <configuration>
                                     <configLocation>pax-transx-checks.xml</configLocation>
+                                    <suppressionsLocation>pax-transx-checks-suppressions.xml</suppressionsLocation>
                                     <includes>**/*.java</includes>
                                     <encoding>UTF-8</encoding>
                                     <consoleOutput>true</consoleOutput>
