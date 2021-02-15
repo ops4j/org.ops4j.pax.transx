@@ -35,7 +35,6 @@
             <plugin>
                 <groupId>org.ops4j.tools.maven</groupId>
                 <artifactId>osgi-report-maven-plugin</artifactId>
-                <version>0.1.1</version>
                 <extensions>true</extensions>
                 <executions>
                     <execution>
