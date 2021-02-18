@@ -190,7 +190,7 @@
         <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
         <version.org.jboss.narayana>5.10.6.Final</version.org.jboss.narayana>
         <version.org.jboss.transaction>7.6.0.Final</version.org.jboss.transaction>
-        <version.org.mockito>3.7.7</version.org.mockito>
+        <version.org.mockito>1.10.19</version.org.mockito>
         <version.org.objenesis>3.1</version.org.objenesis>
         <version.org.openjdk.jmh>1.17.2</version.org.openjdk.jmh>
         <version.org.ops4j.pax.exam>4.13.4</version.org.ops4j.pax.exam>
@@ -831,7 +831,7 @@
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
+                <artifactId>mockito-all</artifactId>
                 <version>${version.org.mockito}</version>
             </dependency>
             <dependency>
