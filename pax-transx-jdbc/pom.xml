@@ -119,7 +119,6 @@
             <scope>test</scope>
         </dependency>
 
-
         <!-- Logging dependencies -->
 
         <dependency>
