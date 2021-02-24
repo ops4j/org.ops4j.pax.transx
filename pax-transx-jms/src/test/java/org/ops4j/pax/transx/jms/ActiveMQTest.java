@@ -24,8 +24,10 @@ import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.MessageProducer;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.resource.spi.TransactionSupport.TransactionSupportLevel;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -51,6 +53,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class ActiveMQTest {
+
+    // This test is affected by https://issues.apache.org/jira/browse/AMQ-2659 after upgrading to ActiveMQ 5.16.1
+    // but it sounds reasonable to adjust Pax Transx to this new behavior
 
     public static final String BROKER_URL = "vm://broker?marshal=false&broker.persistent=false";
     public static final String QUEUE = "myqueue";
@@ -98,13 +103,19 @@ public class ActiveMQTest {
             context.createProducer().send(queue, "Hello");
         }
         tx.commit();
+        tx = tm.begin();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
+        tx.commit();
 
+        tx = tm.begin();
         try (JMSContext context = cf.createContext()) {
             Queue queue = context.createQueue(QUEUE);
             context.createProducer().send(queue, "Hello");
         }
+        tx.commit();
+        tx = tm.begin();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
+        tx.commit();
     }
 
     @Test
@@ -112,6 +123,8 @@ public class ActiveMQTest {
         ConnectionFactory cf = createCF(BROKER_URL);
 
         assertEquals(0, consumeMessages(cf, QUEUE).size());
+
+        // transaction with rollback
 
         Transaction tx = tm.begin();
         try (Connection con = cf.createConnection()) {
@@ -121,7 +134,11 @@ public class ActiveMQTest {
             }
         }
         tx.rollback();
+        tx = tm.begin();
         assertEquals(0, consumeMessages(cf, QUEUE).size());
+        tx.commit();
+
+        // transaction with commit
 
         tx = tm.begin();
         try (Connection con = cf.createConnection()) {
@@ -131,21 +148,30 @@ public class ActiveMQTest {
             }
         }
         tx.commit();
+        tx = tm.begin();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
+        tx.commit();
+
+        // no transaction at all
 
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession()) {
                 Queue queue = s.createQueue(QUEUE);
-                s.createProducer(queue).send(s.createTextMessage("Hello"));
                 try {
-                    s.rollback();
+                    MessageProducer producer = s.createProducer(queue);
+                    TextMessage message = s.createTextMessage("Hello");
+                    producer.send(message);
                     fail("Should have thrown an exception");
                 } catch (JMSException e) {
                     // expected
                 }
             }
         }
-        assertEquals(1, consumeMessages(cf, QUEUE).size());
+        tx = tm.begin();
+        assertEquals(0, consumeMessages(cf, QUEUE).size());
+        tx.commit();
+
+        // transaction with setRollbackOnly
 
         tx = tm.begin();
         try (Connection con = cf.createConnection()) {
@@ -158,10 +184,14 @@ public class ActiveMQTest {
         assertEquals(0, consumeMessages(cf, QUEUE).size());
         tx.rollback();
 
+        // transaction with session.rollback() after transaction.commit();
+
+        tx = tm.begin();
         try (Connection con = cf.createConnection()) {
             try (Session s = con.createSession(false, Session.SESSION_TRANSACTED)) {
                 Queue queue = s.createQueue(QUEUE);
                 s.createProducer(queue).send(s.createTextMessage("Hello"));
+                tx.commit();
                 try {
                     s.rollback();
                     fail("Should have thrown an exception");
@@ -170,12 +200,14 @@ public class ActiveMQTest {
                 }
             }
         }
+        tx = tm.begin();
         assertEquals(1, consumeMessages(cf, QUEUE).size());
+        tx.commit();
     }
 
     @Test
     public void testSpring() throws Exception {
-        ConnectionFactory cf = createCF(BROKER_URL);
+        ConnectionFactory cf = createCF(BROKER_URL, false);
         JmsTemplate jms = new JmsTemplate(cf);
         jms.setDefaultDestinationName(QUEUE);
         jms.setReceiveTimeout(100);
@@ -234,14 +266,16 @@ public class ActiveMQTest {
         mlc.start();
 
         JmsTemplate jms = new JmsTemplate(cf);
+        jms.setSessionTransacted(true);
         jms.setDefaultDestinationName(QUEUE);
 
         synchronized (holder) {
+            Transaction tx = tm.begin();
             jms.convertAndSend("Hello");
+            tx.commit();
             holder.wait();
         }
         assertNotNull(holder.get());
-
     }
 
     @Test
@@ -306,4 +340,5 @@ public class ActiveMQTest {
         }
         return cf;
     }
+
 }

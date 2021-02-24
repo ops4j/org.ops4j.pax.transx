@@ -16,6 +16,7 @@
 package org.ops4j.pax.transx.jms.impl;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
@@ -346,7 +347,11 @@ public class SessionImpl extends AbstractConnectionHandle<ManagedConnectionFacto
                             && method.getReturnType() == void.class) {
                         closeables.remove(closeable);
                     }
-                    return method.invoke(closeable, args);
+                    try {
+                        return method.invoke(closeable, args);
+                    } catch (InvocationTargetException e) {
+                        throw e.getTargetException();
+                    }
                 }));
     }
 
