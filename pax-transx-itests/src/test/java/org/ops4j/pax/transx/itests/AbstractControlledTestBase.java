@@ -97,8 +97,8 @@ public class AbstractControlledTestBase {
         }
 
         Option[] baseOptions = new Option[] {
-                // basic options
-                bootDelegationPackages("sun.*", "com.sun.*", "javax.transaction.xa", "javax.security.*"),
+                // basic options (see https://issues.apache.org/jira/browse/FELIX-6184)
+                bootDelegationPackages("sun.*", "com.sun.*", "javax.transaction.xa", "javax.security.*", "jdk.internal.reflect.*", "jdk.internal.reflect"),
                 systemPackage("javax.transaction.xa;version=\"1.2\""),
 
                 frameworkStartLevel(START_LEVEL_TEST_BUNDLE),
