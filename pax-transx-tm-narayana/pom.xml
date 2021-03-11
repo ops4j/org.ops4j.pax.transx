@@ -163,6 +163,7 @@
                         <Import-Package>
                             !com.arjuna.*,
                             !javax.resource.spi.*,
+                            javax.security.cert,
                             javax.transaction;version="[1.1,2)",
                             javax.transaction.xa;version=!,
                             javax.xml.parsers,
