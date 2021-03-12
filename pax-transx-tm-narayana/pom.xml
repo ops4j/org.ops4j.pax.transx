@@ -52,6 +52,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JBoss components -->
 
         <dependency>
@@ -170,6 +176,29 @@
                             org.xml.sax.helpers,
                             org.springframework.*;version="[2.5,6)";resolution:=optional,
                             org.apache.karaf.shell.*;resolution:=optional,
+                            <!-- imports collected from the closure of embedded dependencies -->
+                            javax.crypto,
+                            javax.crypto.spec,
+                            javax.net.ssl,
+                            javax.security.auth.x500,
+                            javax.security.cert,
+                            org.bouncycastle.asn1.x500;resolution:=optional,
+                            org.bouncycastle.cert;resolution:=optional,
+                            org.bouncycastle.cert.jcajce;resolution:=optional,
+                            org.bouncycastle.jce.provider;resolution:=optional,
+                            org.bouncycastle.operator;resolution:=optional,
+                            org.bouncycastle.operator.jcajce;resolution:=optional,
+                            com.google.protobuf;resolution:=optional,
+                            com.google.protobuf.nano;resolution:=optional,
+                            com.jcraft.jzlib;resolution:=optional,
+                            com.ning.compress;resolution:=optional,
+                            com.ning.compress.lzf;resolution:=optional,
+                            com.ning.compress.lzf.util;resolution:=optional,
+                            org.slf4j;resolution:=optional,
+                            org.slf4j.helpers;resolution:=optional,
+                            org.slf4j.spi;resolution:=optional,
+                            sun.misc;resolution:=optional,
+                            sun.nio.ch;resolution:=optional,
                             *
                         </Import-Package>
                         <Export-Package>
