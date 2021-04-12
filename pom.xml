@@ -184,7 +184,7 @@
 <!--        <version.org.apache.derby>10.15.2.0</version.org.apache.derby>-->
         <version.org.apache.felix.configadmin>1.9.20</version.org.apache.felix.configadmin>
         <version.org.apache.felix.metatype>1.2.4</version.org.apache.felix.metatype>
-        <version.org.apache.felix.utils>1.11.6</version.org.apache.felix.utils>
+        <version.org.apache.felix.utils>1.11.8</version.org.apache.felix.utils>
         <version.org.apache.felix.framework>5.6.12</version.org.apache.felix.framework>
         <version.org.apache.geronimo.transaction>3.1.4</version.org.apache.geronimo.transaction>
         <version.org.apache.karaf>4.2.10</version.org.apache.karaf>
