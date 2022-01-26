@@ -38,7 +38,7 @@ import static javax.transaction.xa.XAResource.TMENDRSCAN;
 import static javax.transaction.xa.XAResource.TMSTARTRSCAN;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.OptionUtils.combine;
 
