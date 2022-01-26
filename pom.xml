@@ -189,7 +189,7 @@
         <version.org.apache.geronimo.transaction>3.1.4</version.org.apache.geronimo.transaction>
         <version.org.apache.karaf>4.2.15</version.org.apache.karaf>
         <version.org.apache.logging.log4j>2.17.1</version.org.apache.logging.log4j>
-        <version.org.hsqldb>2.6.1</version.org.hsqldb>
+        <version.org.hsqldb>2.5.2</version.org.hsqldb>
         <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
         <version.org.jboss.narayana>5.12.5.Final</version.org.jboss.narayana>
         <version.org.jboss.transaction>7.6.1.Final</version.org.jboss.transaction>
