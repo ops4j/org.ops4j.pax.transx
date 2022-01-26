@@ -47,13 +47,13 @@ import static org.junit.Assert.fail;
 
 public class H2Test {
 
-    private static final String DROP_USER = "DROP TABLE IF EXISTS USER";
-    private static final String CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS USER (ID INT NOT NULL UNIQUE, NAME VARCHAR(50))";
-    private static final String INSERT_INTO_USER = "INSERT INTO USER (ID, NAME) VALUES (?, ?)";
-    private static final String SELECT_FROM_USER_BY_ID = "SELECT * FROM USER WHERE ID = ?";
-    private static final String DELETE_FROM_USER_BY_ID = "DELETE FROM USER WHERE ID = ?";
-    private static final String DELETE_FROM_USER = "DELETE * FROM USER";
-    private static final String COUNT_USER = "SELECT COUNT(*) FROM USER";
+    private static final String DROP_USER = "DROP TABLE IF EXISTS USERS CASCADE";
+    private static final String CREATE_TABLE_USER = "CREATE TABLE IF NOT EXISTS USERS (ID INT NOT NULL UNIQUE, NAME VARCHAR(50))";
+    private static final String INSERT_INTO_USER = "INSERT INTO USERS (ID, NAME) VALUES (?, ?)";
+    private static final String SELECT_FROM_USER_BY_ID = "SELECT * FROM USERS WHERE ID = ?";
+    private static final String DELETE_FROM_USER_BY_ID = "DELETE FROM USERS WHERE ID = ?";
+    private static final String DELETE_FROM_USER = "DELETE * FROM USERS";
+    private static final String COUNT_USER = "SELECT COUNT(*) FROM USERS";
 
     PlatformTransactionManager ptm;
     TransactionManager tm;

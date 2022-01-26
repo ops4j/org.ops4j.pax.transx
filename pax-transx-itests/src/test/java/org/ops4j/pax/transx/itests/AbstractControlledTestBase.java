@@ -128,7 +128,13 @@ public class AbstractControlledTestBase {
                 linkBundle("org.apache.servicemix.bundles.javax-inject").startLevel(START_LEVEL_SYSTEM_BUNDLES),
 
                 junitBundles(),
-                mavenBundle("org.mockito", "mockito-all")
+                mavenBundle("org.mockito", "mockito-core")
+                        .versionAsInProject().startLevel(START_LEVEL_TEST_BUNDLE - 1),
+                mavenBundle("net.bytebuddy", "byte-buddy")
+                        .versionAsInProject().startLevel(START_LEVEL_TEST_BUNDLE - 1),
+                mavenBundle("net.bytebuddy", "byte-buddy-agent")
+                        .versionAsInProject().startLevel(START_LEVEL_TEST_BUNDLE - 1),
+                mavenBundle("org.objenesis", "objenesis")
                         .versionAsInProject().startLevel(START_LEVEL_TEST_BUNDLE - 1),
 
                 mavenBundle("org.ops4j.pax.logging", "pax-logging-api")
