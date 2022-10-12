@@ -118,8 +118,7 @@
         -->
 
         <!-- JSR 341 - EL API -->
-        <version.javax.el>3.0.0</version.javax.el>
-<!--        <version.jakarta.el>3.0.3</version.jakarta.el>-->
+        <version.jakarta.el>3.0.3</version.jakarta.el>
 
         <!-- JSR 365 - CDI API -->
         <version.javax.enterprise.cdi>2.0.SP1</version.javax.enterprise.cdi>
@@ -636,15 +635,10 @@
 <!--                <version>${version.jakarta.enterprise.cdi}</version>-->
 <!--            </dependency>-->
             <dependency>
-                <groupId>javax.el</groupId>
-                <artifactId>javax.el-api</artifactId>
-                <version>${version.javax.el}</version>
+                <groupId>jakarta.el</groupId>
+                <artifactId>jakarta.el-api</artifactId>
+                <version>${version.jakarta.el}</version>
             </dependency>
-<!--            <dependency>-->
-<!--                <groupId>jakarta.el</groupId>-->
-<!--                <artifactId>jakarta.el-api</artifactId>-->
-<!--                <version>${version.jakarta.el}</version>-->
-<!--            </dependency>-->
             <!-- This is a proper OSGi bundle since 1.0.2 (ee8 branch of eclipse-ee4j/injection-api) -->
 <!--            <dependency>-->
 <!--                <groupId>jakarta.inject</groupId>-->

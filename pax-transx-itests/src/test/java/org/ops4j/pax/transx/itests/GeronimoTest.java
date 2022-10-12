@@ -57,7 +57,7 @@ public class GeronimoTest extends AbstractControlledTestBase {
         return combine(baseConfigure(),
                 mavenBundle("javax.transaction", "javax.transaction-api").versionAsInProject(),
                 mavenBundle("javax.interceptor", "javax.interceptor-api").versionAsInProject(),
-                mavenBundle("javax.el", "javax.el-api").versionAsInProject(),
+                mavenBundle("jakarta.el", "jakarta.el-api").versionAsInProject(),
                 mavenBundle("javax.enterprise", "cdi-api").versionAsInProject(),
                 jcaApiBundle(),
                 mavenBundle("javax.jms", "javax.jms-api").versionAsInProject(),
