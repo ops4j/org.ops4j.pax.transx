@@ -109,7 +109,7 @@
 
         <version.biz.aQute.bnd>6.1.0</version.biz.aQute.bnd>
         <version.com.atomikos>5.0.8</version.com.atomikos>
-        <version.com.h2database>2.1.210</version.com.h2database>
+        <version.com.h2database>2.2.220</version.com.h2database>
         <!-- 5.x is JDK 11 -->
         <version.com.zaxxer.hikari>4.0.3</version.com.zaxxer.hikari>
 
