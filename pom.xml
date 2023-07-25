@@ -68,8 +68,8 @@
         <connection>scm:git:https://github.com/ops4j/org.ops4j.pax.transx.git</connection>
         <developerConnection>scm:git:https://github.com/ops4j/org.ops4j.pax.transx.git</developerConnection>
         <url>https://github.com/ops4j/org.ops4j.pax.transx/tree/master</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -108,7 +108,7 @@
         <!-- versions of Maven dependencies (sorted and groupped) -->
 
         <version.biz.aQute.bnd>6.1.0</version.biz.aQute.bnd>
-        <version.com.atomikos>5.0.8</version.com.atomikos>
+        <version.com.atomikos>5.0.9</version.com.atomikos>
         <version.com.h2database>2.1.210</version.com.h2database>
         <!-- 5.x is JDK 11 -->
         <version.com.zaxxer.hikari>4.0.3</version.com.zaxxer.hikari>
