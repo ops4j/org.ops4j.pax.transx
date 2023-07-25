@@ -195,7 +195,7 @@
         <!-- 2.6.x is for JDK11+ -->
         <version.org.hsqldb>2.5.2</version.org.hsqldb>
         <version.org.jboss.logging>3.4.1.Final</version.org.jboss.logging>
-        <version.org.jboss.narayana>5.12.5.Final</version.org.jboss.narayana>
+        <version.org.jboss.narayana>5.12.7.Final</version.org.jboss.narayana>
         <version.org.jboss.transaction>7.6.1.Final</version.org.jboss.transaction>
         <!-- 5.x is for JDK11+ -->
         <version.org.mockito>4.11.0</version.org.mockito>
